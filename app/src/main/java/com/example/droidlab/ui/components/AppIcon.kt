@@ -65,6 +65,7 @@ fun AppIcon(
             "lightbulb" -> Icons.Rounded.Lightbulb
             "tips_and_updates" -> Icons.Rounded.TipsAndUpdates
             "check" -> Icons.Rounded.Check
+            "check_circle" -> Icons.Rounded.CheckCircle
             "headset", "headphones" -> Icons.Rounded.Headphones
             "play" -> Icons.Rounded.PlayArrow
             "pause" -> Icons.Rounded.Pause
@@ -76,6 +77,23 @@ fun AppIcon(
             "speaker", "phone_speaker" -> Icons.Rounded.Smartphone
             "lyrics" -> Icons.AutoMirrored.Rounded.Notes
             "queue", "up_next" -> Icons.AutoMirrored.Rounded.QueueMusic
+            "timer", "sleep_timer", "schedule" -> Icons.Rounded.Timer
+            "bedtime" -> Icons.Rounded.Bedtime
+            "person" -> Icons.Rounded.Person
+            "person_add" -> Icons.Rounded.PersonAdd
+            "delete" -> Icons.Rounded.Delete
+            "download" -> Icons.Rounded.Download
+            "cloud_download" -> Icons.Rounded.CloudDownload
+            "palette" -> Icons.Rounded.Palette
+            "font", "text_fields" -> Icons.Rounded.TextFields
+            "wifi_off" -> Icons.Rounded.WifiOff
+            "refresh" -> Icons.Rounded.Refresh
+            "star" -> Icons.Rounded.Star
+            "speed" -> Icons.Rounded.Speed
+            "history" -> Icons.Rounded.History
+            "trending_up" -> Icons.Rounded.TrendingUp
+            "public" -> Icons.Rounded.Public
+            "library_music" -> Icons.Rounded.LibraryMusic
             else -> Icons.Rounded.Circle
         }
 

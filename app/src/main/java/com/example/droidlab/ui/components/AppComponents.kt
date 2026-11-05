@@ -1,6 +1,8 @@
 package com.example.droidlab.ui.components
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
@@ -25,13 +28,17 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.droidlab.ui.theme.*
+import androidx.compose.ui.window.Dialog
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Top App Bar matching Droid Lab visual specification (.app-bar.elevated).
+ * Supports contextual 3-dot dropdown menu items per screen.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +46,11 @@ fun DroidLabTopAppBar(
     title: String,
     onMenuClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
+    menuItems: List<Pair<String, String>> = listOf(
+        Pair("Analyze", "analyze"),
+        Pair("Manage", "manage"),
+        Pair("Equalizer", "equalizer")
+    ),
     onActionClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -60,7 +72,9 @@ fun DroidLabTopAppBar(
         navigationIcon = {
             IconButton(
                 onClick = onMenuClick,
-                modifier = Modifier.size(42.dp)
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
             ) {
                 AppIcon(name = "drawer", contentDescription = "Open navigation", size = 22.dp)
             }
@@ -68,19 +82,24 @@ fun DroidLabTopAppBar(
         actions = {
             IconButton(
                 onClick = onSearchClick,
-                modifier = Modifier.size(42.dp)
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
             ) {
                 AppIcon(name = "search", contentDescription = "Search", size = 20.dp)
             }
             Box {
                 IconButton(
                     onClick = { isMoreMenuOpen = true },
-                    modifier = Modifier.size(42.dp)
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
                 ) {
                     AppIcon(name = "more_vert", contentDescription = "More actions", size = 22.dp)
                 }
                 DroidLabMoreMenu(
                     expanded = isMoreMenuOpen,
+                    items = menuItems,
                     onDismissRequest = { isMoreMenuOpen = false },
                     onActionClick = onActionClick
                 )
@@ -151,6 +170,7 @@ fun DroidLabTabs(
 
 /**
  * Bottom Navigation Bar matching Droid Lab visual specification (.nav-bar.nav-material).
+ * Provides generous breathing room for system gesture controllers.
  */
 @Composable
 fun DroidLabBottomNav(
@@ -170,7 +190,12 @@ fun DroidLabBottomNav(
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 3.dp
     ) {
-        Column {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(bottom = 8.dp)
+        ) {
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
                 thickness = 1.dp
@@ -178,7 +203,7 @@ fun DroidLabBottomNav(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 items.forEachIndexed { index, (label, icon) ->
@@ -186,15 +211,16 @@ fun DroidLabBottomNav(
                     Column(
                         modifier = Modifier
                             .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
                             .clickable { onTabSelected(index) }
-                            .padding(vertical = 2.dp),
+                            .padding(vertical = 4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         // Pill icon indicator
                         Box(
                             modifier = Modifier
-                                .width(58.dp)
+                                .width(56.dp)
                                 .height(30.dp)
                                 .clip(RoundedCornerShape(15.dp))
                                 .background(
@@ -225,7 +251,8 @@ fun DroidLabBottomNav(
 }
 
 /**
- * Floating Mini Music Player matching exact Droid Lab circular progress ring specification (.mini-ring).
+ * High-attention Floating Mini Music Player (.mini-ring).
+ * Sleek glowing accent border, gradient avatar, and circular progress ring with play/pause.
  */
 @Composable
 fun DroidLabMiniPlayer(
@@ -241,26 +268,39 @@ fun DroidLabMiniPlayer(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 6.dp)
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(22.dp))
+            .padding(horizontal = 14.dp, vertical = 4.dp)
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(26.dp),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+            )
+            .border(
+                BorderStroke(1.2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                shape = RoundedCornerShape(26.dp)
+            )
+            .clip(RoundedCornerShape(26.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(26.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+            containerColor = Color(0xFF1E222D)
         )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left circular avatar with headphone icon
+            // Gradient Headphone Avatar
             Box(
                 modifier = Modifier
                     .size(46.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF4B5160)),
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color(0xFF3B82F6), Color(0xFF8B5CF6))
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 AppIcon(name = "headset", size = 22.dp, tint = Color.White)
@@ -268,16 +308,23 @@ fun DroidLabMiniPlayer(
 
             Spacer(Modifier.width(12.dp))
 
-            // Center details
+            // Center details with mini animated equalizer bars
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (isPlaying) {
+                        Spacer(Modifier.width(8.dp))
+                        MiniAnimatedWaveform()
+                    }
+                }
                 Text(
                     text = artist,
                     fontSize = 12.sp,
@@ -288,18 +335,21 @@ fun DroidLabMiniPlayer(
                 Text(
                     text = "$progressPercent% played",
                     fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1
                 )
             }
 
-            // Circular progress ring enclosing play/pause button
+            // Circular progress ring enclosing circular play/pause button
             val ringProgress = (progressPercent / 100f).coerceIn(0f, 1f)
             val ringPrimaryColor = MaterialTheme.colorScheme.primary
-            val ringTrackColor = ringPrimaryColor.copy(alpha = 0.2f)
+            val ringTrackColor = ringPrimaryColor.copy(alpha = 0.22f)
 
             Box(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
@@ -327,7 +377,7 @@ fun DroidLabMiniPlayer(
                     )
                 }
 
-                // Inner play/pause circular button
+                // Inner circular play/pause button
                 Box(
                     modifier = Modifier
                         .size(34.dp)
@@ -347,9 +397,12 @@ fun DroidLabMiniPlayer(
             Spacer(Modifier.width(6.dp))
 
             // Skip next button
-            IconButton(
-                onClick = onNext,
-                modifier = Modifier.size(36.dp)
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onNext),
+                contentAlignment = Alignment.Center
             ) {
                 AppIcon(
                     name = "skip_next",
@@ -362,19 +415,65 @@ fun DroidLabMiniPlayer(
 }
 
 /**
+ * Bouncing mini equalizer wave bars.
+ */
+@Composable
+fun MiniAnimatedWaveform() {
+    val infiniteTransition = rememberInfiniteTransition(label = "waveform")
+    val h1 by infiniteTransition.animateFloat(
+        initialValue = 4f, targetValue = 14f,
+        animationSpec = infiniteRepeatable(tween(400, easing = LinearEasing), RepeatMode.Reverse),
+        label = "h1"
+    )
+    val h2 by infiniteTransition.animateFloat(
+        initialValue = 12f, targetValue = 5f,
+        animationSpec = infiniteRepeatable(tween(320, easing = LinearEasing), RepeatMode.Reverse),
+        label = "h2"
+    )
+    val h3 by infiniteTransition.animateFloat(
+        initialValue = 6f, targetValue = 16f,
+        animationSpec = infiniteRepeatable(tween(480, easing = LinearEasing), RepeatMode.Reverse),
+        label = "h3"
+    )
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.Bottom,
+        modifier = Modifier.height(16.dp)
+    ) {
+        Box(Modifier.width(2.5.dp).height(h1.dp).clip(RoundedCornerShape(1.dp)).background(MaterialTheme.colorScheme.primary))
+        Box(Modifier.width(2.5.dp).height(h2.dp).clip(RoundedCornerShape(1.dp)).background(MaterialTheme.colorScheme.primary))
+        Box(Modifier.width(2.5.dp).height(h3.dp).clip(RoundedCornerShape(1.dp)).background(MaterialTheme.colorScheme.primary))
+    }
+}
+
+/**
  * Vinyl Record Canvas Component matching Droid Lab full-player specification.
  */
 @Composable
 fun VinylRecordPlayer(
+    isPlaying: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    // Rotation animation
+    val infiniteTransition = rememberInfiniteTransition(label = "vinyl_spin")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(6000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotation"
+    )
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(290.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Vinyl Record
+        // Vinyl Record Disc
         Box(
             modifier = Modifier
                 .size(255.dp)
@@ -399,7 +498,7 @@ fun VinylRecordPlayer(
                 }
             }
 
-            // Center Label Disc
+            // Center Label Disc with Headset Icon
             Box(
                 modifier = Modifier
                     .size(96.dp)
@@ -456,7 +555,174 @@ fun VinylRecordPlayer(
 }
 
 /**
- * Full-screen Now Playing Modal Sheet matching exact Droid Lab Vinyl specification.
+ * Interactive Clock Dial Sleep Timer Dialog.
+ */
+@Composable
+fun SleepTimerDialog(
+    onDismissRequest: () -> Unit,
+    onTimerSet: (Int) -> Unit
+) {
+    var selectedMinutes by remember { mutableIntStateOf(30) }
+    val presets = listOf(15, 30, 45, 60, 90)
+
+    Dialog(onDismissRequest = onDismissRequest) {
+        Card(
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AppIcon(name = "timer", size = 24.dp, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = "Sleep Timer",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                // Circular Clock Dial representation
+                Box(
+                    modifier = Modifier
+                        .size(170.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val center = Offset(size.width / 2, size.height / 2)
+                        val radius = size.minDimension / 2 - 12.dp.toPx()
+
+                        // Clock ring
+                        drawCircle(
+                            color = Color(0xFF3A4254),
+                            radius = radius,
+                            center = center,
+                            style = Stroke(width = 2.dp.toPx())
+                        )
+
+                        // 12 ticks
+                        for (i in 0 until 12) {
+                            val angleRad = Math.toRadians((i * 30 - 90).toDouble())
+                            val startX = center.x + (radius - 8.dp.toPx()) * cos(angleRad).toFloat()
+                            val startY = center.y + (radius - 8.dp.toPx()) * sin(angleRad).toFloat()
+                            val endX = center.x + radius * cos(angleRad).toFloat()
+                            val endY = center.y + radius * sin(angleRad).toFloat()
+                            drawLine(
+                                color = Color.White.copy(alpha = 0.6f),
+                                start = Offset(startX, startY),
+                                end = Offset(endX, endY),
+                                strokeWidth = 2.dp.toPx()
+                            )
+                        }
+
+                        // Clock hand pointing according to selected minutes (0 to 60 mapped to 360)
+                        val handAngle = Math.toRadians(((selectedMinutes % 60) * 6 - 90).toDouble())
+                        val handX = center.x + (radius * 0.65f) * cos(handAngle).toFloat()
+                        val handY = center.y + (radius * 0.65f) * sin(handAngle).toFloat()
+                        drawLine(
+                            color = Color(0xFF4F80FF),
+                            start = center,
+                            end = Offset(handX, handY),
+                            strokeWidth = 3.5.dp.toPx(),
+                            cap = StrokeCap.Round
+                        )
+                        drawCircle(color = Color(0xFF4F80FF), radius = 6.dp.toPx(), center = center)
+                    }
+
+                    // Display time
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(top = 44.dp)
+                    ) {
+                        Text(
+                            text = "$selectedMinutes min",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(18.dp))
+
+                // Preset Chips
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    presets.forEach { mins ->
+                        val isSelected = selectedMinutes == mins
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(99.dp))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                                )
+                                .clickable { selectedMinutes = mins }
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "${mins}m",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                Text(
+                    text = "App will gently fade out music and close when the timer completes.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                // Actions
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismissRequest) {
+                        Text("Cancel", fontSize = 14.sp)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            onTimerSet(selectedMinutes)
+                            onDismissRequest()
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Set Timer", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * True Full-Screen Now Playing Modal Sheet matching exact Droid Lab Vinyl specification.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -481,16 +747,20 @@ fun DroidLabNowPlayingSheet(
     var isShuffleOn by remember { mutableStateOf(false) }
     var isRepeatOn by remember { mutableStateOf(false) }
 
+    var isSlidersMenuOpen by remember { mutableStateOf(false) }
+    var isSleepTimerDialogOpen by remember { mutableStateOf(false) }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = null,
-        modifier = modifier.fillMaxHeight(0.96f)
+        modifier = modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -537,19 +807,47 @@ fun DroidLabNowPlayingSheet(
 
                 Spacer(Modifier.weight(1f))
 
-                // Sliders / Tune Icon
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.size(38.dp)
-                ) {
-                    AppIcon(name = "tune", size = 22.dp)
+                // Sliders / 3-Line Tune Icon with Dropdown Menu
+                Box {
+                    IconButton(
+                        onClick = { isSlidersMenuOpen = true },
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                    ) {
+                        AppIcon(name = "tune", size = 22.dp)
+                    }
+
+                    DropdownMenu(
+                        expanded = isSlidersMenuOpen,
+                        onDismissRequest = { isSlidersMenuOpen = false },
+                        modifier = Modifier
+                            .width(175.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Equalizer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
+                            leadingIcon = { AppIcon(name = "equalizer", size = 20.dp) },
+                            onClick = {
+                                isSlidersMenuOpen = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Sleep Timer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
+                            leadingIcon = { AppIcon(name = "timer", size = 20.dp) },
+                            onClick = {
+                                isSlidersMenuOpen = false
+                                isSleepTimerDialogOpen = true
+                            }
+                        )
+                    }
                 }
             }
 
             Spacer(Modifier.height(14.dp))
 
-            // Vinyl Record Art
-            VinylRecordPlayer()
+            // Vinyl Record Art with Tonearm
+            VinylRecordPlayer(isPlaying = isPlaying)
 
             Spacer(Modifier.height(18.dp))
 
@@ -613,7 +911,13 @@ fun DroidLabNowPlayingSheet(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { isShuffleOn = !isShuffleOn }) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .clickable { isShuffleOn = !isShuffleOn },
+                    contentAlignment = Alignment.Center
+                ) {
                     AppIcon(
                         name = "shuffle",
                         size = 20.dp,
@@ -621,7 +925,13 @@ fun DroidLabNowPlayingSheet(
                     )
                 }
 
-                IconButton(onClick = onPrevious) {
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onPrevious),
+                    contentAlignment = Alignment.Center
+                ) {
                     AppIcon(name = "skip_previous", size = 26.dp)
                 }
 
@@ -642,11 +952,23 @@ fun DroidLabNowPlayingSheet(
                     )
                 }
 
-                IconButton(onClick = onNext) {
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onNext),
+                    contentAlignment = Alignment.Center
+                ) {
                     AppIcon(name = "skip_next", size = 26.dp)
                 }
 
-                IconButton(onClick = { isRepeatOn = !isRepeatOn }) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .clickable { isRepeatOn = !isRepeatOn },
+                    contentAlignment = Alignment.Center
+                ) {
                     AppIcon(
                         name = "repeat",
                         size = 20.dp,
@@ -695,14 +1017,27 @@ fun DroidLabNowPlayingSheet(
             }
         }
     }
+
+    // Sleep Timer Dialog
+    if (isSleepTimerDialogOpen) {
+        SleepTimerDialog(
+            onDismissRequest = { isSleepTimerDialogOpen = false },
+            onTimerSet = { _ -> }
+        )
+    }
 }
 
 /**
- * Top Bar 3-dot Dropdown Menu matching Droid Lab (.ui-menu).
+ * Dynamic Top Bar 3-dot Dropdown Menu matching Droid Lab (.ui-menu).
  */
 @Composable
 fun DroidLabMoreMenu(
     expanded: Boolean,
+    items: List<Pair<String, String>> = listOf(
+        Pair("Analyze", "analyze"),
+        Pair("Manage", "manage"),
+        Pair("Equalizer", "equalizer")
+    ),
     onDismissRequest: () -> Unit,
     onActionClick: (String) -> Unit = {}
 ) {
@@ -710,33 +1045,19 @@ fun DroidLabMoreMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
         modifier = Modifier
-            .width(170.dp)
+            .width(185.dp)
             .clip(RoundedCornerShape(14.dp))
     ) {
-        DropdownMenuItem(
-            text = { Text("Analyze", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
-            leadingIcon = { AppIcon(name = "analyze", size = 20.dp) },
-            onClick = {
-                onActionClick("Analyze")
-                onDismissRequest()
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Manage", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
-            leadingIcon = { AppIcon(name = "manage", size = 20.dp) },
-            onClick = {
-                onActionClick("Manage")
-                onDismissRequest()
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Equalizer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
-            leadingIcon = { AppIcon(name = "equalizer", size = 20.dp) },
-            onClick = {
-                onActionClick("Equalizer")
-                onDismissRequest()
-            }
-        )
+        items.forEach { (label, iconName) ->
+            DropdownMenuItem(
+                text = { Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium) },
+                leadingIcon = { AppIcon(name = iconName, size = 20.dp) },
+                onClick = {
+                    onActionClick(label)
+                    onDismissRequest()
+                }
+            )
+        }
     }
 }
 
@@ -811,166 +1132,6 @@ fun DroidLabDrawerSheet(
 }
 
 /**
- * Search Overlay matching Droid Lab (.ui-search).
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DroidLabSearchOverlay(
-    visible: Boolean,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    if (!visible) return
-
-    var query by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("All") }
-    val filterChips = listOf("All", "Music", "Saved", "Files")
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surface,
-        dragHandle = null,
-        modifier = modifier.fillMaxHeight(0.92f)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            // Search Bar Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onDismiss) {
-                    AppIcon(name = "arrow_back", size = 22.dp)
-                }
-                Spacer(Modifier.width(4.dp))
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                        .padding(horizontal = 16.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    if (query.isEmpty()) {
-                        Text(
-                            text = "Search pages, blocks and actions…",
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                    BasicTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        singleLine = true,
-                        textStyle = TextStyle(
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        ),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { query = "" }) {
-                        AppIcon(name = "close", size = 18.dp)
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Guide Box
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AppIcon(
-                        name = "tips_and_updates",
-                        size = 20.dp,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "Type to search screens, blocks and menu actions. Pick a filter chip to narrow things down.",
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Filter Chips
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Filters",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(end = 4.dp)
-                )
-                filterChips.forEach { chip ->
-                    val isSelected = selectedFilter == chip
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(99.dp))
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-                            )
-                            .clickable { selectedFilter = chip }
-                            .padding(horizontal = 14.dp, vertical = 7.dp)
-                    ) {
-                        Text(
-                            text = chip,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(32.dp))
-
-            // Body Area
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (query.isEmpty()) "Start typing to search" else "No results for \"$query\"",
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-/**
  * Track Row matching Droid Lab (.track-row / .list-item).
  */
 @Composable
@@ -1028,6 +1189,62 @@ fun DroidLabTrackRow(
             text = duration,
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+/**
+ * Shimmering skeleton track row for search loading state.
+ */
+@Composable
+fun SkeletonTrackRow() {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val alpha by transition.animateFloat(
+        initialValue = 0.25f,
+        targetValue = 0.65f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(650, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha))
+        )
+        Spacer(Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha))
+            )
+            Spacer(Modifier.height(6.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.35f)
+                    .height(11.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha * 0.7f))
+            )
+        }
+        Box(
+            modifier = Modifier
+                .width(28.dp)
+                .height(11.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha * 0.7f))
         )
     }
 }

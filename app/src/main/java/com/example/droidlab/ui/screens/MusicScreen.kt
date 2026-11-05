@@ -22,6 +22,15 @@ fun MusicRoute(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("For you", "Following", "Popular")
 
+    val musicMenuItems = remember {
+        listOf(
+            Pair("Sort Tracks", "tune"),
+            Pair("Group by Album", "library_music"),
+            Pair("Shuffle All", "shuffle"),
+            Pair("Select Tracks", "check")
+        )
+    }
+
     val sampleTracks = listOf(
         Pair("Blue Bottle Coffee", "Chillhop Beats"),
         Pair("Kyoto Garden", "Zen Echoes"),
@@ -37,7 +46,8 @@ fun MusicRoute(
             DroidLabTopAppBar(
                 title = "Music",
                 onMenuClick = onOpenDrawer,
-                onSearchClick = onOpenSearch
+                onSearchClick = onOpenSearch,
+                menuItems = musicMenuItems
             )
         }
     ) { innerPadding ->

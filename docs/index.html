@@ -19,7 +19,7 @@
       --border-subtle: rgba(255, 255, 255, 0.08);
       --accent: #4f80ff;
       --accent-gradient: linear-gradient(135deg, #4f80ff 0%, #7b52f8 100%);
-      --accent-glow: rgba(79, 128, 255, 0.25);
+      --accent-glow: rgba(79, 128, 255, 0.28);
       --text-main: #f0f4fc;
       --text-muted: #8b97b0;
       --text-dim: #5c6882;
@@ -27,12 +27,7 @@
       --phone-h: 812px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-dark);
@@ -48,23 +43,16 @@
       font-style: normal;
       font-size: 24px;
       line-height: 1;
-      letter-spacing: normal;
-      text-transform: none;
       display: inline-block;
       white-space: nowrap;
-      word-wrap: normal;
-      direction: ltr;
-      -webkit-font-smoothing: antialiased;
       vertical-align: middle;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* Ambient background grid */
     .bg-ambient {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      inset: 0;
       background: 
         radial-gradient(circle at 15% 20%, rgba(79, 128, 255, 0.08) 0%, transparent 40%),
         radial-gradient(circle at 85% 70%, rgba(123, 82, 248, 0.07) 0%, transparent 45%);
@@ -77,7 +65,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(10, 13, 20, 0.85);
+      background: rgba(10, 13, 20, 0.88);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border-color);
     }
@@ -165,7 +153,7 @@
       z-index: 1;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 40px 24px 80px;
+      padding: 36px 24px 80px;
     }
 
     /* Disclaimer / Banner */
@@ -174,7 +162,7 @@
       border: 1px solid rgba(234, 179, 8, 0.35);
       border-radius: 16px;
       padding: 16px 22px;
-      margin-bottom: 40px;
+      margin-bottom: 36px;
       display: flex;
       align-items: flex-start;
       gap: 16px;
@@ -195,9 +183,6 @@
       font-weight: 700;
       color: #fef08a;
       margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
     .banner-content p {
       font-size: 13.5px;
@@ -414,8 +399,8 @@
       content: '';
       position: absolute;
       bottom: 0;
-      left: 20%;
-      right: 20%;
+      left: 18%;
+      right: 18%;
       height: 3px;
       border-radius: 3px 3px 0 0;
       background: var(--accent);
@@ -425,12 +410,10 @@
     .phone-content {
       flex: 1;
       overflow-y: auto;
-      padding: 14px 14px 110px;
+      padding: 14px 14px 120px;
       scrollbar-width: none;
     }
-    .phone-content::-webkit-scrollbar {
-      display: none;
-    }
+    .phone-content::-webkit-scrollbar { display: none; }
 
     /* 2x2 Rounded Grid */
     .shuffle-grid {
@@ -514,9 +497,7 @@
       cursor: pointer;
       transition: background 0.15s;
     }
-    .track-row:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
+    .track-row:hover { background: rgba(255, 255, 255, 0.05); }
     .track-index {
       font-size: 13px;
       font-weight: 600;
@@ -534,10 +515,7 @@
       color: var(--accent);
       flex-shrink: 0;
     }
-    .track-details {
-      flex: 1;
-      min-width: 0;
-    }
+    .track-details { flex: 1; min-width: 0; }
     .track-details h6 {
       font-size: 14px;
       font-weight: 600;
@@ -553,48 +531,39 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .track-time {
-      font-size: 12px;
-      color: #6e7b96;
-    }
+    .track-time { font-size: 12px; color: #6e7b96; }
 
-    /* Floating Mini Player */
+    /* High Attention Floating Mini Player */
     .mini-player-container {
       position: absolute;
       left: 12px;
       right: 12px;
-      bottom: 74px;
-      background: rgba(28, 33, 46, 0.94);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
+      bottom: 80px;
+      background: #1c212d;
+      border: 1.2px solid rgba(79, 128, 255, 0.35);
+      border-radius: 26px;
       padding: 8px 12px;
       display: flex;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(79, 128, 255, 0.2);
       cursor: pointer;
       z-index: 60;
       transition: transform 0.2s;
     }
-    .mini-player-container:hover {
-      transform: translateY(-2px);
-    }
+    .mini-player-container:hover { transform: translateY(-2px); }
     .mini-avatar {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      background: #3b4255;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
       flex-shrink: 0;
     }
-    .mini-meta {
-      flex: 1;
-      min-width: 0;
-    }
+    .mini-meta { flex: 1; min-width: 0; }
     .mini-meta h5 {
       font-size: 13.5px;
       font-weight: 700;
@@ -602,6 +571,9 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .mini-meta p {
       font-size: 11px;
@@ -616,6 +588,27 @@
       font-weight: 600;
     }
 
+    /* Waveform animation */
+    .waveform-mini {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 12px;
+    }
+    .waveform-mini span {
+      width: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+      animation: waveBounce 0.5s ease-in-out infinite alternate;
+    }
+    .waveform-mini span:nth-child(1) { height: 4px; animation-delay: 0.1s; }
+    .waveform-mini span:nth-child(2) { height: 10px; animation-delay: 0.25s; }
+    .waveform-mini span:nth-child(3) { height: 6px; animation-delay: 0.4s; }
+    @keyframes waveBounce {
+      from { height: 3px; }
+      to { height: 12px; }
+    }
+
     /* Progress Ring Widget */
     .ring-control {
       position: relative;
@@ -628,8 +621,7 @@
     }
     .ring-svg {
       position: absolute;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 44px;
       height: 44px;
       transform: rotate(-90deg);
@@ -649,8 +641,8 @@
       transition: stroke-dashoffset 0.3s;
     }
     .ring-inner-btn {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       background: var(--accent);
       color: #fff;
@@ -662,18 +654,18 @@
       z-index: 2;
     }
 
-    /* Bottom Navigation */
+    /* Bottom Navigation with breathing room */
     .phone-bottomnav {
       position: absolute;
       left: 0;
       right: 0;
       bottom: 0;
-      height: 68px;
+      height: 74px;
       background: #14161d;
       border-top: 1px solid rgba(255, 255, 255, 0.06);
       display: flex;
       align-items: center;
-      padding: 0 8px 10px;
+      padding: 0 8px 14px;
       z-index: 55;
     }
     .nav-tab-item {
@@ -685,7 +677,7 @@
       cursor: pointer;
     }
     .nav-pill {
-      width: 52px;
+      width: 54px;
       height: 28px;
       border-radius: 14px;
       display: flex;
@@ -703,36 +695,28 @@
       font-weight: 600;
       color: #8c97ad;
     }
-    .nav-tab-item.active span {
-      color: #f0f4fc;
-    }
+    .nav-tab-item.active span { color: #f0f4fc; }
 
-    /* Vinyl Record Full Screen Modal */
+    /* Vinyl Record True Full Screen Modal */
     .vinyl-modal {
       position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      top: 38px;
+      inset: 0;
       background: #14161d;
-      border-radius: 32px 32px 0 0;
-      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
       z-index: 80;
       display: flex;
       flex-direction: column;
-      padding: 14px 20px 24px;
-      transform: translateY(105%);
+      padding: 44px 20px 24px;
+      transform: translateY(100%);
       transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .vinyl-modal.open {
-      transform: translateY(0%);
-    }
+    .vinyl-modal.open { transform: translateY(0%); }
 
     .modal-topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 12px;
+      position: relative;
     }
     .speaker-pill {
       display: inline-flex;
@@ -745,6 +729,97 @@
       font-weight: 600;
       color: #c9d3e8;
     }
+
+    /* Dropdown Menu in Modal */
+    .tune-dropdown {
+      position: absolute;
+      top: 42px;
+      right: 0;
+      background: #1c212d;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      width: 160px;
+      padding: 6px;
+      display: none;
+      z-index: 95;
+    }
+    .tune-dropdown.show { display: block; }
+    .tune-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #f0f4fc;
+      cursor: pointer;
+    }
+    .tune-item:hover { background: rgba(79, 128, 255, 0.15); color: var(--accent); }
+
+    /* Sleep Timer Dialog */
+    .sleep-dialog-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 110;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .sleep-dialog-overlay.show { display: flex; }
+    .sleep-dialog {
+      background: #1b202c;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 22px;
+      width: 100%;
+      max-width: 310px;
+      text-align: center;
+    }
+    .clock-dial {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 2px solid #384257;
+      margin: 14px auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.25);
+    }
+    .clock-hand {
+      position: absolute;
+      width: 3px;
+      height: 52px;
+      background: var(--accent);
+      top: 18px;
+      left: 68px;
+      transform-origin: bottom center;
+      transform: rotate(180deg);
+      border-radius: 2px;
+      transition: transform 0.3s;
+    }
+    .preset-chips {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin: 14px 0;
+    }
+    .preset-chip {
+      background: rgba(255,255,255,0.08);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #a3b0cb;
+    }
+    .preset-chip.active { background: var(--accent); color: #fff; }
 
     /* Vinyl Record Stage */
     .vinyl-stage {
@@ -767,15 +842,11 @@
       justify-content: center;
       border: 1px solid #232733;
     }
-    .vinyl-disc.spinning {
-      animation: spinVinyl 6s linear infinite;
-    }
+    .vinyl-disc.spinning { animation: spinVinyl 6s linear infinite; }
     @keyframes spinVinyl {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
-
-    /* Concentric vinyl grooves */
     .vinyl-grooves {
       position: absolute;
       inset: 8px;
@@ -809,8 +880,6 @@
       border-radius: 50%;
       background: #111317;
     }
-
-    /* Tonearm */
     .tonearm {
       position: absolute;
       top: 14px;
@@ -822,9 +891,7 @@
       transition: transform 0.4s ease;
       transform-origin: top right;
     }
-    .tonearm.playing {
-      transform: rotate(8deg);
-    }
+    .tonearm.playing { transform: rotate(8deg); }
     .tonearm-pivot {
       position: absolute;
       top: 0;
@@ -879,17 +946,13 @@
     }
 
     /* Slider Progress */
-    .seek-bar-wrap {
-      width: 100%;
-      margin-bottom: 12px;
-    }
+    .seek-bar-wrap { width: 100%; margin-bottom: 12px; }
     .seek-track {
       width: 100%;
       height: 4px;
       border-radius: 2px;
       background: rgba(255, 255, 255, 0.1);
       position: relative;
-      cursor: pointer;
     }
     .seek-fill {
       height: 100%;
@@ -936,9 +999,7 @@
       cursor: pointer;
       transition: transform 0.15s;
     }
-    .modal-play-btn:hover {
-      transform: scale(1.05);
-    }
+    .modal-play-btn:hover { transform: scale(1.05); }
     .modal-bottom-row {
       display: flex;
       justify-content: space-around;
@@ -957,14 +1018,22 @@
       cursor: pointer;
     }
 
+    /* Skeleton Loading placeholder */
+    .skeleton-bar {
+      height: 14px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 75%);
+      background-size: 200% 100%;
+      animation: shimmerAnim 1.2s infinite;
+    }
+    @keyframes shimmerAnim {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
     /* Feature Grid Section */
-    .features-section {
-      margin-top: 100px;
-    }
-    .section-headline {
-      text-align: center;
-      margin-bottom: 48px;
-    }
+    .features-section { margin-top: 90px; }
+    .section-headline { text-align: center; margin-bottom: 48px; }
     .section-headline h3 {
       font-size: 32px;
       font-weight: 800;
@@ -977,7 +1046,6 @@
       max-width: 600px;
       margin: 0 auto;
     }
-
     .features-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1006,18 +1074,10 @@
       justify-content: center;
       margin-bottom: 20px;
     }
-    .feature-card h4 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .feature-card p {
-      color: var(--text-muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
+    .feature-card h4 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
 
-    /* Code / Architecture Box */
+    /* Architecture Box */
     .arch-box {
       margin-top: 80px;
       background: var(--bg-surface);
@@ -1044,7 +1104,6 @@
       overflow-x: auto;
     }
 
-    /* Footer */
     footer {
       border-top: 1px solid var(--border-color);
       padding: 40px 24px;
@@ -1053,14 +1112,8 @@
       font-size: 14px;
       margin-top: 80px;
     }
-    footer a {
-      color: var(--text-muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    footer a:hover {
-      color: var(--accent);
-    }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -1100,10 +1153,10 @@
         <span class="mi">info</span>
       </div>
       <div class="banner-content">
-        <h4>UI Design & Concept Showcase</h4>
+        <h4>UI Design & Concept Architecture Showcase</h4>
         <p>
           <strong>Notice:</strong> This repository represents a design prototype and UI architecture implemented in 
-          <strong>Android Jetpack Compose & Material 3 Expressive</strong> guidelines. It showcases UI components, custom canvas drawing (vinyl turntable record, progress rings), and interactive screen transitions. It is currently a UI showcase rather than a complete audio decoder engine. In upcoming development phases, local media scanning and audio decoding (Media3/ExoPlayer) will be integrated into this design.
+          <strong>Android Jetpack Compose & Material 3 Expressive</strong>. It showcases custom Canvas rendering (vinyl turntable disc, tonearm, circular progress rings), contextual app bar menus, download managers, and interactive screen routing. It is currently in the design & UI phase; a functional audio decoder engine (Media3/ExoPlayer local file scanner) is planned for future phases.
         </p>
       </div>
     </div>
@@ -1113,13 +1166,13 @@
       <div class="hero-info">
         <div class="hero-kicker">
           <span class="mi" style="font-size: 17px;">palette</span>
-          <span>Design Architecture Showcase</span>
+          <span>Android Music Player UI Concept</span>
         </div>
         <h1 class="hero-title">
           Modern Local Music UI for <span>Android</span>
         </h1>
         <p class="hero-desc">
-          Crafted from Droid Lab design tokens into declarative Jetpack Compose. Featuring an interactive vinyl record turntable player, circular ring mini-player, and quick 2x2 shuffle cards.
+          Featuring an interactive full-screen Vinyl turntable player with Sleep Timer dial, high-attention floating ring mini-player, download manager, and dynamic streaming CDN source selectors.
         </p>
 
         <div class="hero-badges">
@@ -1128,16 +1181,16 @@
             <span>Jetpack Compose 1.7</span>
           </div>
           <div class="tech-pill">
-            <span class="mi" style="font-size: 16px; color: #a855f7;">auto_awesome</span>
+            <span class="mi" style="font-size: 16px; color: #a855f7;">palette</span>
             <span>Material 3 Expressive</span>
           </div>
           <div class="tech-pill">
             <span class="mi" style="font-size: 16px; color: #22c55e;">album</span>
-            <span>Vinyl Canvas Disc</span>
+            <span>Vinyl Turntable Canvas</span>
           </div>
           <div class="tech-pill">
-            <span class="mi" style="font-size: 16px; color: #f59e0b;">build</span>
-            <span>Gradle 9.8.2 / Kotlin 2.0</span>
+            <span class="mi" style="font-size: 16px; color: #f59e0b;">timer</span>
+            <span>Sleep Timer Dial</span>
           </div>
         </div>
 
@@ -1163,7 +1216,7 @@
           <div class="phone-screen">
             <!-- Status Bar -->
             <div class="status-bar">
-              <span id="live-time">03:15</span>
+              <span id="live-time">03:25</span>
               <div class="status-icons">
                 <span class="mi">wifi</span>
                 <span class="mi">signal_cellular_alt</span>
@@ -1173,7 +1226,7 @@
 
             <!-- App Top Bar -->
             <div class="app-topbar">
-              <button class="app-icon-btn" title="Navigation Drawer">
+              <button class="app-icon-btn" onclick="openSettingsView()" title="Settings & Drawer">
                 <span class="mi">menu</span>
               </button>
               <div class="topbar-title" id="screen-heading">Home</div>
@@ -1181,7 +1234,7 @@
                 <button class="app-icon-btn" id="btn-search-top" title="Search">
                   <span class="mi">search</span>
                 </button>
-                <button class="app-icon-btn" title="More Options">
+                <button class="app-icon-btn" title="Contextual 3-Dot Menu">
                   <span class="mi">more_vert</span>
                 </button>
               </div>
@@ -1196,67 +1249,21 @@
 
             <!-- Scrollable Content -->
             <div class="phone-content" id="app-body">
-              <!-- 2x2 Rounded Grid -->
-              <div class="shuffle-grid" id="shuffle-grid-view">
-                <!-- Box 1: Shuffle Button -->
-                <div class="grid-box shuffle-main" onclick="onShuffleClick()">
-                  <div class="shuffle-circle-btn">
-                    <span class="mi" style="font-size: 19px;">shuffle</span>
-                  </div>
-                  <div class="box-meta">
-                    <h5>Shuffle Play</h5>
-                    <p>Tap to mix & play</p>
-                  </div>
-                </div>
-
-                <!-- Box 2 -->
-                <div class="grid-box" onclick="selectTrack('Midnight Drive', 'Nova Lane')">
-                  <div class="box-badge">
-                    <span class="mi" style="font-size: 18px;">graphic_eq</span>
-                  </div>
-                  <div class="box-meta">
-                    <h5>Midnight Drive</h5>
-                    <p>Nova Lane</p>
-                  </div>
-                </div>
-
-                <!-- Box 3 -->
-                <div class="grid-box" onclick="selectTrack('Kyoto Garden', 'Zen Echoes')">
-                  <div class="box-badge">
-                    <span class="mi" style="font-size: 18px;">music_note</span>
-                  </div>
-                  <div class="box-meta">
-                    <h5>Kyoto Garden</h5>
-                    <p>Zen Echoes</p>
-                  </div>
-                </div>
-
-                <!-- Box 4 -->
-                <div class="grid-box" onclick="selectTrack('The Reading Room', 'Ambient Works')">
-                  <div class="box-badge">
-                    <span class="mi" style="font-size: 18px;">headphones</span>
-                  </div>
-                  <div class="box-meta">
-                    <h5>The Reading Room</h5>
-                    <p>Ambient Works</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Track List -->
-              <div class="section-title">Tracks</div>
-              <div id="track-container">
-                <!-- Injected via JS -->
-              </div>
+              <!-- Content dynamically rendered via JS based on nav & tab -->
             </div>
 
-            <!-- Floating Mini Player -->
+            <!-- High-Attention Floating Mini Player -->
             <div class="mini-player-container" onclick="openVinylModal()">
               <div class="mini-avatar">
                 <span class="mi">headset</span>
               </div>
               <div class="mini-meta">
-                <h5 id="mini-title">Midnight Drive</h5>
+                <h5>
+                  <span id="mini-title">Midnight Drive</span>
+                  <div class="waveform-mini" id="mini-waveform">
+                    <span></span><span></span><span></span>
+                  </div>
+                </h5>
                 <p id="mini-artist">Nova Lane</p>
                 <span>64% played</span>
               </div>
@@ -1277,7 +1284,7 @@
               </button>
             </div>
 
-            <!-- Bottom Navigation Bar -->
+            <!-- Bottom Navigation Bar with Breathing Room -->
             <div class="phone-bottomnav">
               <div class="nav-tab-item active" onclick="switchNav(0)">
                 <div class="nav-pill">
@@ -1299,7 +1306,7 @@
               </div>
               <div class="nav-tab-item" onclick="switchNav(3)">
                 <div class="nav-pill">
-                  <span class="mi">anchor</span>
+                  <span class="mi">download</span>
                 </div>
                 <span>Keeps</span>
               </div>
@@ -1315,9 +1322,21 @@
                   <span class="mi" style="font-size: 16px;">speaker</span>
                   <span>Phone Speaker</span>
                 </div>
-                <button class="app-icon-btn">
-                  <span class="mi">tune</span>
-                </button>
+                <div style="position: relative;">
+                  <button class="app-icon-btn" onclick="toggleTuneMenu()">
+                    <span class="mi">tune</span>
+                  </button>
+                  <div class="tune-dropdown" id="tune-menu-el">
+                    <div class="tune-item" onclick="alert('Equalizer sound effects opened')">
+                      <span class="mi" style="font-size: 18px;">equalizer</span>
+                      <span>Equalizer</span>
+                    </div>
+                    <div class="tune-item" onclick="openSleepTimer()">
+                      <span class="mi" style="font-size: 18px;">timer</span>
+                      <span>Sleep Timer</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Realistic Vinyl Record Stage -->
@@ -1388,6 +1407,33 @@
               </div>
             </div>
 
+            <!-- Sleep Timer Clock Dial Dialog -->
+            <div class="sleep-dialog-overlay" id="sleep-overlay">
+              <div class="sleep-dialog">
+                <h4 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Sleep Timer</h4>
+                <p style="font-size: 12px; color: var(--text-muted);">Clock dial timer selection</p>
+
+                <div class="clock-dial">
+                  <div class="clock-hand" id="sleep-clock-hand"></div>
+                  <span style="font-size: 16px; font-weight: 800; color: var(--accent); z-index: 2;" id="sleep-time-display">30m</span>
+                </div>
+
+                <div class="preset-chips">
+                  <div class="preset-chip" onclick="setSleepTime(15)">15m</div>
+                  <div class="preset-chip active" onclick="setSleepTime(30)">30m</div>
+                  <div class="preset-chip" onclick="setSleepTime(45)">45m</div>
+                  <div class="preset-chip" onclick="setSleepTime(60)">60m</div>
+                </div>
+
+                <p style="font-size: 11.5px; color: var(--text-dim); margin-bottom: 16px;">App will gently fade out music and close when completed.</p>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                  <button class="nav-btn btn-gh" onclick="closeSleepTimer()" style="padding: 6px 12px;">Cancel</button>
+                  <button class="nav-btn btn-download" onclick="confirmSleepTimer()" style="padding: 6px 16px;">Set Timer</button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -1397,7 +1443,7 @@
     <section class="features-section">
       <div class="section-headline">
         <h3>Crafted with Material 3 Expressive</h3>
-        <p>A modern interpretation of modern Android music aesthetics built for gesture-first mobile interactions.</p>
+        <p>A modern mobile architecture featuring canvas-drawn turntables, download managers, and contextual screen tooling.</p>
       </div>
 
       <div class="features-grid">
@@ -1405,48 +1451,48 @@
           <div class="feature-icon-wrap">
             <span class="mi">album</span>
           </div>
-          <h4>Photorealistic Vinyl Turntable</h4>
-          <p>Full-screen modal sheet with canvas-drawn concentric groove rings, center spindle disc, tonearm needle geometry, and smooth spinning animations.</p>
+          <h4>Full-Screen Vinyl Turntable</h4>
+          <p>Complete edge-to-edge modal sheet with concentric groove rings, tonearm needle, animated spinning disc, and Sleep Timer dial integration.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-wrap">
             <span class="mi">motion_photos_on</span>
           </div>
-          <h4>Circular Progress Ring Mini-Player</h4>
-          <p>Docked floating pill above the bottom navigation bar. Features an arc progress indicator with an embedded play/pause trigger.</p>
+          <h4>High-Attention Mini-Player</h4>
+          <p>Floating pill with glowing border, mini bouncing equalizer waveforms, circular progress ring, and generous gesture bar clearance.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-wrap">
-            <span class="mi">shuffle</span>
+            <span class="mi">download</span>
           </div>
-          <h4>2x2 Quick Shuffle Grid</h4>
-          <p>Quick-play access tiles on the Home screen with dynamic random track re-indexing and one-touch music playback.</p>
+          <h4>Offline Downloads Manager</h4>
+          <p>Full Keeps screen management with Downloading sliders, speed meters, hold-to-select multi-selection, and finished batch archives.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-wrap">
             <span class="mi">search</span>
           </div>
-          <h4>Direct Search & Explore Navigation</h4>
-          <p>Immediate routing to the search interface with real-time query filtering, filter chips (All, Songs, Album, Artist), and result previews.</p>
+          <h4>Smart Search & CDN Selector</h4>
+          <p>Recent searches, trending recommendations, simulated skeleton loading cards, and provider toggle (Spotify, YouTube Music, JioSaavn CDN).</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-wrap">
-            <span class="mi">view_quilt</span>
+            <span class="mi">text_fields</span>
           </div>
-          <h4>Pure Jetpack Compose</h4>
-          <p>100% declarative UI with zero legacy XML views. Powered by Kotlin Coroutines, Navigation Compose, and MaterialTheme color scheming.</p>
+          <h4>Typography & Appearance Subscreen</h4>
+          <p>Interactive settings subscreen allowing instant switching between modern Outfit App Font and native Android system font.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-wrap">
-            <span class="mi">devices</span>
+            <span class="mi">more_vert</span>
           </div>
-          <h4>Edge-to-Edge Adaptive</h4>
-          <p>Proper window insets handling for modern punch-hole displays, system gesture bars, and status bar translucency.</p>
+          <h4>Contextual 3-Dot Top Bar Menus</h4>
+          <p>Custom tailored menu actions per screen (Home library scanning, Music sorting, Keeps download pauses, and Search filters).</p>
         </div>
       </div>
     </section>
@@ -1480,7 +1526,6 @@ cd localmusic
   </footer>
 
   <script>
-    // Sample track catalog
     const tracks = [
       { id: 1, title: 'Midnight Drive', artist: 'Nova Lane', album: 'Neon Hours', dur: '4:12' },
       { id: 2, title: 'Blue Bottle Coffee', artist: 'Chillhop Beats', album: 'Morning Brew', dur: '3:45' },
@@ -1491,167 +1536,155 @@ cd localmusic
       { id: 7, title: 'Golden Hour', artist: 'Acoustic Sunset', album: 'Warm Light', dur: '3:15' }
     ];
 
+    const artists = [
+      { id: 1, name: 'Nova Lane', genre: 'Synthwave / Cyberpunk', followers: '1.4M followers', color: '#3B82F6', following: true },
+      { id: 2, name: 'Chillhop Beats', genre: 'Lo-Fi Instrumental', followers: '890K followers', color: '#10B981', following: true },
+      { id: 3, name: 'Zen Echoes', genre: 'Ambient Soundscapes', followers: '520K followers', color: '#8B5CF6', following: false },
+      { id: 4, name: 'Retro Wave', genre: 'Electronic & Synth', followers: '2.1M followers', color: '#F59E0B', following: true }
+    ];
+
+    const topTracks = [
+      { rank: 1, title: 'Midnight Drive', artist: 'Nova Lane', plays: '248 plays', dur: '4:12', color: '#F59E0B' },
+      { rank: 2, title: 'Blue Bottle Coffee', artist: 'Chillhop Beats', plays: '186 plays', dur: '3:45', color: '#94A3B8' },
+      { rank: 3, title: 'Neon Horizon', artist: 'Retro Wave', plays: '142 plays', dur: '4:05', color: '#B45309' },
+      { rank: 4, title: 'Kyoto Garden', artist: 'Zen Echoes', plays: '98 plays', dur: '2:58', color: '#64748B' }
+    ];
+
+    const downloads = [
+      { id: 1, title: 'Neon Horizon', artist: 'Retro Wave', progress: 68, speed: '1.8 MB/s', downloaded: '5.4 MB', total: '8.2 MB' },
+      { id: 2, title: 'Kyoto Garden', artist: 'Zen Echoes', progress: 32, speed: '2.1 MB/s', downloaded: '2.6 MB', total: '7.8 MB' }
+    ];
+
     let currentTrack = tracks[0];
     let isPlaying = true;
-    let currentNavIndex = 0;
+    let currentNav = 0;
+    let currentHomeTab = 0;
+    let sleepMinutes = 30;
 
-    // Render Track rows
-    function renderTracks(list = tracks) {
-      const container = document.getElementById('track-container');
-      container.innerHTML = list.map((t, index) => `
-        <div class="track-row" onclick="selectTrack('${t.title.replace(/'/g, "\\'")}', '${t.artist.replace(/'/g, "\\'")}')">
-          <div class="track-index">${index + 1}</div>
-          <div class="track-art">
-            <span class="mi" style="font-size: 20px;">music_note</span>
-          </div>
-          <div class="track-details">
-            <h6>${t.title}</h6>
-            <p>${t.artist}</p>
-          </div>
-          <div class="track-time">${t.dur}</div>
-        </div>
-      `).join('');
-    }
-
-    // Select track
-    function selectTrack(title, artist) {
-      const found = tracks.find(t => t.title === title) || { title, artist, album: 'Local Session', dur: '3:30' };
-      currentTrack = found;
-      isPlaying = true;
-      updateUI();
-    }
-
-    // Shuffle tracks
-    function onShuffleClick() {
-      const shuffled = [...tracks].sort(() => Math.random() - 0.5);
-      currentTrack = shuffled[0];
-      isPlaying = true;
-      updateUI();
-      renderTracks(shuffled);
-    }
-
-    function nextTrack() {
-      const idx = tracks.findIndex(t => t.title === currentTrack.title);
-      const nextIdx = (idx + 1) % tracks.length;
-      currentTrack = tracks[nextIdx];
-      isPlaying = true;
-      updateUI();
-    }
-
-    function prevTrack() {
-      const idx = tracks.findIndex(t => t.title === currentTrack.title);
-      const prevIdx = (idx - 1 + tracks.length) % tracks.length;
-      currentTrack = tracks[prevIdx];
-      isPlaying = true;
-      updateUI();
-    }
-
-    // Toggle Play/Pause
-    function togglePlayState(e) {
-      if (e) e.stopPropagation();
-      isPlaying = !isPlaying;
-      updateUI();
-    }
-
-    function updateUI() {
-      document.getElementById('mini-title').innerText = currentTrack.title;
-      document.getElementById('mini-artist').innerText = currentTrack.artist;
-      document.getElementById('modal-song-title').innerText = currentTrack.title;
-      document.getElementById('modal-song-artist').innerText = `${currentTrack.artist} • ${currentTrack.album || 'Neon Hours'}`;
-
-      const iconName = isPlaying ? 'pause' : 'play_arrow';
-      document.getElementById('mini-play-icon').innerText = iconName;
-      document.getElementById('modal-play-icon').innerText = iconName;
-
-      const vinylDisc = document.getElementById('vinyl-disc-el');
-      const tonearm = document.getElementById('tonearm-el');
-
-      if (isPlaying) {
-        vinylDisc.classList.add('spinning');
-        tonearm.classList.add('playing');
-      } else {
-        vinylDisc.classList.remove('spinning');
-        tonearm.classList.remove('playing');
-      }
-    }
-
-    // Modal Sheet toggle
-    function openVinylModal() {
-      document.getElementById('vinyl-sheet').classList.add('open');
-    }
-
-    function closeVinylModal() {
-      document.getElementById('vinyl-sheet').classList.remove('open');
-    }
-
-    // Tabs
-    function switchTab(el, index) {
-      document.querySelectorAll('.phone-tab').forEach(t => t.classList.remove('active'));
-      el.classList.add('active');
-      if (index === 1) {
-        renderTracks([...tracks].reverse());
-      } else if (index === 2) {
-        renderTracks(tracks.slice(0, 4));
-      } else {
-        renderTracks(tracks);
-      }
-    }
-
-    // Bottom Navigation
-    function switchNav(index) {
-      currentNavIndex = index;
-      document.querySelectorAll('.nav-tab-item').forEach((item, i) => {
-        item.classList.toggle('active', i === index);
-      });
-
+    function renderScreen() {
       const heading = document.getElementById('screen-heading');
-      const shuffleGrid = document.getElementById('shuffle-grid-view');
       const tabBar = document.getElementById('tab-bar');
+      const body = document.getElementById('app-body');
 
-      if (index === 0) {
+      if (currentNav === 0) {
         heading.innerText = 'Home';
-        shuffleGrid.style.display = 'grid';
         tabBar.style.display = 'flex';
-        renderTracks(tracks);
-      } else if (index === 1) {
+        tabBar.innerHTML = `
+          <div class="phone-tab ${currentHomeTab === 0 ? 'active' : ''}" onclick="switchHomeTab(0)">For you</div>
+          <div class="phone-tab ${currentHomeTab === 1 ? 'active' : ''}" onclick="switchHomeTab(1)">Following</div>
+          <div class="phone-tab ${currentHomeTab === 2 ? 'active' : ''}" onclick="switchHomeTab(2)">Top Tracks</div>
+        `;
+
+        if (currentHomeTab === 0) {
+          // 2x2 Shuffle Grid ONLY on "For you"
+          body.innerHTML = `
+            <div class="shuffle-grid">
+              <div class="grid-box shuffle-main" onclick="onShuffleClick()">
+                <div class="shuffle-circle-btn"><span class="mi" style="font-size: 19px;">shuffle</span></div>
+                <div class="box-meta"><h5>Shuffle Play</h5><p>Tap to mix & play</p></div>
+              </div>
+              <div class="grid-box" onclick="selectTrack('Midnight Drive', 'Nova Lane')">
+                <div class="box-badge"><span class="mi" style="font-size: 18px;">graphic_eq</span></div>
+                <div class="box-meta"><h5>Midnight Drive</h5><p>Nova Lane</p></div>
+              </div>
+              <div class="grid-box" onclick="selectTrack('Kyoto Garden', 'Zen Echoes')">
+                <div class="box-badge"><span class="mi" style="font-size: 18px;">music_note</span></div>
+                <div class="box-meta"><h5>Kyoto Garden</h5><p>Zen Echoes</p></div>
+              </div>
+              <div class="grid-box" onclick="selectTrack('The Reading Room', 'Ambient Works')">
+                <div class="box-badge"><span class="mi" style="font-size: 18px;">headphones</span></div>
+                <div class="box-meta"><h5>The Reading Room</h5><p>Ambient Works</p></div>
+              </div>
+            </div>
+            <div class="section-title">Tracks</div>
+            <div id="home-tracks-list"></div>
+          `;
+          renderTrackList('home-tracks-list', tracks);
+        } else if (currentHomeTab === 1) {
+          // Following Artists List
+          body.innerHTML = `
+            <div class="section-title">Artists you follow</div>
+            ${artists.map(a => `
+              <div style="background: rgba(255,255,255,0.04); border-radius: 14px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: ${a.color}; display: flex; align-items: center; justify-content: center; color: #fff;">
+                  <span class="mi" style="font-size: 20px;">person</span>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <h6 style="font-size: 14px; font-weight: 600; color: #f0f4fc;">${a.name}</h6>
+                  <p style="font-size: 11.5px; color: #8c97ad;">${a.genre} • ${a.followers}</p>
+                </div>
+                <button onclick="toggleFollow(this)" style="background: ${a.following ? 'rgba(255,255,255,0.1)' : 'var(--accent)'}; color: #fff; border: none; padding: 6px 14px; border-radius: 20px; font-size: 11.5px; font-weight: 600; cursor: pointer;">
+                  ${a.following ? 'Following' : 'Follow'}
+                </button>
+              </div>
+            `).join('')}
+          `;
+        } else if (currentHomeTab === 2) {
+          // Top Tracks with rank badges
+          body.innerHTML = `
+            <div class="section-title">Most listened this month</div>
+            ${topTracks.map(t => `
+              <div class="track-row" onclick="selectTrack('${t.title}', '${t.artist}')">
+                <div style="width: 28px; height: 28px; border-radius: 6px; background: ${t.color}; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">#${t.rank}</div>
+                <div class="track-details">
+                  <h6>${t.title}</h6>
+                  <p style="color: var(--accent);">${t.artist} • ${t.plays}</p>
+                </div>
+                <div class="track-time">${t.dur}</div>
+              </div>
+            `).join('')}
+          `;
+        }
+      } else if (currentNav === 1) {
         heading.innerText = 'Music';
-        shuffleGrid.style.display = 'none';
         tabBar.style.display = 'flex';
-        renderTracks(tracks);
-      } else if (index === 2) {
+        tabBar.innerHTML = `
+          <div class="phone-tab active">All Tracks</div>
+          <div class="phone-tab">Albums</div>
+          <div class="phone-tab">Playlists</div>
+        `;
+        body.innerHTML = `<div id="music-tracks-list"></div>`;
+        renderTrackList('music-tracks-list', tracks);
+      } else if (currentNav === 2) {
         heading.innerText = 'Search';
-        shuffleGrid.style.display = 'none';
         tabBar.style.display = 'none';
-        renderSearchScreen();
-      } else if (index === 3) {
-        heading.innerText = 'Keeps';
-        shuffleGrid.style.display = 'none';
+        body.innerHTML = `
+          <div style="background: rgba(255,255,255,0.06); border-radius: 99px; padding: 8px 14px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span class="mi" style="font-size: 20px; color: #8c97ad;">search</span>
+            <input type="text" id="live-search-input" placeholder="Search songs, artists, albums…" style="background: none; border: none; color: #fff; font-size: 13.5px; width: 100%; outline: none;" oninput="onSearchInput(this.value)">
+          </div>
+          <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; margin-bottom: 12px;">
+            <span class="mi" style="font-size: 14px;">check_circle</span>
+            <span>Source: Local + Spotify CDN</span>
+          </div>
+          <div id="search-content-area">
+            <div class="section-title">Recent Searches</div>
+            <div style="display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto;">
+              <span class="preset-chip" onclick="applySearch('Nova Lane')">Nova Lane</span>
+              <span class="preset-chip" onclick="applySearch('Chillhop')">Chillhop</span>
+              <span class="preset-chip" onclick="applySearch('Synthwave')">Synthwave</span>
+            </div>
+            <div class="section-title">Trending Recommendations</div>
+            <div class="track-row" onclick="applySearch('Lo-Fi Beats')"><div class="track-details"><h6>Lo-Fi Beats 2024</h6><p>Trending</p></div><span class="mi" style="font-size: 16px;">trending_up</span></div>
+            <div class="track-row" onclick="applySearch('Acoustic Sunset')"><div class="track-details"><h6>Acoustic Sunset Chill</h6><p>Trending</p></div><span class="mi" style="font-size: 16px;">trending_up</span></div>
+          </div>
+        `;
+      } else if (currentNav === 3) {
+        heading.innerText = 'Keeps (Downloads)';
         tabBar.style.display = 'flex';
-        renderTracks(tracks.slice(0, 4));
+        tabBar.innerHTML = `
+          <div class="phone-tab active" onclick="switchKeepTab(this, 0)">Downloading</div>
+          <div class="phone-tab" onclick="switchKeepTab(this, 1)">Downloaded</div>
+          <div class="phone-tab" onclick="switchKeepTab(this, 2)">Finished</div>
+        `;
+        renderDownloadingView();
       }
     }
 
-    function renderSearchScreen() {
-      const container = document.getElementById('track-container');
-      container.innerHTML = `
-        <div style="background: rgba(255,255,255,0.06); border-radius: 99px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
-          <span class="mi" style="font-size: 20px; color: #8c97ad;">search</span>
-          <input type="text" id="live-search-input" placeholder="Search songs and artists..." style="background: none; border: none; color: #fff; font-size: 13.5px; width: 100%; outline: none;" oninput="onSearchFilter(this.value)">
-        </div>
-        <div class="section-title">All Songs</div>
-        <div id="search-results-list"></div>
-      `;
-      renderSearchList(tracks);
-    }
-
-    function renderSearchList(list) {
-      const resContainer = document.getElementById('search-results-list');
-      if (!resContainer) return;
-      if (list.length === 0) {
-        resContainer.innerHTML = `<div style="text-align: center; color: #7b88a3; padding: 24px 0; font-size: 13px;">No matching songs found.</div>`;
-        return;
-      }
-      resContainer.innerHTML = list.map((t, idx) => `
+    function renderTrackList(elementId, list) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.innerHTML = list.map((t, idx) => `
         <div class="track-row" onclick="selectTrack('${t.title.replace(/'/g, "\\'")}', '${t.artist.replace(/'/g, "\\'")}')">
           <div class="track-index">${idx + 1}</div>
           <div class="track-art"><span class="mi">music_note</span></div>
@@ -1664,24 +1697,236 @@ cd localmusic
       `).join('');
     }
 
-    function onSearchFilter(query) {
-      const q = query.trim().toLowerCase();
-      if (!q) {
-        renderSearchList(tracks);
-        return;
-      }
-      const filtered = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
-      renderSearchList(filtered);
+    function renderDownloadingView() {
+      const body = document.getElementById('app-body');
+      body.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 12.5px; font-weight: 700; color: #8c97ad;">Active Downloads (${downloads.length})</span>
+          <button style="background: none; border: none; color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer;">Pause All</button>
+        </div>
+        ${downloads.map(d => `
+          <div style="background: rgba(255,255,255,0.04); border-radius: 14px; padding: 12px; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <div>
+                <h6 style="font-size: 14px; font-weight: 600;">${d.title}</h6>
+                <p style="font-size: 11.5px; color: #8c97ad;">${d.artist}</p>
+              </div>
+              <span class="mi" style="color: var(--accent); font-size: 20px; cursor: pointer;">pause_circle</span>
+            </div>
+            <!-- Minimal Progress Slider -->
+            <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 6px;">
+              <div style="height: 100%; width: ${d.progress}%; background: var(--accent);"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #8c97ad;">
+              <span>${d.downloaded} / ${d.total} • ${d.progress}%</span>
+              <span style="color: var(--accent); font-weight: 600;">${d.speed}</span>
+            </div>
+          </div>
+        `).join('')}
+      `;
     }
 
-    // Top search button redirects to search tab
+    function switchKeepTab(el, idx) {
+      document.querySelectorAll('#tab-bar .phone-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      const body = document.getElementById('app-body');
+      if (idx === 0) {
+        renderDownloadingView();
+      } else if (idx === 1) {
+        body.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 12.5px; font-weight: 700; color: #8c97ad;">Offline Storage (4 Songs)</span>
+            <span style="font-size: 11.5px; color: var(--accent); cursor: pointer;">Hold to select</span>
+          </div>
+          <div id="offline-tracks"></div>
+        `;
+        renderTrackList('offline-tracks', tracks.slice(0, 4));
+      } else {
+        body.innerHTML = `
+          <div style="font-size: 12.5px; font-weight: 700; color: #8c97ad; margin-bottom: 10px;">Finished Albums</div>
+          <div style="background: rgba(255,255,255,0.04); border-radius: 14px; padding: 12px; margin-bottom: 8px;">
+            <h6 style="font-size: 14px; font-weight: 600;">Neon Hours (Album)</h6>
+            <p style="font-size: 11.5px; color: #8c97ad;">10 tracks • 142 MB • Finished Today</p>
+          </div>
+        `;
+      }
+    }
+
+    function switchHomeTab(idx) {
+      currentHomeTab = idx;
+      renderScreen();
+    }
+
+    function switchNav(idx) {
+      currentNav = idx;
+      document.querySelectorAll('.nav-tab-item').forEach((item, i) => {
+        item.classList.toggle('active', i === idx);
+      });
+      renderScreen();
+    }
+
+    function toggleFollow(btn) {
+      if (btn.innerText === 'Following') {
+        btn.innerText = 'Follow';
+        btn.style.background = 'var(--accent)';
+      } else {
+        btn.innerText = 'Following';
+        btn.style.background = 'rgba(255,255,255,0.1)';
+      }
+    }
+
+    function selectTrack(title, artist) {
+      const found = tracks.find(t => t.title === title) || { title, artist, album: 'Local Session', dur: '3:30' };
+      currentTrack = found;
+      isPlaying = true;
+      updatePlaybackUI();
+    }
+
+    function onShuffleClick() {
+      const shuffled = [...tracks].sort(() => Math.random() - 0.5);
+      currentTrack = shuffled[0];
+      isPlaying = true;
+      updatePlaybackUI();
+      renderTrackList('home-tracks-list', shuffled);
+    }
+
+    function nextTrack() {
+      const idx = tracks.findIndex(t => t.title === currentTrack.title);
+      currentTrack = tracks[(idx + 1) % tracks.length];
+      isPlaying = true;
+      updatePlaybackUI();
+    }
+
+    function prevTrack() {
+      const idx = tracks.findIndex(t => t.title === currentTrack.title);
+      currentTrack = tracks[(idx - 1 + tracks.length) % tracks.length];
+      isPlaying = true;
+      updatePlaybackUI();
+    }
+
+    function togglePlayState(e) {
+      if (e) e.stopPropagation();
+      isPlaying = !isPlaying;
+      updatePlaybackUI();
+    }
+
+    function updatePlaybackUI() {
+      document.getElementById('mini-title').innerText = currentTrack.title;
+      document.getElementById('mini-artist').innerText = currentTrack.artist;
+      document.getElementById('modal-song-title').innerText = currentTrack.title;
+      document.getElementById('modal-song-artist').innerText = `${currentTrack.artist} • ${currentTrack.album || 'Neon Hours'}`;
+
+      const icon = isPlaying ? 'pause' : 'play_arrow';
+      document.getElementById('mini-play-icon').innerText = icon;
+      document.getElementById('modal-play-icon').innerText = icon;
+
+      const vinyl = document.getElementById('vinyl-disc-el');
+      const tonearm = document.getElementById('tonearm-el');
+      const waveform = document.getElementById('mini-waveform');
+
+      if (isPlaying) {
+        vinyl.classList.add('spinning');
+        tonearm.classList.add('playing');
+        waveform.style.display = 'inline-flex';
+      } else {
+        vinyl.classList.remove('spinning');
+        tonearm.classList.remove('playing');
+        waveform.style.display = 'none';
+      }
+    }
+
+    function openVinylModal() { document.getElementById('vinyl-sheet').classList.add('open'); }
+    function closeVinylModal() {
+      document.getElementById('vinyl-sheet').classList.remove('open');
+      document.getElementById('tune-menu-el').classList.remove('show');
+    }
+
+    function toggleTuneMenu() {
+      document.getElementById('tune-menu-el').classList.toggle('show');
+    }
+
+    function openSleepTimer() {
+      document.getElementById('tune-menu-el').classList.remove('show');
+      document.getElementById('sleep-overlay').classList.add('show');
+    }
+    function closeSleepTimer() { document.getElementById('sleep-overlay').classList.remove('show'); }
+    function setSleepTime(mins) {
+      sleepMinutes = mins;
+      document.querySelectorAll('.preset-chip').forEach(c => {
+        c.classList.toggle('active', c.innerText === `${mins}m`);
+      });
+      document.getElementById('sleep-time-display').innerText = `${mins}m`;
+      const deg = (mins / 60) * 360;
+      document.getElementById('sleep-clock-hand').style.transform = `rotate(${deg}deg)`;
+    }
+    function confirmSleepTimer() {
+      closeSleepTimer();
+      alert(`Sleep Timer set for ${sleepMinutes} minutes.`);
+    }
+
+    function onSearchInput(query) {
+      const area = document.getElementById('search-content-area');
+      if (!query.trim()) {
+        renderScreen();
+        return;
+      }
+      // Skeleton loader simulation
+      area.innerHTML = `
+        <div style="padding: 10px 0;">
+          <div class="skeleton-bar" style="width: 70%; margin-bottom: 8px;"></div>
+          <div class="skeleton-bar" style="width: 40%; margin-bottom: 20px;"></div>
+          <div class="skeleton-bar" style="width: 85%; margin-bottom: 8px;"></div>
+          <div class="skeleton-bar" style="width: 55%; margin-bottom: 20px;"></div>
+        </div>
+      `;
+      setTimeout(() => {
+        const filtered = tracks.filter(t => t.title.toLowerCase().includes(query.toLowerCase()) || t.artist.toLowerCase().includes(query.toLowerCase()));
+        if (!filtered.length) {
+          area.innerHTML = `<div style="text-align: center; color: #8c97ad; padding: 30px;">No tracks found for "${query}"</div>`;
+        } else {
+          area.innerHTML = `<div id="filtered-res"></div>`;
+          renderTrackList('filtered-res', filtered);
+        }
+      }, 300);
+    }
+
+    function applySearch(q) {
+      document.getElementById('live-search-input').value = q;
+      onSearchInput(q);
+    }
+
+    function openSettingsView() {
+      const heading = document.getElementById('screen-heading');
+      const tabBar = document.getElementById('tab-bar');
+      const body = document.getElementById('app-body');
+      heading.innerText = 'Settings';
+      tabBar.style.display = 'none';
+      body.innerHTML = `
+        <div style="margin-bottom: 14px;">
+          <h6 style="font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px;">Appearance</h6>
+          <div style="background: rgba(255,255,255,0.04); border-radius: 14px; padding: 14px; margin-bottom: 10px;">
+            <p style="font-size: 13.5px; font-weight: 600; margin-bottom: 8px;">Font Family</p>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 8px; cursor: pointer;">
+              <input type="radio" name="fontopt" checked onclick="document.body.style.fontFamily='Outfit, sans-serif'">
+              <span>App Font (Outfit)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
+              <input type="radio" name="fontopt" onclick="document.body.style.fontFamily='system-ui, Roboto, sans-serif'">
+              <span>System Font (Roboto)</span>
+            </label>
+          </div>
+        </div>
+        <button onclick="renderScreen()" class="nav-btn btn-gh" style="width: 100%; justify-content: center;">Back to Home</button>
+      `;
+    }
+
     document.getElementById('btn-search-top').onclick = () => switchNav(2);
 
     // Initial render
-    renderTracks();
-    updateUI();
+    renderScreen();
+    updatePlaybackUI();
 
-    // Live clock in status bar
+    // Clock
     function updateClock() {
       const now = new Date();
       const h = String(now.getHours()).padStart(2, '0');
