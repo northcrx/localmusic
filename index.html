@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalMusic — Android Jetpack Compose UI Showcase</title>
+  <meta name="description" content="A modern Android Local Music Player UI concept built with Jetpack Compose & Material 3 Expressive design.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --bg-surface: #121620;
+      --bg-card: #181d2a;
+      --border-color: #242c3d;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --accent: #4f80ff;
+      --accent-gradient: linear-gradient(135deg, #4f80ff 0%, #7b52f8 100%);
+      --accent-glow: rgba(79, 128, 255, 0.25);
+      --text-main: #f0f4fc;
+      --text-muted: #8b97b0;
+      --text-dim: #5c6882;
+      --phone-w: 380px;
+      --phone-h: 812px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .mi {
+      font-family: 'Material Symbols Rounded';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      vertical-align: middle;
+    }
+
+    /* Ambient background grid */
+    .bg-ambient {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 15% 20%, rgba(79, 128, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(123, 82, 248, 0.07) 0%, transparent 45%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Navigation Bar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 13, 20, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(79, 128, 255, 0.15);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(79, 128, 255, 0.3);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-gh {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+    .btn-gh:hover {
+      background: #202738;
+      border-color: var(--accent);
+    }
+    .btn-download {
+      background: var(--accent-gradient);
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .btn-download:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(79, 128, 255, 0.4);
+    }
+
+    /* Main Container */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* Disclaimer / Banner */
+    .banner-disclaimer {
+      background: linear-gradient(90deg, rgba(234, 179, 8, 0.12) 0%, rgba(245, 158, 11, 0.06) 100%);
+      border: 1px solid rgba(234, 179, 8, 0.35);
+      border-radius: 16px;
+      padding: 16px 22px;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .banner-icon {
+      background: rgba(234, 179, 8, 0.2);
+      color: #fbbf24;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .banner-content h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fef08a;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .banner-content p {
+      font-size: 13.5px;
+      color: #fde68a;
+      line-height: 1.5;
+    }
+
+    /* Hero Section */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
+      margin-bottom: 80px;
+    }
+    @media (max-width: 960px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+    }
+
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+    .hero-title {
+      font-size: clamp(34px, 5vw, 54px);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -1.2px;
+      margin-bottom: 20px;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      font-size: 17px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      max-width: 540px;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .tech-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    /* Live Phone Mockup Container */
+    .phone-wrapper {
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+    .phone-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 320px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(79, 128, 255, 0.22) 0%, transparent 70%);
+      filter: blur(50px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Interactive Phone Frame */
+    .phone {
+      position: relative;
+      z-index: 1;
+      width: var(--phone-w);
+      height: var(--phone-h);
+      border-radius: 46px;
+      background: #0d0f14;
+      padding: 10px;
+      box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.7),
+        inset 0 0 0 2px #282f3f,
+        inset 0 0 0 4px #06080c;
+      overflow: hidden;
+      user-select: none;
+    }
+    .camera-hole {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #020305;
+      box-shadow: inset 0 0 0 1px #222938;
+      z-index: 50;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 36px;
+      background: #14161d;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 38px;
+      padding: 8px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      color: #c9d3e8;
+      z-index: 40;
+    }
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    /* Phone App Top Bar */
+    .app-topbar {
+      height: 52px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      z-index: 30;
+      background: #14161d;
+    }
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .app-icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: #c9d3e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .app-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Tabs */
+    .phone-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      background: #14161d;
+    }
+    .phone-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8c97ad;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+    .phone-tab.active {
+      color: var(--accent);
+    }
+    .phone-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 20%;
+      right: 20%;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: var(--accent);
+    }
+
+    /* Phone Scrollable Body */
+    .phone-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 14px 110px;
+      scrollbar-width: none;
+    }
+    .phone-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* 2x2 Rounded Grid */
+    .shuffle-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .grid-box {
+      background: #1c202c;
+      border-radius: 18px;
+      padding: 12px;
+      height: 96px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .grid-box:hover {
+      transform: translateY(-2px);
+      background: #242939;
+    }
+    .grid-box.shuffle-main {
+      background: linear-gradient(135deg, rgba(79, 128, 255, 0.25) 0%, rgba(123, 82, 248, 0.2) 100%);
+      border: 1px solid rgba(79, 128, 255, 0.4);
+    }
+    .shuffle-circle-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+    .box-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #272d3f;
+      color: #b3c2e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .box-meta h5 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f0f4fc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .box-meta p {
+      font-size: 11px;
+      color: #929fb8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Track List */
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #7b88a3;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin: 12px 6px 8px;
+    }
+    .track-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .track-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .track-index {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6e7b96;
+      width: 20px;
+    }
+    .track-art {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #252b3c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .track-details {
+      flex: 1;
+      min-width: 0;
+    }
+    .track-details h6 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f0f4fc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .track-details p {
+      font-size: 12px;
+      color: #8b97b0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .track-time {
+      font-size: 12px;
+      color: #6e7b96;
+    }
+
+    /* Floating Mini Player */
+    .mini-player-container {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 74px;
+      background: rgba(28, 33, 46, 0.94);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      z-index: 60;
+      transition: transform 0.2s;
+    }
+    .mini-player-container:hover {
+      transform: translateY(-2px);
+    }
+    .mini-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #3b4255;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .mini-meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .mini-meta h5 {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #f0f4fc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-meta p {
+      font-size: 11px;
+      color: #9aa7c0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-meta span {
+      font-size: 10.5px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Progress Ring Widget */
+    .ring-control {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ring-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 44px;
+      height: 44px;
+      transform: rotate(-90deg);
+    }
+    .ring-bg {
+      fill: none;
+      stroke: rgba(79, 128, 255, 0.2);
+      stroke-width: 3.5;
+    }
+    .ring-bar {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-dasharray: 113;
+      stroke-dashoffset: 40;
+      transition: stroke-dashoffset 0.3s;
+    }
+    .ring-inner-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    /* Bottom Navigation */
+    .phone-bottomnav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 68px;
+      background: #14161d;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      padding: 0 8px 10px;
+      z-index: 55;
+    }
+    .nav-tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+    }
+    .nav-pill {
+      width: 52px;
+      height: 28px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8c97ad;
+      transition: all 0.2s;
+    }
+    .nav-tab-item.active .nav-pill {
+      background: rgba(79, 128, 255, 0.2);
+      color: var(--accent);
+    }
+    .nav-tab-item span {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8c97ad;
+    }
+    .nav-tab-item.active span {
+      color: #f0f4fc;
+    }
+
+    /* Vinyl Record Full Screen Modal */
+    .vinyl-modal {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: 38px;
+      background: #14161d;
+      border-radius: 32px 32px 0 0;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+      z-index: 80;
+      display: flex;
+      flex-direction: column;
+      padding: 14px 20px 24px;
+      transform: translateY(105%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .vinyl-modal.open {
+      transform: translateY(0%);
+    }
+
+    .modal-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .speaker-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #c9d3e8;
+    }
+
+    /* Vinyl Record Stage */
+    .vinyl-stage {
+      position: relative;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    .vinyl-disc {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: #111317;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #232733;
+    }
+    .vinyl-disc.spinning {
+      animation: spinVinyl 6s linear infinite;
+    }
+    @keyframes spinVinyl {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Concentric vinyl grooves */
+    .vinyl-grooves {
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      background: repeating-radial-gradient(
+        circle,
+        #111317 0px,
+        #111317 4px,
+        #1c202a 5px,
+        #111317 6px
+      );
+      opacity: 0.9;
+    }
+    .vinyl-center-label {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      background: #3e4453;
+      border: 3px solid #272c38;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      color: #fff;
+    }
+    .vinyl-hole {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #111317;
+    }
+
+    /* Tonearm */
+    .tonearm {
+      position: absolute;
+      top: 14px;
+      right: 48px;
+      width: 60px;
+      height: 120px;
+      pointer-events: none;
+      z-index: 5;
+      transition: transform 0.4s ease;
+      transform-origin: top right;
+    }
+    .tonearm.playing {
+      transform: rotate(8deg);
+    }
+    .tonearm-pivot {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #a1a8b8;
+      border: 3px solid #4a5266;
+    }
+    .tonearm-bar {
+      position: absolute;
+      top: 10px;
+      right: 8px;
+      width: 4px;
+      height: 86px;
+      background: #c3cbd9;
+      transform: rotate(-14deg);
+      transform-origin: top center;
+    }
+    .tonearm-head {
+      position: absolute;
+      bottom: 22px;
+      left: 14px;
+      width: 10px;
+      height: 18px;
+      border-radius: 2px;
+      background: #333a4a;
+    }
+
+    /* Modal Track Meta */
+    .modal-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 1.2px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .modal-title {
+      font-size: 21px;
+      font-weight: 700;
+      text-align: center;
+      color: #f0f4fc;
+      margin-bottom: 2px;
+    }
+    .modal-artist {
+      font-size: 13px;
+      color: #8c97ad;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    /* Slider Progress */
+    .seek-bar-wrap {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    .seek-track {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      position: relative;
+      cursor: pointer;
+    }
+    .seek-fill {
+      height: 100%;
+      width: 42%;
+      background: var(--accent);
+      border-radius: 2px;
+      position: relative;
+    }
+    .seek-thumb {
+      position: absolute;
+      right: -6px;
+      top: -4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .seek-times {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #7b88a3;
+      margin-top: 6px;
+    }
+
+    /* Modal Controls */
+    .modal-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      margin-bottom: 18px;
+    }
+    .modal-play-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #14161d;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .modal-play-btn:hover {
+      transform: scale(1.05);
+    }
+    .modal-bottom-row {
+      display: flex;
+      justify-content: space-around;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 12px;
+    }
+    .modal-bottom-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #c9d3e8;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Feature Grid Section */
+    .features-section {
+      margin-top: 100px;
+    }
+    .section-headline {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .section-headline h3 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      margin-bottom: 12px;
+    }
+    .section-headline p {
+      color: var(--text-muted);
+      font-size: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 28px;
+      transition: all 0.2s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(79, 128, 255, 0.4);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+    .feature-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: rgba(79, 128, 255, 0.12);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .feature-card h4 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Code / Architecture Box */
+    .arch-box {
+      margin-top: 80px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 32px;
+    }
+    .arch-box h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .code-block {
+      background: #090c12;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      color: #93c5fd;
+      overflow-x: auto;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-top: 80px;
+    }
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    footer a:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-ambient"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <div class="brand-icon">
+          <span class="mi" style="font-size: 22px; color: #fff;">music_note</span>
+        </div>
+        <div class="brand-title">LocalMusic</div>
+        <span class="brand-badge">UI Concept v1.0</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="https://github.com/northcrx/localmusic" target="_blank" class="nav-btn btn-gh">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+        <a href="app-debug.apk" download class="nav-btn btn-download">
+          <span class="mi" style="font-size: 19px;">download</span>
+          <span>Download APK</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Notice / Disclaimer -->
+    <div class="banner-disclaimer">
+      <div class="banner-icon">
+        <span class="mi">info</span>
+      </div>
+      <div class="banner-content">
+        <h4>UI Design & Concept Showcase</h4>
+        <p>
+          <strong>Notice:</strong> This repository represents a design prototype and UI architecture implemented in 
+          <strong>Android Jetpack Compose & Material 3 Expressive</strong> guidelines. It showcases UI components, custom canvas drawing (vinyl turntable record, progress rings), and interactive screen transitions. It is currently a UI showcase rather than a complete audio decoder engine. In upcoming development phases, local media scanning and audio decoding (Media3/ExoPlayer) will be integrated into this design.
+        </p>
+      </div>
+    </div>
+
+    <!-- Hero Section with Interactive Mockup -->
+    <div class="hero-grid">
+      <div class="hero-info">
+        <div class="hero-kicker">
+          <span class="mi" style="font-size: 17px;">palette</span>
+          <span>Design Architecture Showcase</span>
+        </div>
+        <h1 class="hero-title">
+          Modern Local Music UI for <span>Android</span>
+        </h1>
+        <p class="hero-desc">
+          Crafted from Droid Lab design tokens into declarative Jetpack Compose. Featuring an interactive vinyl record turntable player, circular ring mini-player, and quick 2x2 shuffle cards.
+        </p>
+
+        <div class="hero-badges">
+          <div class="tech-pill">
+            <span class="mi" style="font-size: 16px; color: var(--accent);">code</span>
+            <span>Jetpack Compose 1.7</span>
+          </div>
+          <div class="tech-pill">
+            <span class="mi" style="font-size: 16px; color: #a855f7;">auto_awesome</span>
+            <span>Material 3 Expressive</span>
+          </div>
+          <div class="tech-pill">
+            <span class="mi" style="font-size: 16px; color: #22c55e;">album</span>
+            <span>Vinyl Canvas Disc</span>
+          </div>
+          <div class="tech-pill">
+            <span class="mi" style="font-size: 16px; color: #f59e0b;">build</span>
+            <span>Gradle 9.8.2 / Kotlin 2.0</span>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <a href="app-debug.apk" download class="nav-btn btn-download" style="padding: 12px 24px; font-size: 15px;">
+            <span class="mi">android</span>
+            <span>Download app-debug.apk (16 MB)</span>
+          </a>
+          <a href="https://github.com/northcrx/localmusic" target="_blank" class="nav-btn btn-gh" style="padding: 12px 22px; font-size: 15px;">
+            <span class="mi">code</span>
+            <span>Explore Source Code</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Interactive Phone Mockup Preview -->
+      <div class="phone-wrapper">
+        <div class="phone-glow"></div>
+
+        <div class="phone">
+          <div class="camera-hole"></div>
+
+          <div class="phone-screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+              <span id="live-time">03:15</span>
+              <div class="status-icons">
+                <span class="mi">wifi</span>
+                <span class="mi">signal_cellular_alt</span>
+                <span class="mi">battery_full</span>
+              </div>
+            </div>
+
+            <!-- App Top Bar -->
+            <div class="app-topbar">
+              <button class="app-icon-btn" title="Navigation Drawer">
+                <span class="mi">menu</span>
+              </button>
+              <div class="topbar-title" id="screen-heading">Home</div>
+              <div class="topbar-actions">
+                <button class="app-icon-btn" id="btn-search-top" title="Search">
+                  <span class="mi">search</span>
+                </button>
+                <button class="app-icon-btn" title="More Options">
+                  <span class="mi">more_vert</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="phone-tabs" id="tab-bar">
+              <div class="phone-tab active" onclick="switchTab(this, 0)">For you</div>
+              <div class="phone-tab" onclick="switchTab(this, 1)">Following</div>
+              <div class="phone-tab" onclick="switchTab(this, 2)">Top Tracks</div>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="phone-content" id="app-body">
+              <!-- 2x2 Rounded Grid -->
+              <div class="shuffle-grid" id="shuffle-grid-view">
+                <!-- Box 1: Shuffle Button -->
+                <div class="grid-box shuffle-main" onclick="onShuffleClick()">
+                  <div class="shuffle-circle-btn">
+                    <span class="mi" style="font-size: 19px;">shuffle</span>
+                  </div>
+                  <div class="box-meta">
+                    <h5>Shuffle Play</h5>
+                    <p>Tap to mix & play</p>
+                  </div>
+                </div>
+
+                <!-- Box 2 -->
+                <div class="grid-box" onclick="selectTrack('Midnight Drive', 'Nova Lane')">
+                  <div class="box-badge">
+                    <span class="mi" style="font-size: 18px;">graphic_eq</span>
+                  </div>
+                  <div class="box-meta">
+                    <h5>Midnight Drive</h5>
+                    <p>Nova Lane</p>
+                  </div>
+                </div>
+
+                <!-- Box 3 -->
+                <div class="grid-box" onclick="selectTrack('Kyoto Garden', 'Zen Echoes')">
+                  <div class="box-badge">
+                    <span class="mi" style="font-size: 18px;">music_note</span>
+                  </div>
+                  <div class="box-meta">
+                    <h5>Kyoto Garden</h5>
+                    <p>Zen Echoes</p>
+                  </div>
+                </div>
+
+                <!-- Box 4 -->
+                <div class="grid-box" onclick="selectTrack('The Reading Room', 'Ambient Works')">
+                  <div class="box-badge">
+                    <span class="mi" style="font-size: 18px;">headphones</span>
+                  </div>
+                  <div class="box-meta">
+                    <h5>The Reading Room</h5>
+                    <p>Ambient Works</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Track List -->
+              <div class="section-title">Tracks</div>
+              <div id="track-container">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Floating Mini Player -->
+            <div class="mini-player-container" onclick="openVinylModal()">
+              <div class="mini-avatar">
+                <span class="mi">headset</span>
+              </div>
+              <div class="mini-meta">
+                <h5 id="mini-title">Midnight Drive</h5>
+                <p id="mini-artist">Nova Lane</p>
+                <span>64% played</span>
+              </div>
+
+              <!-- Circular Progress Ring Widget -->
+              <div class="ring-control" onclick="event.stopPropagation()">
+                <svg class="ring-svg" viewBox="0 0 44 44">
+                  <circle class="ring-bg" cx="22" cy="22" r="18" />
+                  <circle class="ring-bar" id="mini-progress-bar" cx="22" cy="22" r="18" />
+                </svg>
+                <button class="ring-inner-btn" onclick="togglePlayState(event)">
+                  <span class="mi" id="mini-play-icon" style="font-size: 16px;">pause</span>
+                </button>
+              </div>
+
+              <button class="app-icon-btn" onclick="event.stopPropagation(); nextTrack()" style="color: #c9d3e8; margin-left: -4px;">
+                <span class="mi">skip_next</span>
+              </button>
+            </div>
+
+            <!-- Bottom Navigation Bar -->
+            <div class="phone-bottomnav">
+              <div class="nav-tab-item active" onclick="switchNav(0)">
+                <div class="nav-pill">
+                  <span class="mi">home</span>
+                </div>
+                <span>Home</span>
+              </div>
+              <div class="nav-tab-item" onclick="switchNav(1)">
+                <div class="nav-pill">
+                  <span class="mi">music_note</span>
+                </div>
+                <span>Music</span>
+              </div>
+              <div class="nav-tab-item" onclick="switchNav(2)">
+                <div class="nav-pill">
+                  <span class="mi">search</span>
+                </div>
+                <span>Search</span>
+              </div>
+              <div class="nav-tab-item" onclick="switchNav(3)">
+                <div class="nav-pill">
+                  <span class="mi">anchor</span>
+                </div>
+                <span>Keeps</span>
+              </div>
+            </div>
+
+            <!-- Full-Screen Vinyl Record Now Playing Modal -->
+            <div class="vinyl-modal" id="vinyl-sheet">
+              <div class="modal-topbar">
+                <button class="app-icon-btn" onclick="closeVinylModal()" style="background: rgba(255,255,255,0.08);">
+                  <span class="mi">expand_more</span>
+                </button>
+                <div class="speaker-pill">
+                  <span class="mi" style="font-size: 16px;">speaker</span>
+                  <span>Phone Speaker</span>
+                </div>
+                <button class="app-icon-btn">
+                  <span class="mi">tune</span>
+                </button>
+              </div>
+
+              <!-- Realistic Vinyl Record Stage -->
+              <div class="vinyl-stage">
+                <div class="vinyl-disc spinning" id="vinyl-disc-el">
+                  <div class="vinyl-grooves"></div>
+                  <div class="vinyl-center-label">
+                    <span class="mi" style="font-size: 32px;">headset</span>
+                    <div class="vinyl-hole"></div>
+                  </div>
+                </div>
+
+                <!-- Tonearm -->
+                <div class="tonearm playing" id="tonearm-el">
+                  <div class="tonearm-pivot"></div>
+                  <div class="tonearm-bar"></div>
+                  <div class="tonearm-head"></div>
+                </div>
+              </div>
+
+              <!-- Metadata -->
+              <div class="modal-kicker">NOW PLAYING • VINYL</div>
+              <div class="modal-title" id="modal-song-title">Midnight Drive</div>
+              <div class="modal-artist" id="modal-song-artist">Nova Lane • Neon Hours</div>
+
+              <!-- Seek Bar -->
+              <div class="seek-bar-wrap">
+                <div class="seek-track">
+                  <div class="seek-fill">
+                    <div class="seek-thumb"></div>
+                  </div>
+                </div>
+                <div class="seek-times">
+                  <span>1:48</span>
+                  <span>4:12</span>
+                </div>
+              </div>
+
+              <!-- Playback Controls -->
+              <div class="modal-controls">
+                <button class="app-icon-btn" style="color: var(--accent);">
+                  <span class="mi">shuffle</span>
+                </button>
+                <button class="app-icon-btn" onclick="prevTrack()">
+                  <span class="mi" style="font-size: 26px;">skip_previous</span>
+                </button>
+                <button class="modal-play-btn" onclick="togglePlayState(event)">
+                  <span class="mi" id="modal-play-icon" style="font-size: 28px;">pause</span>
+                </button>
+                <button class="app-icon-btn" onclick="nextTrack()">
+                  <span class="mi" style="font-size: 26px;">skip_next</span>
+                </button>
+                <button class="app-icon-btn" style="color: #8c97ad;">
+                  <span class="mi">repeat</span>
+                </button>
+              </div>
+
+              <!-- Bottom Row -->
+              <div class="modal-bottom-row">
+                <button class="modal-bottom-btn">
+                  <span class="mi" style="font-size: 18px;">lyrics</span>
+                  <span>Lyrics</span>
+                </button>
+                <button class="modal-bottom-btn">
+                  <span class="mi" style="font-size: 18px;">queue_music</span>
+                  <span>Up next (12)</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Design Features Grid -->
+    <section class="features-section">
+      <div class="section-headline">
+        <h3>Crafted with Material 3 Expressive</h3>
+        <p>A modern interpretation of modern Android music aesthetics built for gesture-first mobile interactions.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <span class="mi">album</span>
+          </div>
+          <h4>Photorealistic Vinyl Turntable</h4>
+          <p>Full-screen modal sheet with canvas-drawn concentric groove rings, center spindle disc, tonearm needle geometry, and smooth spinning animations.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <span class="mi">motion_photos_on</span>
+          </div>
+          <h4>Circular Progress Ring Mini-Player</h4>
+          <p>Docked floating pill above the bottom navigation bar. Features an arc progress indicator with an embedded play/pause trigger.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <span class="mi">shuffle</span>
+          </div>
+          <h4>2x2 Quick Shuffle Grid</h4>
+          <p>Quick-play access tiles on the Home screen with dynamic random track re-indexing and one-touch music playback.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <span class="mi">search</span>
+          </div>
+          <h4>Direct Search & Explore Navigation</h4>
+          <p>Immediate routing to the search interface with real-time query filtering, filter chips (All, Songs, Album, Artist), and result previews.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <span class="mi">view_quilt</span>
+          </div>
+          <h4>Pure Jetpack Compose</h4>
+          <p>100% declarative UI with zero legacy XML views. Powered by Kotlin Coroutines, Navigation Compose, and MaterialTheme color scheming.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <span class="mi">devices</span>
+          </div>
+          <h4>Edge-to-Edge Adaptive</h4>
+          <p>Proper window insets handling for modern punch-hole displays, system gesture bars, and status bar translucency.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture & Build Box -->
+    <div class="arch-box">
+      <h3>
+        <span class="mi" style="color: var(--accent);">terminal</span>
+        <span>Build & Run Locally</span>
+      </h3>
+      <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14.5px;">
+        Clone the repository and compile the debug APK using the local Gradle wrapper:
+      </p>
+      <div class="code-block">
+git clone https://github.com/northcrx/localmusic.git
+cd localmusic
+./gradlew assembleDebug
+# Generated APK: app/build/outputs/apk/debug/app-debug.apk
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px;">
+      <p><strong>LocalMusic</strong> — Android Jetpack Compose UI Prototype</p>
+      <p>GitHub Repository: <a href="https://github.com/northcrx/localmusic" target="_blank">https://github.com/northcrx/localmusic</a></p>
+      <p style="font-size: 12.5px; color: var(--text-dim); margin-top: 8px;">
+        Note: This is a design concept and UI showcase. Full audio engine integration planned for future iterations.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Sample track catalog
+    const tracks = [
+      { id: 1, title: 'Midnight Drive', artist: 'Nova Lane', album: 'Neon Hours', dur: '4:12' },
+      { id: 2, title: 'Blue Bottle Coffee', artist: 'Chillhop Beats', album: 'Morning Brew', dur: '3:45' },
+      { id: 3, title: 'Kyoto Garden', artist: 'Zen Echoes', album: 'Peaceful Paths', dur: '2:58' },
+      { id: 4, title: 'The Reading Room', artist: 'Ambient Works', album: 'Silent Study', dur: '3:30' },
+      { id: 5, title: 'Neon Horizon', artist: 'Retro Wave', album: 'Synth City', dur: '4:05' },
+      { id: 6, title: 'Solar Drift', artist: 'Cosmic Sound', album: 'Starlight', dur: '3:50' },
+      { id: 7, title: 'Golden Hour', artist: 'Acoustic Sunset', album: 'Warm Light', dur: '3:15' }
+    ];
+
+    let currentTrack = tracks[0];
+    let isPlaying = true;
+    let currentNavIndex = 0;
+
+    // Render Track rows
+    function renderTracks(list = tracks) {
+      const container = document.getElementById('track-container');
+      container.innerHTML = list.map((t, index) => `
+        <div class="track-row" onclick="selectTrack('${t.title.replace(/'/g, "\\'")}', '${t.artist.replace(/'/g, "\\'")}')">
+          <div class="track-index">${index + 1}</div>
+          <div class="track-art">
+            <span class="mi" style="font-size: 20px;">music_note</span>
+          </div>
+          <div class="track-details">
+            <h6>${t.title}</h6>
+            <p>${t.artist}</p>
+          </div>
+          <div class="track-time">${t.dur}</div>
+        </div>
+      `).join('');
+    }
+
+    // Select track
+    function selectTrack(title, artist) {
+      const found = tracks.find(t => t.title === title) || { title, artist, album: 'Local Session', dur: '3:30' };
+      currentTrack = found;
+      isPlaying = true;
+      updateUI();
+    }
+
+    // Shuffle tracks
+    function onShuffleClick() {
+      const shuffled = [...tracks].sort(() => Math.random() - 0.5);
+      currentTrack = shuffled[0];
+      isPlaying = true;
+      updateUI();
+      renderTracks(shuffled);
+    }
+
+    function nextTrack() {
+      const idx = tracks.findIndex(t => t.title === currentTrack.title);
+      const nextIdx = (idx + 1) % tracks.length;
+      currentTrack = tracks[nextIdx];
+      isPlaying = true;
+      updateUI();
+    }
+
+    function prevTrack() {
+      const idx = tracks.findIndex(t => t.title === currentTrack.title);
+      const prevIdx = (idx - 1 + tracks.length) % tracks.length;
+      currentTrack = tracks[prevIdx];
+      isPlaying = true;
+      updateUI();
+    }
+
+    // Toggle Play/Pause
+    function togglePlayState(e) {
+      if (e) e.stopPropagation();
+      isPlaying = !isPlaying;
+      updateUI();
+    }
+
+    function updateUI() {
+      document.getElementById('mini-title').innerText = currentTrack.title;
+      document.getElementById('mini-artist').innerText = currentTrack.artist;
+      document.getElementById('modal-song-title').innerText = currentTrack.title;
+      document.getElementById('modal-song-artist').innerText = `${currentTrack.artist} • ${currentTrack.album || 'Neon Hours'}`;
+
+      const iconName = isPlaying ? 'pause' : 'play_arrow';
+      document.getElementById('mini-play-icon').innerText = iconName;
+      document.getElementById('modal-play-icon').innerText = iconName;
+
+      const vinylDisc = document.getElementById('vinyl-disc-el');
+      const tonearm = document.getElementById('tonearm-el');
+
+      if (isPlaying) {
+        vinylDisc.classList.add('spinning');
+        tonearm.classList.add('playing');
+      } else {
+        vinylDisc.classList.remove('spinning');
+        tonearm.classList.remove('playing');
+      }
+    }
+
+    // Modal Sheet toggle
+    function openVinylModal() {
+      document.getElementById('vinyl-sheet').classList.add('open');
+    }
+
+    function closeVinylModal() {
+      document.getElementById('vinyl-sheet').classList.remove('open');
+    }
+
+    // Tabs
+    function switchTab(el, index) {
+      document.querySelectorAll('.phone-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      if (index === 1) {
+        renderTracks([...tracks].reverse());
+      } else if (index === 2) {
+        renderTracks(tracks.slice(0, 4));
+      } else {
+        renderTracks(tracks);
+      }
+    }
+
+    // Bottom Navigation
+    function switchNav(index) {
+      currentNavIndex = index;
+      document.querySelectorAll('.nav-tab-item').forEach((item, i) => {
+        item.classList.toggle('active', i === index);
+      });
+
+      const heading = document.getElementById('screen-heading');
+      const shuffleGrid = document.getElementById('shuffle-grid-view');
+      const tabBar = document.getElementById('tab-bar');
+
+      if (index === 0) {
+        heading.innerText = 'Home';
+        shuffleGrid.style.display = 'grid';
+        tabBar.style.display = 'flex';
+        renderTracks(tracks);
+      } else if (index === 1) {
+        heading.innerText = 'Music';
+        shuffleGrid.style.display = 'none';
+        tabBar.style.display = 'flex';
+        renderTracks(tracks);
+      } else if (index === 2) {
+        heading.innerText = 'Search';
+        shuffleGrid.style.display = 'none';
+        tabBar.style.display = 'none';
+        renderSearchScreen();
+      } else if (index === 3) {
+        heading.innerText = 'Keeps';
+        shuffleGrid.style.display = 'none';
+        tabBar.style.display = 'flex';
+        renderTracks(tracks.slice(0, 4));
+      }
+    }
+
+    function renderSearchScreen() {
+      const container = document.getElementById('track-container');
+      container.innerHTML = `
+        <div style="background: rgba(255,255,255,0.06); border-radius: 99px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+          <span class="mi" style="font-size: 20px; color: #8c97ad;">search</span>
+          <input type="text" id="live-search-input" placeholder="Search songs and artists..." style="background: none; border: none; color: #fff; font-size: 13.5px; width: 100%; outline: none;" oninput="onSearchFilter(this.value)">
+        </div>
+        <div class="section-title">All Songs</div>
+        <div id="search-results-list"></div>
+      `;
+      renderSearchList(tracks);
+    }
+
+    function renderSearchList(list) {
+      const resContainer = document.getElementById('search-results-list');
+      if (!resContainer) return;
+      if (list.length === 0) {
+        resContainer.innerHTML = `<div style="text-align: center; color: #7b88a3; padding: 24px 0; font-size: 13px;">No matching songs found.</div>`;
+        return;
+      }
+      resContainer.innerHTML = list.map((t, idx) => `
+        <div class="track-row" onclick="selectTrack('${t.title.replace(/'/g, "\\'")}', '${t.artist.replace(/'/g, "\\'")}')">
+          <div class="track-index">${idx + 1}</div>
+          <div class="track-art"><span class="mi">music_note</span></div>
+          <div class="track-details">
+            <h6>${t.title}</h6>
+            <p>${t.artist}</p>
+          </div>
+          <div class="track-time">${t.dur}</div>
+        </div>
+      `).join('');
+    }
+
+    function onSearchFilter(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) {
+        renderSearchList(tracks);
+        return;
+      }
+      const filtered = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+      renderSearchList(filtered);
+    }
+
+    // Top search button redirects to search tab
+    document.getElementById('btn-search-top').onclick = () => switchNav(2);
+
+    // Initial render
+    renderTracks();
+    updateUI();
+
+    // Live clock in status bar
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('live-time').innerText = `${h}:${m}`;
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+  </script>
+</body>
+</html>
