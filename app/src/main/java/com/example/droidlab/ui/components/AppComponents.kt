@@ -45,6 +45,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 
 /**
  * Top App Bar matching Droid Lab visual specification (.app-bar.elevated).
@@ -58,6 +61,7 @@ fun DroidLabTopAppBar(
     onSearchClick: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onOpenEqualizer: () -> Unit = {},
+    onAddClick: (() -> Unit)? = null,
     menuItems: List<Pair<String, String>> = emptyList(),
     onActionClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
@@ -96,6 +100,16 @@ fun DroidLabTopAppBar(
             }
         },
         actions = {
+            if (onAddClick != null) {
+                IconButton(
+                    onClick = onAddClick,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                ) {
+                    AppIcon(name = "add", contentDescription = "Add", size = 22.dp)
+                }
+            }
             IconButton(
                 onClick = onSearchClick,
                 modifier = Modifier
@@ -537,90 +551,99 @@ fun MusicTrackArtCover(
             KyotoGardenArt(modifier = modifier)
         }
         cleanTitle.contains("midnight") || cleanArtist.contains("nova") -> {
+            // Elegant dark slate vinyl theme (monochrome immersion)
             Box(
                 modifier = modifier.background(
                     Brush.linearGradient(
-                        colors = listOf(Color(0xFF1B2838), Color(0xFF2C3E50), Color(0xFF1E1E24))
+                        colors = listOf(Color(0xFF23262C), Color(0xFF191B1F))
                     )
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    AppIcon(name = "music", size = 26.dp, tint = Color(0xFF64B5F6))
-                    Spacer(Modifier.height(3.dp))
-                    AppIcon(name = "graphic_eq", size = 20.dp, tint = Color.White.copy(alpha = 0.75f))
+                Canvas(modifier = Modifier.fillMaxSize(0.76f)) {
+                    val radius = size.minDimension / 2f
+                    drawCircle(color = Color.White.copy(alpha = 0.09f), radius = radius, style = Stroke(width = 1.2.dp.toPx()))
+                    drawCircle(color = Color.White.copy(alpha = 0.05f), radius = radius * 0.72f, style = Stroke(width = 1.dp.toPx()))
+                    drawCircle(color = Color.White.copy(alpha = 0.12f), radius = radius * 0.38f)
                 }
+                AppIcon(name = "album", size = 22.dp, tint = Color.White.copy(alpha = 0.85f))
             }
         }
         cleanTitle.contains("blue bottle") || cleanTitle.contains("chillhop") || cleanArtist.contains("chillhop") -> {
+            // Soft warm charcoal theme
             Box(
                 modifier = modifier.background(
                     Brush.linearGradient(
-                        colors = listOf(Color(0xFFD4A373), Color(0xFFCCD5AE), Color(0xFFE9EDC9))
+                        colors = listOf(Color(0xFF2C2E33), Color(0xFF202125))
                     )
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                AppIcon(name = "album", size = 28.dp, tint = Color(0xFF4A3525))
+                AppIcon(name = "music", size = 24.dp, tint = Color.White.copy(alpha = 0.8f))
             }
         }
         cleanTitle.contains("neon") || cleanArtist.contains("retro") -> {
+            // Muted graphite rhythm theme
             Box(
                 modifier = modifier.background(
                     Brush.linearGradient(
-                        colors = listOf(Color(0xFF833AB4), Color(0xFFFD1D1D), Color(0xFFFCB045))
+                        colors = listOf(Color(0xFF292A32), Color(0xFF1C1D22))
                     )
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                AppIcon(name = "album", size = 28.dp, tint = Color.White.copy(alpha = 0.9f))
+                AppIcon(name = "graphic_eq", size = 22.dp, tint = Color.White.copy(alpha = 0.82f))
             }
         }
         cleanTitle.contains("solar") || cleanArtist.contains("cosmic") -> {
+            // Deep cosmic graphite theme
             Box(
                 modifier = modifier.background(
                     Brush.linearGradient(
-                        colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
+                        colors = listOf(Color(0xFF21242B), Color(0xFF16181D))
                     )
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                AppIcon(name = "library_music", size = 26.dp, tint = Color(0xFF00E5FF))
+                AppIcon(name = "album", size = 22.dp, tint = Color.White.copy(alpha = 0.8f))
             }
         }
         cleanTitle.contains("golden") || cleanArtist.contains("acoustic") -> {
+            // Subtle warm slate theme
             Box(
                 modifier = modifier.background(
                     Brush.linearGradient(
-                        colors = listOf(Color(0xFFFFB347), Color(0xFFFFCC33))
+                        colors = listOf(Color(0xFF2F3138), Color(0xFF23252A))
                     )
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                AppIcon(name = "music", size = 26.dp, tint = Color(0xFF5D4037))
+                AppIcon(name = "music", size = 24.dp, tint = Color.White.copy(alpha = 0.85f))
             }
         }
         cleanTitle.contains("reading") || cleanArtist.contains("ambient") -> {
+            // Minimal ambient slate theme
             Box(
                 modifier = modifier.background(
                     Brush.linearGradient(
-                        colors = listOf(Color(0xFF3E5151), Color(0xFFDECBA4))
+                        colors = listOf(Color(0xFF282B30), Color(0xFF1C1E22))
                     )
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                AppIcon(name = "lyrics", size = 26.dp, tint = Color.White.copy(alpha = 0.85f))
+                AppIcon(name = "lyrics", size = 22.dp, tint = Color.White.copy(alpha = 0.8f))
             }
         }
         else -> {
+            // Theme neutral surfaceVariant fallback
             Box(
-                modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
+                modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)),
                 contentAlignment = Alignment.Center
             ) {
                 AppIcon(
-                    name = "music",
+                    name = "album",
                     size = 24.dp,
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -2257,94 +2280,194 @@ fun DroidLabMoreMenu(
     onActionClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismissRequest,
-        modifier = modifier
-            .width(235.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.88f))
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                shape = RoundedCornerShape(22.dp)
+    if (expanded) {
+        Popup(
+            alignment = Alignment.TopEnd,
+            offset = IntOffset(x = -16, y = 56),
+            onDismissRequest = onDismissRequest,
+            properties = PopupProperties(
+                focusable = true,
+                dismissOnClickOutside = true,
+                dismissOnBackPress = true
             )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
         ) {
-            // 1. Settings
-            DroidLabMoreMenuItem(
-                iconName = "settings",
-                title = "Settings",
-                onClick = {
-                    onDismissRequest()
-                    onOpenSettings()
-                }
-            )
+            Surface(
+                shape = RoundedCornerShape(22.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                ),
+                modifier = modifier.width(235.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    // 1. Settings
+                    DroidLabMoreMenuItem(
+                        iconName = "settings",
+                        title = "Settings",
+                        onClick = {
+                            onDismissRequest()
+                            onOpenSettings()
+                        }
+                    )
 
-            // 2. Equalizer & Sound
-            DroidLabMoreMenuItem(
-                iconName = "tune",
-                title = "Equalizer & Sound",
-                onClick = {
-                    onDismissRequest()
-                    onOpenEqualizer()
-                }
-            )
+                    // 2. Equalizer & Sound
+                    DroidLabMoreMenuItem(
+                        iconName = "tune",
+                        title = "Equalizer & Sound",
+                        onClick = {
+                            onDismissRequest()
+                            onOpenEqualizer()
+                        }
+                    )
 
-            // 3. Sleep timer
-            DroidLabMoreMenuItem(
-                iconName = "moon",
-                title = "Sleep timer",
-                trailingText = sleepTimerText,
-                onClick = {
-                    onDismissRequest()
-                    onSelectSleepTimer()
-                }
-            )
+                    // 3. Sleep timer
+                    DroidLabMoreMenuItem(
+                        iconName = "moon",
+                        title = "Sleep timer",
+                        trailingText = sleepTimerText,
+                        onClick = {
+                            onDismissRequest()
+                            onSelectSleepTimer()
+                        }
+                    )
 
-            // 4. Scan music folders
-            DroidLabMoreMenuItem(
-                iconName = "folder",
-                title = "Scan music folders",
-                onClick = {
-                    onDismissRequest()
-                    onScanFolders()
-                }
-            )
+                    // 4. Scan music folders
+                    DroidLabMoreMenuItem(
+                        iconName = "folder",
+                        title = "Scan music folders",
+                        onClick = {
+                            onDismissRequest()
+                            onScanFolders()
+                        }
+                    )
 
-            // 5. Sort library
-            DroidLabMoreMenuItem(
-                iconName = "sort",
-                title = "Sort library",
-                onClick = {
-                    onDismissRequest()
-                    onSortLibrary()
-                }
-            )
+                    // 5. Sort library
+                    DroidLabMoreMenuItem(
+                        iconName = "sort",
+                        title = "Sort library",
+                        onClick = {
+                            onDismissRequest()
+                            onSortLibrary()
+                        }
+                    )
 
-            // Thin subtle horizontal divider
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 5.dp),
-                thickness = 0.75.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-            )
+                    // Thin subtle horizontal divider
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 5.dp),
+                        thickness = 0.75.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    )
 
-            // 6. About & Version
-            DroidLabMoreMenuItem(
-                iconName = "info",
-                title = "About & Version",
-                trailingText = "v1.4.2",
-                onClick = {
-                    onDismissRequest()
-                    onAbout()
+                    // 6. About & Version
+                    DroidLabMoreMenuItem(
+                        iconName = "info",
+                        title = "About & Version",
+                        trailingText = "v1.4.2",
+                        onClick = {
+                            onDismissRequest()
+                            onAbout()
+                        }
+                    )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Single-layer Popup Menu for track options across every screen.
+ * Options: Play next, Add to playlist, Like/Unlike, Go to album, Go to artist.
+ */
+@Composable
+fun DroidLabTrackOptionsMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    title: String,
+    artist: String,
+    isLiked: Boolean = false,
+    onPlayNext: () -> Unit = {},
+    onAddToPlaylist: () -> Unit = {},
+    onToggleLike: () -> Unit = {},
+    onGoToAlbum: () -> Unit = {},
+    onGoToArtist: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    if (expanded) {
+        Popup(
+            alignment = Alignment.TopEnd,
+            offset = IntOffset(x = -14, y = 36),
+            onDismissRequest = onDismissRequest,
+            properties = PopupProperties(
+                focusable = true,
+                dismissOnClickOutside = true,
+                dismissOnBackPress = true
             )
+        ) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                ),
+                modifier = modifier.width(220.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    DroidLabMoreMenuItem(
+                        iconName = "queue",
+                        title = "Play next",
+                        onClick = {
+                            onDismissRequest()
+                            onPlayNext()
+                        }
+                    )
+                    DroidLabMoreMenuItem(
+                        iconName = "playlist_add",
+                        title = "Add to playlist",
+                        onClick = {
+                            onDismissRequest()
+                            onAddToPlaylist()
+                        }
+                    )
+                    DroidLabMoreMenuItem(
+                        iconName = if (isLiked) "heart" else "heart_border",
+                        title = if (isLiked) "Unlike" else "Add to Liked",
+                        onClick = {
+                            onDismissRequest()
+                            onToggleLike()
+                        }
+                    )
+                    DroidLabMoreMenuItem(
+                        iconName = "album",
+                        title = "Go to album",
+                        onClick = {
+                            onDismissRequest()
+                            onGoToAlbum()
+                        }
+                    )
+                    DroidLabMoreMenuItem(
+                        iconName = "person",
+                        title = "Go to artist",
+                        onClick = {
+                            onDismissRequest()
+                            onGoToArtist()
+                        }
+                    )
+                }
+            }
         }
     }
 }
@@ -2461,45 +2584,52 @@ fun DroidLabDrawerSheet(
  */
 @Composable
 fun DroidLabTrackRow(
-    index: Int,
+    index: Int? = null,
     title: String,
     artist: String,
     duration: String = "3:30",
-    isLiked: Boolean? = null,
+    isPlaying: Boolean = false,
+    isLiked: Boolean = false,
     onToggleLike: (() -> Unit)? = null,
+    onPlayNext: () -> Unit = {},
+    onAddToPlaylist: () -> Unit = {},
+    onGoToAlbum: () -> Unit = {},
+    onGoToArtist: () -> Unit = {},
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var showTrackMenu by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "$index",
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(28.dp)
-        )
+        // Squarish rounded corner music artwork (no 123 numbers!)
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
+                .size(44.dp)
+                .clip(RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
-            AppIcon(name = "music", size = 20.dp, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            MusicTrackArtCover(
+                title = title,
+                artist = artist,
+                modifier = Modifier.fillMaxSize()
+            )
         }
+
         Spacer(Modifier.width(14.dp))
+
+        // Title and artist
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = if (isPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -2512,22 +2642,53 @@ fun DroidLabTrackRow(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        if (isLiked != null && onToggleLike != null) {
+
+        // Duration text
+        Text(
+            text = duration,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(Modifier.width(6.dp))
+
+        // Action button: When playing, turns into rhythm sync animation icon. When paused, 3-dots.
+        Box {
             IconButton(
-                onClick = onToggleLike,
+                onClick = { showTrackMenu = true },
                 modifier = Modifier.size(36.dp)
             ) {
-                AppIcon(
-                    name = if (isLiked) "heart" else "heart_border",
-                    size = 20.dp,
-                    tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (isPlaying) {
+                    AppIcon(
+                        name = "graphic_eq",
+                        size = 20.dp,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    AppIcon(
+                        name = "more_vert",
+                        size = 20.dp,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-        } else {
-            Text(
-                text = duration,
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+
+            DroidLabTrackOptionsMenu(
+                expanded = showTrackMenu,
+                onDismissRequest = { showTrackMenu = false },
+                title = title,
+                artist = artist,
+                isLiked = isLiked,
+                onPlayNext = {
+                    onClick()
+                    onPlayNext()
+                },
+                onAddToPlaylist = onAddToPlaylist,
+                onToggleLike = {
+                    onToggleLike?.invoke()
+                },
+                onGoToAlbum = onGoToAlbum,
+                onGoToArtist = onGoToArtist
             )
         }
     }

@@ -124,6 +124,7 @@ fun HomeRoute(
     isPlaying: Boolean = false
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var showAddDialog by remember { mutableStateOf(false) }
     val tabs = listOf("For you", "Liked", "Top Tracks")
 
     val homeMenuItems = remember {
@@ -170,6 +171,56 @@ fun HomeRoute(
         )
     }
 
+
+    if (showAddDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false },
+            shape = RoundedCornerShape(22.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AppIcon(name = "add", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(10.dp))
+                    Text("Quick Actions", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(
+                        onClick = {
+                            showAddDialog = false
+                            onSongSelected("Midnight Drive", "Nova Lane")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            AppIcon(name = "queue", size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
+                            Text("Play Next in Queue", color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+                    TextButton(
+                        onClick = {
+                            showAddDialog = false
+                            onOpenEqualizer()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            AppIcon(name = "tune", size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
+                            Text("Audio Equalizer", color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAddDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             DroidLabTopAppBar(
@@ -177,7 +228,8 @@ fun HomeRoute(
                 onMenuClick = onOpenDrawer,
                 onSearchClick = onOpenSearch,
                 onOpenSettings = onOpenSettings,
-                onOpenEqualizer = onOpenEqualizer
+                onOpenEqualizer = onOpenEqualizer,
+                onAddClick = { showAddDialog = true }
             )
         }
     ) { innerPadding ->
@@ -613,58 +665,43 @@ fun HomeRoute(
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
                                 items(recommendedTracks) { (title, artist) ->
-                                    Card(
+                                    Column(
                                         modifier = Modifier
-                                            .width(132.dp)
-                                            .height(184.dp)
-                                            .clip(RoundedCornerShape(18.dp))
-                                            .clickable { onSongSelected(title, artist) },
-                                        shape = RoundedCornerShape(18.dp),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                                        )
+                                            .width(108.dp)
+                                            .clickable { onSongSelected(title, artist) }
                                     ) {
-                                        Column(
+                                        Box(
                                             modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(12.dp),
-                                            verticalArrangement = Arrangement.SpaceBetween
+                                                .size(108.dp)
+                                                .clip(RoundedCornerShape(14.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            // Top artwork
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(100.dp)
-                                                    .clip(RoundedCornerShape(12.dp)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                MusicTrackArtCover(
-                                                    title = title,
-                                                    artist = artist,
-                                                    modifier = Modifier.fillMaxSize()
-                                                )
-                                            }
-
-                                            // Bottom text: Artist & Song
-                                            Column {
-                                                Text(
-                                                    text = artist,
-                                                    fontSize = 12.5.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                                Spacer(Modifier.height(2.dp))
-                                                Text(
-                                                    text = title,
-                                                    fontSize = 11.5.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                            }
+                                            MusicTrackArtCover(
+                                                title = title,
+                                                artist = artist,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
                                         }
+
+                                        Spacer(Modifier.height(8.dp))
+
+                                        Text(
+                                            text = title,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Spacer(Modifier.height(2.dp))
+                                        Text(
+                                            text = artist,
+                                            fontSize = 11.5.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
                                     }
                                 }
                             }
@@ -718,11 +755,11 @@ fun HomeRoute(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(bottom = 96.dp)
                         ) {
-                            itemsIndexed(likedSongs) { index, (title, artist) ->
+                            items(likedSongs) { (title, artist) ->
                                 DroidLabTrackRow(
-                                    index = index + 1,
                                     title = title,
                                     artist = artist,
+                                    isPlaying = isPlaying && currentSongTitle == title,
                                     isLiked = true,
                                     onToggleLike = { onToggleLike(title, artist) },
                                     onClick = { onSongSelected(title, artist) }
@@ -760,57 +797,15 @@ fun HomeRoute(
                         }
 
                         items(topTracks, key = { it.rank }) { track ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onSongSelected(track.title, track.artist) }
-                                    .padding(horizontal = 16.dp, vertical = 11.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (track.rank <= 3) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "#${track.rank}",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (track.rank <= 3) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-
-                                Spacer(Modifier.width(14.dp))
-
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = track.title,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Spacer(Modifier.height(2.dp))
-                                    Text(
-                                        text = "${track.artist} • ${track.playCount}",
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-
-                                Text(
-                                    text = track.duration,
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            DroidLabTrackRow(
+                                title = track.title,
+                                artist = "${track.artist} • ${track.playCount}",
+                                duration = track.duration,
+                                isPlaying = isPlaying && currentSongTitle == track.title,
+                                isLiked = likedSongs.any { it.first == track.title },
+                                onToggleLike = { onToggleLike(track.title, track.artist) },
+                                onClick = { onSongSelected(track.title, track.artist) }
+                            )
                         }
                     }
                 }

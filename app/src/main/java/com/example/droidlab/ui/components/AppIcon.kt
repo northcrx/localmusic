@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -66,7 +67,11 @@ fun AppIcon(
         // Complete vector icon mapping - every icon has a rich Material icon fallback
         val vectorIcon: ImageVector = when (clean) {
             "home" -> Icons.Rounded.Home
-            "search", "explore" -> Icons.Rounded.Search
+                        "add", "plus", "create" -> Icons.Rounded.Add
+            "lock", "padlock" -> Icons.Rounded.Lock
+            "coffee", "cafe", "local_cafe" -> Icons.Rounded.LocalCafe
+            "book", "menu_book" -> Icons.AutoMirrored.Rounded.MenuBook
+"search", "explore" -> Icons.Rounded.Search
             "music", "song" -> Icons.Rounded.MusicNote
             "playlist", "playlists", "playlist_play" -> Icons.AutoMirrored.Rounded.PlaylistPlay
             "playlist_add" -> Icons.AutoMirrored.Rounded.PlaylistAdd

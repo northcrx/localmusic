@@ -85,7 +85,10 @@ fun AppNavHost(
                 onOpenSettings = { navController.navigate(Screen.Settings.route) },
                 onOpenEqualizer = { navController.navigate(Screen.Equalizer.route) },
                 onSongSelected = { title, artist -> onPlaySong(title, artist, false) },
-                likedSongs = likedSongs
+                currentSongTitle = currentSongTitle,
+                isPlaying = isPlaying,
+                likedSongs = likedSongs,
+                onToggleLike = onToggleLike
             )
         }
         composable(Screen.Keep.route) {

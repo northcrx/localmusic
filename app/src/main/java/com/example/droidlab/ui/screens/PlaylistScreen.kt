@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,22 +21,25 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.droidlab.ui.components.AppIcon
-import com.example.droidlab.ui.components.DroidLabTabs
 import com.example.droidlab.ui.components.DroidLabTopAppBar
-import com.example.droidlab.ui.components.KyotoGardenArt
+import com.example.droidlab.ui.components.DroidLabTrackRow
 
 data class PlaylistItem(
     val id: Int,
     val name: String,
     val trackCount: Int,
     val duration: String,
-    val isZenCover: Boolean = false
+    val iconName: String = "playlist"
 )
 
 /**
- * Playlist Screen:
- * Replaces the dedicated search tab in bottom navigation.
- * Displays user playlists, favorites, and folder collections matching Droid Lab styling.
+ * Playlist Screen matching user's exact specification & Screenshot:
+ * - Top card: Liked songs (with heart icon, count, duration, chevron right)
+ * - Section header: "Your playlists" on left, "Recently updated ↓" on right
+ * - 2-Column Grid with curated & custom playlists (Slow mornings, A quiet corner, Evening walks, On repeat)
+ * - Footer: lock icon + "Saved on your device. Ready whenever you are."
+ * - Plus button to the left of search button in top bar creates new playlists
+ * - Detailed playlist view on tap with full track list and playback
  */
 @Composable
 fun PlaylistRoute(
@@ -42,31 +48,26 @@ fun PlaylistRoute(
     onOpenSettings: () -> Unit = {},
     onOpenEqualizer: () -> Unit = {},
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
-    likedSongs: List<Pair<String, String>> = emptyList()
+    currentSongTitle: String = "",
+    isPlaying: Boolean = false,
+    likedSongs: List<Pair<String, String>> = emptyList(),
+    onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> }
 ) {
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Playlists", "Favorites", "Folders")
-
-    val playlistMenuItems = remember {
-        listOf(
-            Pair("New Playlist", "playlist_add"),
-            Pair("Sort Playlists", "sort"),
-            Pair("Import M3U", "storage")
-        )
-    }
-
     var playlists by remember {
         mutableStateOf(
             listOf(
-                PlaylistItem(1, "Zen Meditation", 8, "32 mins", isZenCover = true),
-                PlaylistItem(2, "Midnight Chillhop", 14, "48 mins"),
-                PlaylistItem(3, "Ambient Focus Flow", 10, "42 mins"),
-                PlaylistItem(4, "Night Drive Beats", 12, "50 mins"),
-                PlaylistItem(5, "Acoustic Mornings", 9, "34 mins"),
-                PlaylistItem(6, "Retro Wave Synth", 16, "1 hr 02 min")
+                PlaylistItem(1, "Slow mornings", 12, "46 min", "coffee"),
+                PlaylistItem(2, "A quiet corner", 18, "1 hr 12 min", "book"),
+                PlaylistItem(3, "Evening walks", 16, "58 min", "moon"),
+                PlaylistItem(4, "On repeat", 9, "34 min", "repeat")
             )
         )
     }
+
+    var selectedPlaylistForDetail by remember { mutableStateOf<PlaylistItem?>(null) }
+    var isLikedSongsDetailOpen by remember { mutableStateOf(false) }
+    var showCreatePlaylistDialog by remember { mutableStateOf(false) }
+    var newPlaylistName by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -75,7 +76,8 @@ fun PlaylistRoute(
                 onMenuClick = onOpenDrawer,
                 onSearchClick = onOpenSearch,
                 onOpenSettings = onOpenSettings,
-                onOpenEqualizer = onOpenEqualizer
+                onOpenEqualizer = onOpenEqualizer,
+                onAddClick = { showCreatePlaylistDialog = true }
             )
         }
     ) { innerPadding ->
@@ -84,101 +86,157 @@ fun PlaylistRoute(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            DroidLabTabs(
-                tabs = tabs,
-                selectedIndex = selectedTabIndex,
-                onTabSelected = { selectedTabIndex = it }
-            )
-
-            when (selectedTabIndex) {
-                0 -> {
-                    // "Playlists" Tab
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(top = 10.dp, bottom = 96.dp)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp)
+            ) {
+                // 1. Top Card: Liked songs
+                item {
+                    val totalLikedCount = likedSongs.size.coerceAtLeast(24)
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isLikedSongsDetailOpen = true }
                     ) {
-                        // Create New Playlist Card
-                        item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Left squarish rounded heart container
+                            Box(
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AppIcon(
+                                    name = "heart_border",
+                                    size = 22.dp,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            Spacer(Modifier.width(14.dp))
+
+                            // Middle: Title and subtitle
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Liked songs",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(Modifier.height(3.dp))
+                                Text(
+                                    text = "$totalLikedCount songs · 1 hr 36 min",
+                                    fontSize = 12.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            // Right: Chevron right
+                            AppIcon(
+                                name = "chevron_right",
+                                size = 20.dp,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+                }
+
+                // 2. Section Header: "Your playlists" & "Recently updated ↓"
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Your playlists",
+                            fontSize = 17.5.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Recently updated ↓",
+                                fontSize = 12.5.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                // 3. 2-Column Grid of Playlists
+                val chunkedPlaylists = playlists.chunked(2)
+                items(chunkedPlaylists) { pair ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        for (playlist in pair) {
                             Card(
-                                shape = RoundedCornerShape(14.dp),
+                                shape = RoundedCornerShape(20.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
                                 ),
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 6.dp)
-                                    .clickable { }
+                                    .weight(1f)
+                                    .clickable { selectedPlaylistForDetail = playlist }
                             ) {
-                                Row(
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(14.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .padding(16.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .background(MaterialTheme.colorScheme.primary),
-                                        contentAlignment = Alignment.Center
+                                    // Top Row: Squarish icon container + 3 horizontal dots
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        AppIcon(
-                                            name = "playlist_add",
-                                            size = 22.dp,
-                                            tint = Color.White
-                                        )
-                                    }
-                                    Spacer(Modifier.width(14.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "Create Playlist",
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
-                                        Spacer(Modifier.height(2.dp))
-                                        Text(
-                                            text = "Tap to create a new custom playlist",
-                                            fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .size(42.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            AppIcon(
+                                                name = playlist.iconName,
+                                                size = 20.dp,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
 
-                        // Playlists List
-                        items(playlists, key = { it.id }) { playlist ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        onSongSelected(playlist.name, "Playlist")
+                                        IconButton(
+                                            onClick = { selectedPlaylistForDetail = playlist },
+                                            modifier = Modifier.size(28.dp)
+                                        ) {
+                                            AppIcon(
+                                                name = "more_horiz",
+                                                size = 18.dp,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                            )
+                                        }
                                     }
-                                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (playlist.isZenCover) {
-                                        KyotoGardenArt(modifier = Modifier.fillMaxSize())
-                                    } else {
-                                        AppIcon(
-                                            name = "playlist",
-                                            size = 24.dp,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
 
-                                Spacer(Modifier.width(14.dp))
+                                    Spacer(Modifier.height(18.dp))
 
-                                Column(modifier = Modifier.weight(1f)) {
+                                    // Playlist Title
                                     Text(
                                         text = playlist.name,
                                         fontSize = 15.sp,
@@ -187,163 +245,315 @@ fun PlaylistRoute(
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
-                                    Spacer(Modifier.height(2.dp))
+
+                                    Spacer(Modifier.height(3.dp))
+
+                                    // Songs count
                                     Text(
-                                        text = "${playlist.trackCount} tracks • ${playlist.duration}",
+                                        text = "${playlist.trackCount} songs",
                                         fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                }
 
-                                IconButton(
-                                    onClick = { },
-                                    modifier = Modifier.size(34.dp)
-                                ) {
-                                    AppIcon(
-                                        name = "more_vert",
-                                        size = 20.dp,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                1 -> {
-                    // "Favorites" Tab
-                    if (likedSongs.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AppIcon(
-                                        name = "heart_border",
-                                        size = 32.dp,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Spacer(Modifier.height(16.dp))
-                                Text(
-                                    text = "No Favorites Yet",
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(Modifier.height(6.dp))
-                                Text(
-                                    text = "Songs marked with a heart will appear here automatically.",
-                                    fontSize = 13.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(top = 10.dp, bottom = 96.dp)
-                        ) {
-                            items(likedSongs) { (title, artist) ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { onSongSelected(title, artist) }
-                                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.primaryContainer),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        AppIcon(name = "music", size = 20.dp, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    }
-                                    Spacer(Modifier.width(14.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = title,
-                                            fontSize = 14.5.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Spacer(Modifier.height(2.dp))
-                                        Text(
-                                            text = artist,
-                                            fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    AppIcon(name = "heart", size = 20.dp, tint = MaterialTheme.colorScheme.primary)
-                                }
-                            }
-                        }
-                    }
-                }
-                2 -> {
-                    // "Folders" Tab
-                    val folders = remember {
-                        listOf(
-                            Triple("Music/Ambient", "18 tracks", "1.4 GB"),
-                            Triple("Music/Chillhop", "24 tracks", "2.1 GB"),
-                            Triple("Music/Zen Echoes", "12 tracks", "940 MB"),
-                            Triple("Music/Lossless FLAC", "36 tracks", "4.8 GB")
-                        )
-                    }
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(top = 10.dp, bottom = 96.dp)
-                    ) {
-                        items(folders) { (folderName, count, size) ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { }
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(MaterialTheme.colorScheme.secondaryContainer),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AppIcon(name = "storage", size = 20.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                                }
-                                Spacer(Modifier.width(14.dp))
-                                Column(modifier = Modifier.weight(1f)) {
+                                    // Duration
                                     Text(
-                                        text = folderName,
-                                        fontSize = 14.5.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Spacer(Modifier.height(2.dp))
-                                    Text(
-                                        text = "$count • $size",
+                                        text = playlist.duration,
                                         fontSize = 12.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                AppIcon(name = "chevron_right", size = 20.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
+                        }
+
+                        // If single item in row, fill with empty spacer
+                        if (pair.size == 1) {
+                            Spacer(Modifier.weight(1f))
+                        }
+                    }
+                }
+
+                // 4. Footer: lock icon + "Saved on your device. Ready whenever you are."
+                item {
+                    Spacer(Modifier.height(28.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AppIcon(
+                            name = "lock",
+                            size = 14.dp,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "Saved on your device. Ready whenever you are.",
+                            fontSize = 11.5.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Create New Playlist Dialog
+    if (showCreatePlaylistDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showCreatePlaylistDialog = false
+                newPlaylistName = ""
+            },
+            shape = RoundedCornerShape(22.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AppIcon(name = "playlist_add", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(10.dp))
+                    Text("New Playlist", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = newPlaylistName,
+                        onValueChange = { newPlaylistName = it },
+                        placeholder = { Text("Playlist name") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (newPlaylistName.isNotBlank()) {
+                            val newId = (playlists.maxOfOrNull { it.id } ?: 0) + 1
+                            playlists = playlists + PlaylistItem(
+                                id = newId,
+                                name = newPlaylistName.trim(),
+                                trackCount = 0,
+                                duration = "0 min",
+                                iconName = "playlist"
+                            )
+                        }
+                        showCreatePlaylistDialog = false
+                        newPlaylistName = ""
+                    },
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Create")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showCreatePlaylistDialog = false
+                        newPlaylistName = ""
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Playlist Detail View
+    if (selectedPlaylistForDetail != null) {
+        val playlist = selectedPlaylistForDetail!!
+        val playlistTracks = remember(playlist) {
+            listOf(
+                Triple("Kyoto Garden", "Zen Echoes", "2:58"),
+                Triple("Midnight Drive", "Nova Lane", "4:12"),
+                Triple("Blue Bottle Coffee", "Chillhop Beats", "3:45"),
+                Triple("The Reading Room", "Ambient Works", "3:30"),
+                Triple("Neon Horizon", "Retro Wave", "4:05"),
+                Triple("Solar Drift", "Cosmic Sound", "3:50"),
+                Triple("Golden Hour", "Acoustic Sunset", "3:15"),
+                Triple("Rainy Cafe", "Lo-Fi Study", "2:45")
+            ).take(playlist.trackCount.coerceAtLeast(4))
+        }
+
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 12.dp)
+            ) {
+                // Top Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { selectedPlaylistForDetail = null }) {
+                        AppIcon(name = "arrow_back", size = 22.dp)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Playlist",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 96.dp)
+                ) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AppIcon(
+                                    name = playlist.iconName,
+                                    size = 36.dp,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(Modifier.height(14.dp))
+                            Text(
+                                text = playlist.name,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = "${playlist.trackCount} songs • ${playlist.duration}",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Spacer(Modifier.height(16.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Button(
+                                    onClick = {
+                                        if (playlistTracks.isNotEmpty()) {
+                                            onSongSelected(playlistTracks.first().first, playlistTracks.first().second)
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(20.dp)
+                                ) {
+                                    AppIcon(name = "play", size = 18.dp, tint = Color.White)
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Play All")
+                                }
+                                OutlinedButton(
+                                    onClick = {
+                                        if (playlistTracks.isNotEmpty()) {
+                                            val picked = playlistTracks.random()
+                                            onSongSelected(picked.first, picked.second)
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(20.dp)
+                                ) {
+                                    AppIcon(name = "shuffle", size = 18.dp)
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Shuffle")
+                                }
+                            }
+                        }
+                    }
+
+                    item {
+                        Text(
+                            text = "Tracks",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
+
+                    items(playlistTracks) { (trackTitle, trackArtist, trackDuration) ->
+                        DroidLabTrackRow(
+                            title = trackTitle,
+                            artist = trackArtist,
+                            duration = trackDuration,
+                            isPlaying = isPlaying && currentSongTitle == trackTitle,
+                            isLiked = likedSongs.any { it.first == trackTitle },
+                            onToggleLike = { onToggleLike(trackTitle, trackArtist) },
+                            onClick = { onSongSelected(trackTitle, trackArtist) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Liked Songs Detail View
+    if (isLikedSongsDetailOpen) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 12.dp)
+            ) {
+                // Top Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { isLikedSongsDetailOpen = false }) {
+                        AppIcon(name = "arrow_back", size = 22.dp)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Liked Songs",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                if (likedSongs.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No liked songs yet",
+                            fontSize = 15.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 96.dp)
+                    ) {
+                        items(likedSongs) { (trackTitle, trackArtist) ->
+                            DroidLabTrackRow(
+                                title = trackTitle,
+                                artist = trackArtist,
+                                duration = "3:30",
+                                isPlaying = isPlaying && currentSongTitle == trackTitle,
+                                isLiked = true,
+                                onToggleLike = { onToggleLike(trackTitle, trackArtist) },
+                                onClick = { onSongSelected(trackTitle, trackArtist) }
+                            )
                         }
                     }
                 }
