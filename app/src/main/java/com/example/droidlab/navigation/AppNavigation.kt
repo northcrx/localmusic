@@ -17,6 +17,7 @@ sealed class Screen(val route: String, val title: String, val icon: String) {
     data object Explore : Screen("explore", "Search", "search")
     data object Keep : Screen("keep", "Keeps", "keep")
     data object Settings : Screen("settings", "Settings", "settings")
+    data object Equalizer : Screen("equalizer", "Equalizer", "equalizer")
 }
 
 val BottomNavScreens = listOf(
@@ -34,6 +35,8 @@ fun AppNavHost(
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
     likedSongs: List<Pair<String, String>> = emptyList(),
     onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> },
+    activeDeviceId: String = "phone_speaker",
+    onDeviceSelected: (DeviceHardwarePreset) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -84,6 +87,13 @@ fun AppNavHost(
         }
         composable(Screen.Settings.route) {
             SettingsRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Equalizer.route) {
+            EqualizerRoute(
+                activeDeviceId = activeDeviceId,
+                onDeviceSelected = onDeviceSelected,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -457,15 +459,28 @@ fun VinylRecordPlayer(
     isPlaying: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "vinyl_spin")
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(6000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
+    // Disc continuous spin rotation - freezes smoothly in place when paused
+    var discRotation by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) {
+            var lastTime = withFrameNanos { it }
+            while (true) {
+                withFrameNanos { now ->
+                    val dt = (now - lastTime) / 1_000_000_000f
+                    lastTime = now
+                    discRotation = (discRotation + dt * 55f) % 360f
+                }
+            }
+        }
+    }
+
+    // Tonearm movement:
+    // When isPlaying == true: tonearm is at 0f (on the record, playing)
+    // When isPlaying == false: tonearm rotates away to -34f onto its rest cradle
+    val tonearmAngle by animateFloatAsState(
+        targetValue = if (isPlaying) 0f else -34f,
+        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+        label = "tonearm_angle"
     )
 
     Box(
@@ -479,6 +494,7 @@ fun VinylRecordPlayer(
             modifier = Modifier
                 .size(255.dp)
                 .shadow(elevation = 14.dp, shape = CircleShape)
+                .graphicsLayer { rotationZ = discRotation }
                 .clip(CircleShape)
                 .background(Color(0xFF14161A)),
             contentAlignment = Alignment.Center
@@ -519,7 +535,7 @@ fun VinylRecordPlayer(
             }
         }
 
-        // Tonearm / Needle on top right
+        // Tonearm / Needle on top right with animated swing onto/away from the CD
         Canvas(
             modifier = Modifier
                 .size(280.dp)
@@ -528,29 +544,55 @@ fun VinylRecordPlayer(
             val pivotX = size.width * 0.82f
             val pivotY = size.height * 0.14f
 
-            // Pivot base
+            // Tonearm rest cradle (where tonearm parks when paused)
+            drawRoundRect(
+                color = Color(0xFF4B5563),
+                topLeft = Offset(size.width * 0.88f, size.height * 0.32f),
+                size = androidx.compose.ui.geometry.Size(6.dp.toPx(), 12.dp.toPx()),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+            )
+
+            // Stationary Pivot Base on the turntable deck
             drawCircle(color = Color(0xFFBDC2CC), radius = 9.dp.toPx(), center = Offset(pivotX, pivotY))
             drawCircle(color = Color(0xFF4A5568), radius = 5.dp.toPx(), center = Offset(pivotX, pivotY))
 
-            // Arm line bending towards the record
-            val armPath = Path().apply {
-                moveTo(pivotX, pivotY)
-                lineTo(size.width * 0.76f, size.height * 0.36f)
-                lineTo(size.width * 0.70f, size.height * 0.52f)
-            }
-            drawPath(
-                path = armPath,
-                color = Color(0xFFC7CBD3),
-                style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
-            )
+            // Rotatable Tonearm assembly
+            rotate(degrees = tonearmAngle, pivot = Offset(pivotX, pivotY)) {
+                // Counterweight behind pivot
+                drawRoundRect(
+                    color = Color(0xFF4A5568),
+                    topLeft = Offset(pivotX - 5.dp.toPx(), pivotY - 14.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(10.dp.toPx(), 12.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+                )
 
-            // Headshell / cartridge needle at the end
-            drawRoundRect(
-                color = Color(0xFF374151),
-                topLeft = Offset(size.width * 0.68f, size.height * 0.50f),
-                size = androidx.compose.ui.geometry.Size(11.dp.toPx(), 20.dp.toPx()),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx())
-            )
+                // Arm line bending towards the record
+                val armPath = Path().apply {
+                    moveTo(pivotX, pivotY)
+                    lineTo(size.width * 0.76f, size.height * 0.36f)
+                    lineTo(size.width * 0.70f, size.height * 0.52f)
+                }
+                drawPath(
+                    path = armPath,
+                    color = Color(0xFFC7CBD3),
+                    style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+                )
+
+                // Headshell / cartridge needle at the end
+                drawRoundRect(
+                    color = Color(0xFF374151),
+                    topLeft = Offset(size.width * 0.68f, size.height * 0.50f),
+                    size = androidx.compose.ui.geometry.Size(11.dp.toPx(), 20.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx())
+                )
+
+                // Needle stylus point
+                drawCircle(
+                    color = Color(0xFFE5E7EB),
+                    radius = 2.dp.toPx(),
+                    center = Offset(size.width * 0.70f, size.height * 0.52f)
+                )
+            }
         }
     }
 }
@@ -739,6 +781,9 @@ fun DroidLabNowPlayingScreen(
     totalTime: String = "4:12",
     isPlaying: Boolean = true,
     isLiked: Boolean = false,
+    activeDeviceName: String = "Phone Speaker",
+    activeDeviceIcon: String = "phone_speaker",
+    onOpenEqualizer: () -> Unit = {},
     onToggleLike: () -> Unit = {},
     onPlayPause: () -> Unit = { },
     onPrevious: () -> Unit = { },
@@ -790,25 +835,26 @@ fun DroidLabNowPlayingScreen(
 
                 Spacer(Modifier.weight(1f))
 
-                // Output Device Pill
+                // Output Device Pill (Tap to open Equalizer & Sound Profile)
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(99.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                        .clickable(onClick = onOpenEqualizer)
                         .padding(horizontal = 14.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AppIcon(
-                        name = "phone_speaker",
+                        name = activeDeviceIcon,
                         size = 15.dp,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = "Phone Speaker",
+                        text = activeDeviceName,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -861,7 +907,10 @@ fun DroidLabNowPlayingScreen(
                             DropdownMenuItem(
                                 text = { Text("Equalizer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
                                 leadingIcon = { AppIcon(name = "equalizer", size = 20.dp) },
-                                onClick = { isSlidersMenuOpen = false }
+                                onClick = {
+                                    isSlidersMenuOpen = false
+                                    onOpenEqualizer()
+                                }
                             )
                             DropdownMenuItem(
                                 text = {

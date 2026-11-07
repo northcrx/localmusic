@@ -24,6 +24,9 @@ import com.example.droidlab.navigation.AppNavHost
 import com.example.droidlab.navigation.BottomNavScreens
 import com.example.droidlab.navigation.Screen
 import com.example.droidlab.ui.components.*
+import com.example.droidlab.ui.screens.AvailableDevicePresets
+import com.example.droidlab.ui.screens.DeviceHardwarePreset
+import com.example.droidlab.ui.screens.EqualizerRoute
 import com.example.droidlab.ui.theme.DroidLabTheme
 import kotlinx.coroutines.launch
 
@@ -49,7 +52,11 @@ fun AppRoot() {
     val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
 
     var isNowPlayingOpen by remember { mutableStateOf(false) }
+    var isEqualizerOpen by remember { mutableStateOf(false) }
     var sleepTimerMinutes by remember { mutableStateOf<Int?>(null) }
+
+    // Connected Audio Device / Hardware Profile (reflected in player and throughout app)
+    var activeDevicePreset by remember { mutableStateOf<DeviceHardwarePreset>(AvailableDevicePresets.first()) }
 
     var currentSongTitle by remember { mutableStateOf("Midnight Drive") }
     var currentSongArtist by remember { mutableStateOf("Nova Lane") }
@@ -157,10 +164,12 @@ fun AppRoot() {
                         },
                         likedSongs = likedSongs,
                         onToggleLike = toggleLike,
+                        activeDeviceId = activeDevicePreset.id,
+                        onDeviceSelected = { activeDevicePreset = it },
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    // Floating Mini Player: ONLY at Home and Music pages, nothingwith else!heart like button on left side of play/pause
+                    // Floating Mini Player: ONLY at Home and Music pages, with heart like button
                     if (showMiniPlayer) {
                         Box(
                             modifier = Modifier
@@ -209,6 +218,9 @@ fun AppRoot() {
                     totalTime = "4:12",
                     isPlaying = isPlaying,
                     isLiked = isCurrentSongLiked,
+                    activeDeviceName = activeDevicePreset.name,
+                    activeDeviceIcon = activeDevicePreset.iconName,
+                    onOpenEqualizer = { isEqualizerOpen = true },
                     onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
                     onPlayPause = { isPlaying = !isPlaying },
                     onPrevious = {
@@ -222,6 +234,25 @@ fun AppRoot() {
                     onClose = { isNowPlayingOpen = false },
                     sleepTimerMinutes = sleepTimerMinutes,
                     onSetSleepTimer = { mins -> sleepTimerMinutes = mins }
+                )
+            }
+
+            // Full-screen Equalizer View (accessible from Player device pill & dropdown menu)
+            AnimatedVisibility(
+                visible = isEqualizerOpen,
+                enter = slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(200)),
+                exit = slideOutVertically(
+                    targetOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(200))
+            ) {
+                EqualizerRoute(
+                    activeDeviceId = activeDevicePreset.id,
+                    onDeviceSelected = { activeDevicePreset = it },
+                    onNavigateBack = { isEqualizerOpen = false }
                 )
             }
         }
