@@ -82,7 +82,8 @@ fun MusicRoute(
     onAlbumSelected: ((AlbumItem) -> Unit)? = null,
     onArtistSelected: ((ArtistItem) -> Unit)? = null,
     musicViewModel: MusicViewModel? = null,
-    onScanRequested: () -> Unit = {}
+    onScanRequested: () -> Unit = {},
+    onPlaySongEntity: ((SongEntity, List<SongEntity>) -> Unit)? = null
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var selectedAlbumForDetail by remember { mutableStateOf<AlbumItem?>(null) }
@@ -251,9 +252,15 @@ fun MusicRoute(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
                                         .clickable {
-                                            val shuffled = displayedTracks.shuffled()
-                                            if (shuffled.isNotEmpty()) {
+                                            if (realSongs.isNotEmpty()) {
+                                                val shuffled = realSongs.shuffled()
+                                                onPlaySongEntity?.invoke(shuffled.first(), shuffled)
                                                 onSongSelected(shuffled.first().title, shuffled.first().artist)
+                                            } else {
+                                                val shuffled = displayedTracks.shuffled()
+                                                if (shuffled.isNotEmpty()) {
+                                                    onSongSelected(shuffled.first().title, shuffled.first().artist)
+                                                }
                                             }
                                         }
                                         .padding(vertical = 4.dp, horizontal = 6.dp)
@@ -335,6 +342,10 @@ fun MusicRoute(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
+                                        val matchedSong = realSongs.find { (it.mediaStoreId % 100000).toInt() == track.id }
+                                        if (matchedSong != null && onPlaySongEntity != null) {
+                                            onPlaySongEntity(matchedSong, realSongs)
+                                        }
                                         onSongSelected(track.title, track.artist)
                                     }
                                     .padding(horizontal = 16.dp, vertical = 8.dp),

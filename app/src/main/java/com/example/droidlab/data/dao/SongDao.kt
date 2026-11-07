@@ -55,6 +55,12 @@ interface SongDao {
     @Query("SELECT mediaStoreId, dateModified FROM songs")
     suspend fun getAllExistingIdsAndModified(): List<SongIdModified>
 
+    @Query("SELECT * FROM songs WHERE mediaStoreId = :id LIMIT 1")
+    suspend fun getSongById(id: Long): SongEntity?
+
+    @Query("SELECT * FROM songs WHERE mediaStoreId IN (:ids)")
+    suspend fun getSongsByIds(ids: List<Long>): List<SongEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertSongs(songs: List<SongEntity>)
 

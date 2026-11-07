@@ -1,5 +1,7 @@
 package com.example.droidlab.ui.components
 
+import com.example.droidlab.data.entity.SongEntity
+
 import kotlinx.coroutines.delay
 
 import androidx.activity.compose.BackHandler
@@ -1198,14 +1200,22 @@ fun DroidLabNowPlayingScreen(
     onOpenSettings: () -> Unit = {},
     sleepTimerMinutes: Int? = null,
     onSetSleepTimer: (Int?) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isShuffleOn: Boolean = false,
+    onToggleShuffle: () -> Unit = {},
+    isRepeatOn: Boolean = false,
+    onToggleRepeat: () -> Unit = {},
+    onSeek: (Float) -> Unit = {},
+    audioFormatDescription: String = "FLAC • 44.1 kHz • On device",
+    queueList: List<SongEntity> = emptyList(),
+    onRemoveFromQueue: (Int) -> Unit = {},
+    onClearQueue: () -> Unit = {}
 ) {
     BackHandler(onBack = onClose)
 
     val isDark = isSystemInDarkTheme()
     var currentProgress by remember { mutableFloatStateOf(progress) }
-    var isShuffleOn by remember { mutableStateOf(false) }
-    var isRepeatOn by remember { mutableStateOf(false) }
+    LaunchedEffect(progress) { currentProgress = progress }
     var isOptionsSheetOpen by remember { mutableStateOf(false) }
     var showFileDetailsDialog by remember { mutableStateOf(false) }
     var isQueueOpen by remember { mutableStateOf(false) }
@@ -1225,7 +1235,10 @@ fun DroidLabNowPlayingScreen(
             onSongSelected = { newTitle, newArtist ->
                 onSongSelected(newTitle, newArtist)
             },
-            onClose = { isQueueOpen = false }
+            onClose = { isQueueOpen = false },
+            realQueue = queueList,
+            onRemoveFromQueue = onRemoveFromQueue,
+            onClearQueue = onClearQueue
         )
     } else {
         Surface(
@@ -1357,7 +1370,9 @@ fun DroidLabNowPlayingScreen(
                             .height(20.dp)
                             .pointerInput(Unit) {
                                 detectTapGestures { offset ->
-                                    currentProgress = (offset.x / size.width).coerceIn(0f, 1f)
+                                    val newP = (offset.x / size.width).coerceIn(0f, 1f)
+                                    currentProgress = newP
+                                    onSeek(newP)
                                 }
                             },
                         contentAlignment = Alignment.CenterStart
@@ -1404,7 +1419,7 @@ fun DroidLabNowPlayingScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
-                        onClick = { isShuffleOn = !isShuffleOn },
+                        onClick = onToggleShuffle,
                         modifier = Modifier.size(44.dp)
                     ) {
                         AppIcon(
@@ -1453,7 +1468,7 @@ fun DroidLabNowPlayingScreen(
                     }
 
                     IconButton(
-                        onClick = { isRepeatOn = !isRepeatOn },
+                        onClick = onToggleRepeat,
                         modifier = Modifier.size(44.dp)
                     ) {
                         AppIcon(
@@ -1476,7 +1491,7 @@ fun DroidLabNowPlayingScreen(
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = "FLAC • 44.1 kHz • On device",
+                        text = audioFormatDescription,
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1515,7 +1530,7 @@ fun DroidLabNowPlayingScreen(
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            text = "Queue • 12 songs",
+                            text = if (queueList.isNotEmpty()) "Queue • ${queueList.size} songs" else "Queue • 12 songs",
                             fontSize = 12.5.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1813,7 +1828,10 @@ fun DroidLabQueueScreen(
     onPlayPause: () -> Unit,
     onToggleLike: () -> Unit,
     onSongSelected: (title: String, artist: String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    realQueue: List<SongEntity> = emptyList(),
+    onRemoveFromQueue: (Int) -> Unit = {},
+    onClearQueue: () -> Unit = {}
 ) {
     BackHandler(onBack = onClose)
 
@@ -1829,6 +1847,17 @@ fun DroidLabQueueScreen(
             )
         )
     }
+
+    val displayItems = remember(realQueue) {
+        if (realQueue.isNotEmpty()) {
+            realQueue.map { song ->
+                val mins = (song.durationMs / 1000) / 60
+                val secs = (song.durationMs / 1000) % 60
+                Triple(song.title, song.artist, "%d:%02d".format(mins, secs))
+            }
+        } else null
+    }
+    val effectiveQueue = displayItems ?: queueList
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -1858,7 +1887,7 @@ fun DroidLabQueueScreen(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "${queueList.size + 1} songs • From your device",
+                        text = "${effectiveQueue.size + 1} songs • From your device",
                         fontSize = 13.5.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1991,7 +2020,7 @@ fun DroidLabQueueScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Up next • ${queueList.size}",
+                    text = "Up next • ${effectiveQueue.size}",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -2002,7 +2031,7 @@ fun DroidLabQueueScreen(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.clickable { queueList = emptyList() }
+                    modifier = Modifier.clickable { if (realQueue.isNotEmpty()) onClearQueue() else queueList = emptyList() }
                 )
             }
 
@@ -2013,7 +2042,7 @@ fun DroidLabQueueScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
-                items(queueList, key = { it.first }) { (title, artist, duration) ->
+                items(effectiveQueue) { (title, artist, duration) ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -2071,7 +2100,7 @@ fun DroidLabQueueScreen(
                         Spacer(Modifier.width(6.dp))
 
                         IconButton(
-                            onClick = { queueList = queueList.filter { it.first != title } },
+                            onClick = { if (realQueue.isNotEmpty()) { val idx = effectiveQueue.indexOfFirst { it.first == title }; if (idx >= 0) onRemoveFromQueue(idx) } else queueList = queueList.filter { it.first != title } },
                             modifier = Modifier.size(32.dp)
                         ) {
                             AppIcon(name = "close", size = 16.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -1,5 +1,7 @@
 package com.example.droidlab.navigation
 
+import com.example.droidlab.data.entity.SongEntity
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -52,6 +54,7 @@ fun AppNavHost(
     onArtistSelected: (ArtistItem) -> Unit = {},
     musicViewModel: MusicViewModel? = null,
     onScanRequested: () -> Unit = {},
+    onPlaySongEntity: ((SongEntity, List<SongEntity>) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -90,7 +93,8 @@ fun AppNavHost(
                 onAlbumSelected = onAlbumSelected,
                 onArtistSelected = onArtistSelected,
                 musicViewModel = musicViewModel,
-                onScanRequested = onScanRequested
+                onScanRequested = onScanRequested,
+                onPlaySongEntity = onPlaySongEntity
             )
         }
         composable(Screen.Playlist.route) {

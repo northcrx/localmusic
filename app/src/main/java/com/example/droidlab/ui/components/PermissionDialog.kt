@@ -80,3 +80,48 @@ fun AudioPermissionDialog(
         }
     )
 }
+
+@Composable
+fun NotificationPermissionDialog(
+    onGrantClick: () -> Unit,
+    onDismissRequest: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        shape = RoundedCornerShape(22.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIcon(name = "tune", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = "Playback Notification",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp
+                )
+            }
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Enable notifications so you can control playback, see album artwork, and skip tracks from your lock screen and notification bar.",
+                    fontSize = 13.5.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 19.sp
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onGrantClick,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Allow")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Not Now")
+            }
+        }
+    )
+}

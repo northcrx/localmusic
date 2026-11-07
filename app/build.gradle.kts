@@ -69,6 +69,12 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
+    // Media3 (ExoPlayer & MediaSession)
+    val media3Version = "1.4.1"
+    implementation("androidx.media3:media3-exoplayer:$media3Version")
+    implementation("androidx.media3:media3-session:$media3Version")
+    implementation("androidx.media3:media3-ui:$media3Version")
+
     // Image Loading
     implementation("io.coil-kt:coil-compose:2.7.0")
 

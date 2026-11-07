@@ -3,12 +3,14 @@ package com.example.droidlab.di
 import android.content.Context
 import com.example.droidlab.data.db.AppDatabase
 import com.example.droidlab.data.repository.MusicRepository
+import com.example.droidlab.playback.PlayerController
 import com.example.droidlab.scanner.MediaStoreScanner
 
 interface AppContainer {
     val musicRepository: MusicRepository
     val mediaStoreScanner: MediaStoreScanner
     val appDatabase: AppDatabase
+    val playerController: PlayerController
 }
 
 class DefaultAppContainer(private val context: Context) : AppContainer {
@@ -22,5 +24,13 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val musicRepository: MusicRepository by lazy {
         MusicRepository(appDatabase.songDao(), mediaStoreScanner)
+    }
+
+    override val playerController: PlayerController by lazy {
+        PlayerController(
+            context = context,
+            songDao = appDatabase.songDao(),
+            playbackStateDao = appDatabase.playbackStateDao()
+        )
     }
 }

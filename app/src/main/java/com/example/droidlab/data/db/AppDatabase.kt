@@ -4,17 +4,20 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.droidlab.data.dao.PlaybackStateDao
 import com.example.droidlab.data.dao.SongDao
+import com.example.droidlab.data.entity.PlaybackStateEntity
 import com.example.droidlab.data.entity.SongEntity
 
 @Database(
-    entities = [SongEntity::class],
-    version = 1,
+    entities = [SongEntity::class, PlaybackStateEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun songDao(): SongDao
+    abstract fun playbackStateDao(): PlaybackStateDao
 
     companion object {
         @Volatile

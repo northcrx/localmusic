@@ -1,9 +1,14 @@
 package com.example.droidlab
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -13,22 +18,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.droidlab.ui.components.AudioPermissionDialog
-import com.example.droidlab.ui.viewmodel.MusicViewModel
-
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -36,17 +33,18 @@ import com.example.droidlab.navigation.AppNavHost
 import com.example.droidlab.navigation.BottomNavScreens
 import com.example.droidlab.navigation.Screen
 import com.example.droidlab.ui.components.*
+import com.example.droidlab.ui.screens.AlbumDetailScreen
+import com.example.droidlab.ui.screens.AlbumItem
+import com.example.droidlab.ui.screens.ArtistDetailScreen
+import com.example.droidlab.ui.screens.ArtistItem
 import com.example.droidlab.ui.screens.AvailableDevicePresets
 import com.example.droidlab.ui.screens.DeviceHardwarePreset
 import com.example.droidlab.ui.screens.EqualizerRoute
-import com.example.droidlab.ui.screens.AlbumItem
-import com.example.droidlab.ui.screens.ArtistItem
-import com.example.droidlab.ui.screens.AlbumDetailScreen
-import com.example.droidlab.ui.screens.ArtistDetailScreen
 import com.example.droidlab.ui.theme.DroidLabTheme
 import com.example.droidlab.ui.theme.ManropeFontFamily
 import com.example.droidlab.ui.theme.SpaceGroteskFontFamily
 import com.example.droidlab.ui.theme.SystemFontFamily
+import com.example.droidlab.ui.viewmodel.MusicViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -90,7 +88,53 @@ fun AppRoot(
     val scanState by musicViewModel.scanState.collectAsStateWithLifecycle()
     var showScanFoldersDialog by remember { mutableStateOf(false) }
 
-    // Permission Flow (themed explanation first, then system dialog; if permanently denied, show Open Settings)
+    // Real Media3 PlayerController
+    val playerController = app.container.playerController
+    val currentSongEntity by playerController.currentSong.collectAsStateWithLifecycle()
+    val isPlaying by playerController.isPlaying.collectAsStateWithLifecycle()
+    val positionMs by playerController.positionMs.collectAsStateWithLifecycle()
+    val durationMs by playerController.durationMs.collectAsStateWithLifecycle()
+    val shuffleEnabled by playerController.shuffleEnabled.collectAsStateWithLifecycle()
+    val repeatMode by playerController.repeatMode.collectAsStateWithLifecycle()
+    val currentQueue by playerController.queue.collectAsStateWithLifecycle()
+    val currentFormatDescription by playerController.currentFormatDescription.collectAsStateWithLifecycle()
+
+    val currentSongTitle = currentSongEntity?.title ?: "Kyoto Garden"
+    val currentSongArtist = currentSongEntity?.artist ?: "Zen Echoes"
+    val currentSongAlbum = currentSongEntity?.album ?: "Zen Echoes"
+
+    val progressPercent = if (durationMs > 0) ((positionMs.toFloat() / durationMs.toFloat()) * 100).toInt().coerceIn(0, 100) else 0
+    val progressFraction = if (durationMs > 0) (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) else 0f
+
+    val currentMins = (positionMs / 1000) / 60
+    val currentSecs = (positionMs / 1000) % 60
+    val currentTimeString = "%d:%02d".format(currentMins, currentSecs)
+
+    val totalMins = (durationMs / 1000) / 60
+    val totalSecs = (durationMs / 1000) % 60
+    val totalTimeString = "%d:%02d".format(totalMins, totalSecs)
+
+    // Notification Permission Flow (API 33+)
+    var showNotificationExplanation by remember { mutableStateOf(false) }
+    var hasRequestedNotificationOnce by remember { mutableStateOf(false) }
+
+    val notificationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // Playback works regardless of whether notification permission is granted or denied
+    }
+
+    val requestNotificationPermissionIfNeeded: () -> Unit = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasRequestedNotificationOnce) {
+            hasRequestedNotificationOnce = true
+            val hasNotif = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            if (!hasNotif) {
+                showNotificationExplanation = true
+            }
+        }
+    }
+
+    // Audio Permission Flow (themed explanation first, then system dialog; if permanently denied, show Open Settings)
     val permissionToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_AUDIO
     } else {
@@ -131,10 +175,6 @@ fun AppRoot(
 
     // Connected Audio Device / Hardware Profile (reflected in player and throughout app)
     var activeDevicePreset by remember { mutableStateOf<DeviceHardwarePreset>(AvailableDevicePresets.first()) }
-
-    var currentSongTitle by remember { mutableStateOf("Kyoto Garden") }
-    var currentSongArtist by remember { mutableStateOf("Zen Echoes") }
-    var isPlaying by remember { mutableStateOf(true) }
 
     // Shared list of liked songs
     val likedSongs = remember {
@@ -228,16 +268,36 @@ fun AppRoot(
                         navController = navController,
                         onOpenDrawer = { coroutineScope.launch { drawerState.open() } },
                         onOpenSearch = navigateToSearch,
+                        onPlaySongEntity = { song, list ->
+                            requestNotificationPermissionIfNeeded()
+                            playerController.playSong(song, list)
+                        },
                         onSongSelected = { title, artist ->
-                            currentSongTitle = title
-                            currentSongArtist = artist
-                            isPlaying = true
+                            requestNotificationPermissionIfNeeded()
+                            if (currentSongEntity?.title.equals(title, ignoreCase = true)) {
+                                playerController.playPause()
+                            } else {
+                                val found = currentQueue.find { it.title.equals(title, ignoreCase = true) }
+                                if (found != null) {
+                                    playerController.playSong(found, currentQueue)
+                                } else {
+                                    playerController.playPause()
+                                }
+                            }
                             isNowPlayingOpen = true
                         },
                         onPlaySong = { title, artist, openFullPlayer ->
-                            currentSongTitle = title
-                            currentSongArtist = artist
-                            isPlaying = true
+                            requestNotificationPermissionIfNeeded()
+                            if (currentSongEntity?.title.equals(title, ignoreCase = true)) {
+                                playerController.playPause()
+                            } else {
+                                val found = currentQueue.find { it.title.equals(title, ignoreCase = true) }
+                                if (found != null) {
+                                    playerController.playSong(found, currentQueue)
+                                } else {
+                                    playerController.playPause()
+                                }
+                            }
                             if (openFullPlayer) {
                                 isNowPlayingOpen = true
                             }
@@ -270,16 +330,12 @@ fun AppRoot(
                             DroidLabMiniPlayer(
                                 title = currentSongTitle,
                                 artist = currentSongArtist,
-                                progressPercent = 35,
+                                progressPercent = progressPercent,
                                 isPlaying = isPlaying,
                                 isLiked = isCurrentSongLiked,
                                 onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
-                                onPlayPause = { isPlaying = !isPlaying },
-                                onNext = {
-                                    currentSongTitle = "Midnight Drive"
-                                    currentSongArtist = "Nova Lane"
-                                    isPlaying = true
-                                },
+                                onPlayPause = { playerController.playPause() },
+                                onNext = { playerController.next() },
                                 style = selectedMiniPlayerStyle,
                                 onClick = { isNowPlayingOpen = true }
                             )
@@ -303,29 +359,26 @@ fun AppRoot(
                 DroidLabNowPlayingScreen(
                     title = currentSongTitle,
                     artist = currentSongArtist,
-                    album = "Zen Echoes",
-                    progress = 0.35f,
-                    currentTime = "1:28",
-                    totalTime = "4:12",
+                    album = currentSongAlbum,
+                    progress = progressFraction,
+                    currentTime = currentTimeString,
+                    totalTime = totalTimeString,
                     isPlaying = isPlaying,
                     isLiked = isCurrentSongLiked,
                     activeDeviceName = activeDevicePreset.name,
                     activeDeviceIcon = activeDevicePreset.iconName,
                     onOpenEqualizer = { isEqualizerOpen = true },
                     onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
-                    onPlayPause = { isPlaying = !isPlaying },
-                    onPrevious = {
-                        currentSongTitle = "Midnight Drive"
-                        currentSongArtist = "Nova Lane"
-                    },
-                    onNext = {
-                        currentSongTitle = "Blue Bottle Coffee"
-                        currentSongArtist = "Chillhop Beats"
-                    },
+                    onPlayPause = { playerController.playPause() },
+                    onPrevious = { playerController.previous() },
+                    onNext = { playerController.next() },
                     onSongSelected = { title, artist ->
-                        currentSongTitle = title
-                        currentSongArtist = artist
-                        isPlaying = true
+                        val found = currentQueue.find { it.title.equals(title, ignoreCase = true) }
+                        if (found != null) {
+                            playerController.playSong(found, currentQueue)
+                        } else {
+                            playerController.playPause()
+                        }
                     },
                     onClose = { isNowPlayingOpen = false },
                     onGoToArtist = { artistName ->
@@ -338,7 +391,16 @@ fun AppRoot(
                         navController.navigate(Screen.Settings.route)
                     },
                     sleepTimerMinutes = sleepTimerMinutes,
-                    onSetSleepTimer = { mins -> sleepTimerMinutes = mins }
+                    onSetSleepTimer = { mins -> sleepTimerMinutes = mins },
+                    isShuffleOn = shuffleEnabled,
+                    onToggleShuffle = { playerController.toggleShuffle() },
+                    isRepeatOn = (repeatMode != androidx.media3.common.Player.REPEAT_MODE_OFF),
+                    onToggleRepeat = { playerController.toggleRepeat() },
+                    onSeek = { fraction -> playerController.seekTo((fraction * durationMs).toLong()) },
+                    audioFormatDescription = currentFormatDescription,
+                    queueList = currentQueue,
+                    onRemoveFromQueue = { index -> playerController.removeFromQueue(index) },
+                    onClearQueue = { playerController.clearQueue() }
                 )
             }
 
@@ -353,6 +415,21 @@ fun AppRoot(
                     },
                     onDismissRequest = { showPermissionExplanation = false },
                     context = context
+                )
+            }
+
+            // Playback Notification Permission Dialog (API 33+)
+            if (showNotificationExplanation) {
+                NotificationPermissionDialog(
+                    onGrantClick = {
+                        showNotificationExplanation = false
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    },
+                    onDismissRequest = {
+                        showNotificationExplanation = false
+                    }
                 )
             }
 
@@ -377,9 +454,12 @@ fun AppRoot(
                     album = activeAlbum,
                     onBack = { selectedAlbumDetail = null },
                     onSongSelected = { title: String, artist: String ->
-                        currentSongTitle = title
-                        currentSongArtist = artist
-                        isPlaying = true
+                        val found = currentQueue.find { it.title.equals(title, ignoreCase = true) }
+                        if (found != null) {
+                            playerController.playSong(found, currentQueue)
+                        } else {
+                            playerController.playPause()
+                        }
                     },
                     likedSongs = likedSongs,
                     onToggleLike = toggleLike,
@@ -396,9 +476,12 @@ fun AppRoot(
                     artist = activeArtist,
                     onBack = { selectedArtistDetail = null },
                     onSongSelected = { title: String, artist: String ->
-                        currentSongTitle = title
-                        currentSongArtist = artist
-                        isPlaying = true
+                        val found = currentQueue.find { it.title.equals(title, ignoreCase = true) }
+                        if (found != null) {
+                            playerController.playSong(found, currentQueue)
+                        } else {
+                            playerController.playPause()
+                        }
                     },
                     likedSongs = likedSongs,
                     onToggleLike = toggleLike,
