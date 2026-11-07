@@ -7,15 +7,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -101,10 +100,49 @@ fun AppRoot() {
                 contentWindowInsets = WindowInsets(0.dp),
                 bottomBar = {
                     if (bottomNavIndex != -1) {
-                        Column(
+                        DroidLabBottomNav(
+                            selectedIndex = bottomNavIndex,
+                            onTabSelected = { index ->
+                                val targetScreen = BottomNavScreens[index]
+                                if (currentRoute != targetScreen.route) {
+                                    navController.navigate(targetScreen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            ) { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
+                    // Content scrolls freely all the way down to bottom nav
+                    AppNavHost(
+                        navController = navController,
+                        onOpenDrawer = { coroutineScope.launch { drawerState.open() } },
+                        onOpenSearch = navigateToSearch,
+                        onSongSelected = { title, artist ->
+                            currentSongTitle = title
+                            currentSongArtist = artist
+                            isPlaying = true
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    // Floating Mini Player: Lifted little up, transparent surroundings showing content behind
+                    if (bottomNavIndex != -1) {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surface)
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 14.dp)
                         ) {
                             DroidLabMiniPlayer(
                                 title = currentSongTitle,
@@ -119,36 +157,9 @@ fun AppRoot() {
                                 },
                                 onClick = { isNowPlayingOpen = true }
                             )
-                            DroidLabBottomNav(
-                                selectedIndex = bottomNavIndex,
-                                onTabSelected = { index ->
-                                    val targetScreen = BottomNavScreens[index]
-                                    if (currentRoute != targetScreen.route) {
-                                        navController.navigate(targetScreen.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    }
-                                }
-                            )
                         }
                     }
                 }
-            ) { innerPadding ->
-                AppNavHost(
-                    navController = navController,
-                    onOpenDrawer = { coroutineScope.launch { drawerState.open() } },
-                    onOpenSearch = navigateToSearch,
-                    onSongSelected = { title, artist ->
-                        currentSongTitle = title
-                        currentSongArtist = artist
-                        isPlaying = true
-                    },
-                    modifier = Modifier.padding(innerPadding)
-                )
             }
 
             // True Full-Screen Now Playing Experience (0dp corner radius, edge-to-edge)

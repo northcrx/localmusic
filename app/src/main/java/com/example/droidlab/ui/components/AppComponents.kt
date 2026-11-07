@@ -268,23 +268,31 @@ fun DroidLabMiniPlayer(
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val containerBg = if (isDark) {
+        Color(0xCC202430) // Translucent dark slate, showing backside content
+    } else {
+        Color(0xDDE6EAF4) // Translucent light slate, showing backside content
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 3.dp)
+            .padding(horizontal = 14.dp)
             .shadow(
-                elevation = 3.dp,
-                shape = RoundedCornerShape(20.dp)
+                elevation = 8.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = Color.Black.copy(alpha = 0.35f)
             )
             .border(
-                BorderStroke(0.75.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                BorderStroke(0.85.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
                 shape = RoundedCornerShape(20.dp)
             )
             .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = containerBg
         )
     ) {
         Row(

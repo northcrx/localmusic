@@ -132,9 +132,9 @@ fun HomeRoute(
                     // "For you" Tab: 2x2 Shuffle Grid ONLY HERE + Tracks list
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(bottom = 96.dp)
                     ) {
-                        // 4-Box Rounded Shuffle Grid (tight, minimal padding)
+                        // 4-Box Rounded Shuffle Grid with ample height for text
                         item {
                             Column(
                                 modifier = Modifier
@@ -151,7 +151,7 @@ fun HomeRoute(
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(88.dp)
+                                            .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
                                                 trackList = trackList.shuffled()
@@ -166,19 +166,19 @@ fun HomeRoute(
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .padding(11.dp),
+                                                .padding(12.dp),
                                             verticalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(34.dp)
+                                                    .size(32.dp)
                                                     .clip(CircleShape)
                                                     .background(MaterialTheme.colorScheme.primary),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 AppIcon(
                                                     name = "shuffle",
-                                                    size = 17.dp,
+                                                    size = 16.dp,
                                                     tint = Color.White
                                                 )
                                             }
@@ -186,14 +186,19 @@ fun HomeRoute(
                                             Column {
                                                 Text(
                                                     text = "Shuffle Play",
-                                                    fontSize = 13.sp,
+                                                    fontSize = 13.5.sp,
                                                     fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
+                                                Spacer(Modifier.height(3.dp))
                                                 Text(
                                                     text = "Tap to mix & play",
-                                                    fontSize = 11.sp,
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                                    fontSize = 11.5.sp,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
@@ -203,7 +208,7 @@ fun HomeRoute(
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(88.dp)
+                                            .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
                                                 onSongSelected("Midnight Drive", "Nova Lane")
@@ -216,7 +221,7 @@ fun HomeRoute(
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .padding(11.dp),
+                                                .padding(12.dp),
                                             verticalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Box(
@@ -226,21 +231,23 @@ fun HomeRoute(
                                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(name = "music", size = 17.dp)
+                                                AppIcon(name = "music", size = 16.dp)
                                             }
                                             Column {
                                                 Text(
                                                     text = "Midnight Drive",
-                                                    fontSize = 13.sp,
+                                                    fontSize = 13.5.sp,
                                                     fontWeight = FontWeight.SemiBold,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis
                                                 )
+                                                Spacer(Modifier.height(3.dp))
                                                 Text(
                                                     text = "Nova Lane",
-                                                    fontSize = 11.sp,
+                                                    fontSize = 11.5.sp,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    maxLines = 1
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
@@ -256,7 +263,7 @@ fun HomeRoute(
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(88.dp)
+                                            .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
                                                 onSongSelected("Kyoto Garden", "Zen Echoes")
@@ -269,7 +276,7 @@ fun HomeRoute(
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .padding(11.dp),
+                                                .padding(12.dp),
                                             verticalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Box(
@@ -279,21 +286,23 @@ fun HomeRoute(
                                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(name = "music", size = 17.dp)
+                                                AppIcon(name = "music", size = 16.dp)
                                             }
                                             Column {
                                                 Text(
                                                     text = "Kyoto Garden",
-                                                    fontSize = 13.sp,
+                                                    fontSize = 13.5.sp,
                                                     fontWeight = FontWeight.SemiBold,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis
                                                 )
+                                                Spacer(Modifier.height(3.dp))
                                                 Text(
                                                     text = "Zen Echoes",
-                                                    fontSize = 11.sp,
+                                                    fontSize = 11.5.sp,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    maxLines = 1
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
@@ -303,7 +312,7 @@ fun HomeRoute(
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(88.dp)
+                                            .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
                                                 onSongSelected("The Reading Room", "Ambient Works")
@@ -316,7 +325,7 @@ fun HomeRoute(
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .padding(11.dp),
+                                                .padding(12.dp),
                                             verticalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Box(
@@ -326,21 +335,23 @@ fun HomeRoute(
                                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(name = "music", size = 17.dp)
+                                                AppIcon(name = "music", size = 16.dp)
                                             }
                                             Column {
                                                 Text(
                                                     text = "The Reading Room",
-                                                    fontSize = 13.sp,
+                                                    fontSize = 13.5.sp,
                                                     fontWeight = FontWeight.SemiBold,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis
                                                 )
+                                                Spacer(Modifier.height(3.dp))
                                                 Text(
                                                     text = "Ambient Works",
-                                                    fontSize = 11.sp,
+                                                    fontSize = 11.5.sp,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    maxLines = 1
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
@@ -372,7 +383,7 @@ fun HomeRoute(
                     // "Following" Tab: List of artists with profile avatar & Follow/Following toggle
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp)
                     ) {
                         item {
                             Text(
@@ -460,7 +471,7 @@ fun HomeRoute(
                     // "Top Tracks" Tab: Ranked top tracks
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(bottom = 96.dp)
                     ) {
                         item {
                             Row(
