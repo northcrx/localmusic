@@ -68,6 +68,7 @@ fun AppIcon(
             "keep", "download", "downloads" -> Icons.Rounded.Download
             "settings" -> Icons.Rounded.Settings
             "more_vert", "three_dots" -> Icons.Rounded.MoreVert
+            "more_horiz", "more_horizontal", "dots" -> Icons.Rounded.MoreHoriz
             "drawer", "menu", "hamburger" -> Icons.Rounded.Menu
             "close", "clear" -> Icons.Rounded.Close
             "arrow_back", "back" -> Icons.AutoMirrored.Rounded.ArrowBack
@@ -96,6 +97,9 @@ fun AppIcon(
             "lyrics" -> Icons.AutoMirrored.Rounded.Notes
             "queue", "up_next" -> Icons.AutoMirrored.Rounded.QueueMusic
             "timer", "sleep_timer", "schedule" -> Icons.Rounded.Timer
+            "bedtime", "night", "moon", "sleep" -> Icons.Rounded.Bedtime
+            "storage", "device", "hard_drive" -> Icons.Rounded.Storage
+            "album", "disc" -> Icons.Rounded.Album
             "refresh" -> Icons.Rounded.Refresh
             "person" -> Icons.Rounded.Person
             "person_add" -> Icons.Rounded.PersonAdd

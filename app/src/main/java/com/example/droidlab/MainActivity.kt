@@ -73,13 +73,14 @@ fun AppRoot(
     // Connected Audio Device / Hardware Profile (reflected in player and throughout app)
     var activeDevicePreset by remember { mutableStateOf<DeviceHardwarePreset>(AvailableDevicePresets.first()) }
 
-    var currentSongTitle by remember { mutableStateOf("Midnight Drive") }
-    var currentSongArtist by remember { mutableStateOf("Nova Lane") }
+    var currentSongTitle by remember { mutableStateOf("Kyoto Garden") }
+    var currentSongArtist by remember { mutableStateOf("Zen Echoes") }
     var isPlaying by remember { mutableStateOf(true) }
 
     // Shared list of liked songs
     val likedSongs = remember {
         mutableStateListOf(
+            Pair("Kyoto Garden", "Zen Echoes"),
             Pair("Midnight Drive", "Nova Lane"),
             Pair("Blue Bottle Coffee", "Chillhop Beats")
         )
@@ -104,8 +105,8 @@ fun AppRoot(
         else -> -1
     }
 
-    // Mini Player ONLY shown at Home and Music pages, nothing else
-    val showMiniPlayer = currentRoute == Screen.Home.route || currentRoute == Screen.Music.route
+    // Mini Player ONLY shown at Home and Music pages when full player is not open
+    val showMiniPlayer = (currentRoute == Screen.Home.route || currentRoute == Screen.Music.route) && !isNowPlayingOpen
 
     val navigateToSearch: () -> Unit = {
         if (currentRoute != Screen.Explore.route) {
@@ -139,80 +140,84 @@ fun AppRoot(
             )
         }
     ) {
-        Scaffold(
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            bottomBar = {
-                if (bottomNavIndex >= 0) {
-                    DroidLabBottomNav(
-                        selectedIndex = bottomNavIndex,
-                        onTabSelected = { index ->
-                            val targetScreen = BottomNavScreens[index]
-                            if (currentRoute != targetScreen.route) {
-                                navController.navigate(targetScreen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+        // Root container ensuring full-screen overlays sit on top of everything
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                bottomBar = {
+                    // Hide bottom nav bar completely when full music player or equalizer is active
+                    if (bottomNavIndex >= 0 && !isNowPlayingOpen && !isEqualizerOpen) {
+                        DroidLabBottomNav(
+                            selectedIndex = bottomNavIndex,
+                            onTabSelected = { index ->
+                                val targetScreen = BottomNavScreens[index]
+                                if (currentRoute != targetScreen.route) {
+                                    navController.navigate(targetScreen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             }
-                        }
-                    )
-                }
-            }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = innerPadding.calculateBottomPadding())
-            ) {
-                // Content scrolls freely all the way down to bottom nav
-                AppNavHost(
-                    navController = navController,
-                    onOpenDrawer = { coroutineScope.launch { drawerState.open() } },
-                    onOpenSearch = navigateToSearch,
-                    onSongSelected = { title, artist ->
-                        currentSongTitle = title
-                        currentSongArtist = artist
-                        isPlaying = true
-                    },
-                    likedSongs = likedSongs,
-                    onToggleLike = toggleLike,
-                    activeDeviceId = activeDevicePreset.id,
-                    onDeviceSelected = { activeDevicePreset = it },
-                    selectedFontPreference = selectedFontPreference,
-                    onFontPreferenceChanged = onFontPreferenceChanged,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                // Floating Mini Player: ONLY at Home and Music pages, with heart like button
-                if (showMiniPlayer) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .padding(bottom = 12.dp)
-                    ) {
-                        DroidLabMiniPlayer(
-                            title = currentSongTitle,
-                            artist = currentSongArtist,
-                            progressPercent = 42,
-                            isPlaying = isPlaying,
-                            isLiked = isCurrentSongLiked,
-                            onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
-                            onPlayPause = { isPlaying = !isPlaying },
-                            onNext = {
-                                currentSongTitle = "Neon Horizon"
-                                currentSongArtist = "Retro Wave"
-                                isPlaying = true
-                            },
-                            onClick = { isNowPlayingOpen = true }
                         )
+                    }
+                }
+            ) { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
+                    AppNavHost(
+                        navController = navController,
+                        onOpenDrawer = { coroutineScope.launch { drawerState.open() } },
+                        onOpenSearch = navigateToSearch,
+                        onSongSelected = { title, artist ->
+                            currentSongTitle = title
+                            currentSongArtist = artist
+                            isPlaying = true
+                            isNowPlayingOpen = true
+                        },
+                        likedSongs = likedSongs,
+                        onToggleLike = toggleLike,
+                        activeDeviceId = activeDevicePreset.id,
+                        onDeviceSelected = { activeDevicePreset = it },
+                        selectedFontPreference = selectedFontPreference,
+                        onFontPreferenceChanged = onFontPreferenceChanged,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    // Floating Mini Player: ONLY at Home and Music pages
+                    if (showMiniPlayer) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
+                        ) {
+                            DroidLabMiniPlayer(
+                                title = currentSongTitle,
+                                artist = currentSongArtist,
+                                progressPercent = 35,
+                                isPlaying = isPlaying,
+                                isLiked = isCurrentSongLiked,
+                                onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
+                                onPlayPause = { isPlaying = !isPlaying },
+                                onNext = {
+                                    currentSongTitle = "Midnight Drive"
+                                    currentSongArtist = "Nova Lane"
+                                    isPlaying = true
+                                },
+                                onClick = { isNowPlayingOpen = true }
+                            )
+                        }
                     }
                 }
             }
 
-            // True Full-Screen Now Playing Experience (0dp corner radius, edge-to-edge)
+            // True Full-Screen Now Playing Experience (placed on top of Scaffold in root Box)
             AnimatedVisibility(
                 visible = isNowPlayingOpen,
                 enter = slideInVertically(
@@ -227,9 +232,9 @@ fun AppRoot(
                 DroidLabNowPlayingScreen(
                     title = currentSongTitle,
                     artist = currentSongArtist,
-                    album = "Neon Hours",
-                    progress = 0.42f,
-                    currentTime = "1:48",
+                    album = "Zen Echoes",
+                    progress = 0.35f,
+                    currentTime = "1:28",
                     totalTime = "4:12",
                     isPlaying = isPlaying,
                     isLiked = isCurrentSongLiked,
@@ -239,12 +244,12 @@ fun AppRoot(
                     onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
                     onPlayPause = { isPlaying = !isPlaying },
                     onPrevious = {
-                        currentSongTitle = "Blue Bottle Coffee"
-                        currentSongArtist = "Chillhop Beats"
+                        currentSongTitle = "Midnight Drive"
+                        currentSongArtist = "Nova Lane"
                     },
                     onNext = {
-                        currentSongTitle = "Neon Horizon"
-                        currentSongArtist = "Retro Wave"
+                        currentSongTitle = "Blue Bottle Coffee"
+                        currentSongArtist = "Chillhop Beats"
                     },
                     onClose = { isNowPlayingOpen = false },
                     sleepTimerMinutes = sleepTimerMinutes,
@@ -252,7 +257,7 @@ fun AppRoot(
                 )
             }
 
-            // Full-screen Equalizer View (accessible from Player device pill & dropdown menu)
+            // Full-screen Equalizer View (placed on top of Scaffold in root Box)
             AnimatedVisibility(
                 visible = isEqualizerOpen,
                 enter = slideInVertically(

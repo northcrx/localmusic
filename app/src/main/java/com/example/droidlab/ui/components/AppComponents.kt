@@ -1,6 +1,9 @@
 package com.example.droidlab.ui.components
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -768,16 +771,116 @@ fun SleepTimerDialog(
 }
 
 /**
- * True Full-Screen Now Playing Screen (0dp corners, edge-to-edge).
- * Features clean stroked music control icons matching Image 3.
+ * Authentic Japanese Zen Rock Garden Artwork:
+ * Draws the serene rock garden matching user screenshot with 3 rocks and circular ripple patterns.
+ */
+@Composable
+fun KyotoGardenArt(
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        // Soft gravel sand background
+        drawRect(color = Color(0xFFE4DFD7))
+
+        // Fine raked horizontal sand grooves
+        val lineSpacing = 6.dp.toPx()
+        var y = 0f
+        while (y < h) {
+            drawLine(
+                color = Color(0xFFD3CCC1),
+                start = Offset(0f, y),
+                end = Offset(w, y),
+                strokeWidth = 1.2.dp.toPx()
+            )
+            y += lineSpacing
+        }
+
+        // Concentric ripples around Rock 1 (Bottom Left, main rock)
+        val r1 = Offset(w * 0.38f, h * 0.65f)
+        for (i in 1..8) {
+            drawCircle(
+                color = Color(0xFFBEB5A5),
+                radius = 32.dp.toPx() + i * 8.5.dp.toPx(),
+                center = r1,
+                style = Stroke(width = 1.4.dp.toPx())
+            )
+        }
+
+        // Concentric ripples around Rock 2 (Top Center)
+        val r2 = Offset(w * 0.50f, h * 0.28f)
+        for (i in 1..6) {
+            drawCircle(
+                color = Color(0xFFBEB5A5),
+                radius = 22.dp.toPx() + i * 8.dp.toPx(),
+                center = r2,
+                style = Stroke(width = 1.4.dp.toPx())
+            )
+        }
+
+        // Concentric ripples around Rock 3 (Center Right)
+        val r3 = Offset(w * 0.74f, h * 0.34f)
+        for (i in 1..5) {
+            drawCircle(
+                color = Color(0xFFBEB5A5),
+                radius = 16.dp.toPx() + i * 7.5.dp.toPx(),
+                center = r3,
+                style = Stroke(width = 1.4.dp.toPx())
+            )
+        }
+
+        // Draw Rock 1 (organic dark stone)
+        val rock1 = Path().apply {
+            moveTo(r1.x - 40.dp.toPx(), r1.y + 18.dp.toPx())
+            cubicTo(r1.x - 46.dp.toPx(), r1.y - 12.dp.toPx(), r1.x - 22.dp.toPx(), r1.y - 38.dp.toPx(), r1.x, r1.y - 40.dp.toPx())
+            cubicTo(r1.x + 28.dp.toPx(), r1.y - 34.dp.toPx(), r1.x + 42.dp.toPx(), r1.y - 10.dp.toPx(), r1.x + 36.dp.toPx(), r1.y + 20.dp.toPx())
+            cubicTo(r1.x + 20.dp.toPx(), r1.y + 34.dp.toPx(), r1.x - 25.dp.toPx(), r1.y + 30.dp.toPx(), r1.x - 40.dp.toPx(), r1.y + 18.dp.toPx())
+            close()
+        }
+        drawPath(rock1, color = Color(0xFF2C2D30))
+        drawCircle(color = Color(0xFF45474D), radius = 18.dp.toPx(), center = Offset(r1.x - 8.dp.toPx(), r1.y - 8.dp.toPx()))
+
+        // Draw Rock 2
+        val rock2 = Path().apply {
+            moveTo(r2.x - 26.dp.toPx(), r2.y + 12.dp.toPx())
+            cubicTo(r2.x - 30.dp.toPx(), r2.y - 16.dp.toPx(), r2.x - 12.dp.toPx(), r2.y - 26.dp.toPx(), r2.x + 4.dp.toPx(), r2.y - 28.dp.toPx())
+            cubicTo(r2.x + 22.dp.toPx(), r2.y - 22.dp.toPx(), r2.x + 28.dp.toPx(), r2.y + 8.dp.toPx(), r2.x + 16.dp.toPx(), r2.y + 18.dp.toPx())
+            close()
+        }
+        drawPath(rock2, color = Color(0xFF2C2D30))
+        drawCircle(color = Color(0xFF45474D), radius = 12.dp.toPx(), center = Offset(r2.x - 4.dp.toPx(), r2.y - 6.dp.toPx()))
+
+        // Draw Rock 3
+        val rock3 = Path().apply {
+            moveTo(r3.x - 18.dp.toPx(), r3.y + 8.dp.toPx())
+            cubicTo(r3.x - 20.dp.toPx(), r3.y - 12.dp.toPx(), r3.x, r3.y - 18.dp.toPx(), r3.x + 10.dp.toPx(), r3.y - 16.dp.toPx())
+            cubicTo(r3.x + 22.dp.toPx(), r3.y - 8.dp.toPx(), r3.x + 20.dp.toPx(), r3.y + 12.dp.toPx(), r3.x, r3.y + 14.dp.toPx())
+            close()
+        }
+        drawPath(rock3, color = Color(0xFF2C2D30))
+        drawCircle(color = Color(0xFF45474D), radius = 8.dp.toPx(), center = Offset(r3.x - 2.dp.toPx(), r3.y - 4.dp.toPx()))
+    }
+}
+
+/**
+ * Clean & Elegant Music Player matching the user's reference screenshot:
+ * - Top Bar: Chevron down, Now Playing / From your device, 3-dots more menu
+ * - Large Album Artwork with rounded corners (Kyoto Garden zen rock garden)
+ * - Track title, Artist, and Heart like button
+ * - Clean progress bar with elapsed & remaining time
+ * - Playback controls: Shuffle, Previous, Large Play/Pause circle, Next, Repeat
+ * - Audio format & device status
+ * - Bottom action buttons: Equalizer, Queue (12 songs), Sleep timer (crescent moon)
  */
 @Composable
 fun DroidLabNowPlayingScreen(
-    title: String = "Midnight Drive",
-    artist: String = "Nova Lane",
-    album: String = "Neon Hours",
-    progress: Float = 0.42f,
-    currentTime: String = "1:48",
+    title: String = "Kyoto Garden",
+    artist: String = "Zen Echoes",
+    album: String = "Zen Echoes",
+    progress: Float = 0.35f,
+    currentTime: String = "1:28",
     totalTime: String = "4:12",
     isPlaying: Boolean = true,
     isLiked: Boolean = false,
@@ -785,21 +888,20 @@ fun DroidLabNowPlayingScreen(
     activeDeviceIcon: String = "phone_speaker",
     onOpenEqualizer: () -> Unit = {},
     onToggleLike: () -> Unit = {},
-    onPlayPause: () -> Unit = { },
-    onPrevious: () -> Unit = { },
-    onNext: () -> Unit = { },
-    onClose: () -> Unit = { },
+    onPlayPause: () -> Unit = {},
+    onPrevious: () -> Unit = {},
+    onNext: () -> Unit = {},
+    onClose: () -> Unit = {},
     sleepTimerMinutes: Int? = null,
-    onSetSleepTimer: (Int?) -> Unit = { },
+    onSetSleepTimer: (Int?) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Intercept back gesture to close full screen
     BackHandler(onBack = onClose)
 
+    val isDark = isSystemInDarkTheme()
     var currentProgress by remember { mutableFloatStateOf(progress) }
     var isShuffleOn by remember { mutableStateOf(false) }
     var isRepeatOn by remember { mutableStateOf(false) }
-
     var isSlidersMenuOpen by remember { mutableStateOf(false) }
     var isSleepTimerDialogOpen by remember { mutableStateOf(false) }
 
@@ -813,326 +915,331 @@ fun DroidLabNowPlayingScreen(
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Top Bar
+            // 1. Top Bar
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Down Chevron
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(44.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         .clickable(onClick = onClose),
                     contentAlignment = Alignment.Center
                 ) {
-                    AppIcon(name = "chevron_down", size = 22.dp)
+                    AppIcon(name = "chevron_down", size = 24.dp, tint = MaterialTheme.colorScheme.onSurface)
                 }
 
-                Spacer(Modifier.weight(1f))
-
-                // Output Device Pill (Tap to open Equalizer & Sound Profile)
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(99.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
-                        .clickable(onClick = onOpenEqualizer)
-                        .padding(horizontal = 14.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    AppIcon(
-                        name = activeDeviceIcon,
-                        size = 15.dp,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.width(6.dp))
                     Text(
-                        text = activeDeviceName,
-                        fontSize = 12.sp,
+                        text = "Now playing",
+                        fontSize = 14.5.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "From your device",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
-                Spacer(Modifier.weight(1f))
-
-                // Sleep timer badge if active + Tune Sliders Icon
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (sleepTimerMinutes != null && sleepTimerMinutes > 0) {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(99.dp))
-                                .background(MaterialTheme.colorScheme.primaryContainer)
-                                .clickable { isSleepTimerDialogOpen = true }
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            AppIcon(
-                                name = "timer",
-                                size = 13.dp,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                text = "${sleepTimerMinutes}m",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Spacer(Modifier.width(6.dp))
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .clickable { isSlidersMenuOpen = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AppIcon(name = "more_horiz", size = 24.dp, tint = MaterialTheme.colorScheme.onSurface)
                     }
 
-                    Box {
-                        IconButton(
-                            onClick = { isSlidersMenuOpen = true },
-                            modifier = Modifier
-                                .size(38.dp)
-                                .clip(CircleShape)
-                        ) {
-                            AppIcon(name = "tune", size = 22.dp)
-                        }
-
-                        DropdownMenu(
-                            expanded = isSlidersMenuOpen,
-                            onDismissRequest = { isSlidersMenuOpen = false },
-                            modifier = Modifier
-                                .width(180.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Equalizer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
-                                leadingIcon = { AppIcon(name = "equalizer", size = 20.dp) },
-                                onClick = {
-                                    isSlidersMenuOpen = false
-                                    onOpenEqualizer()
+                    DropdownMenu(
+                        expanded = isSlidersMenuOpen,
+                        onDismissRequest = { isSlidersMenuOpen = false },
+                        modifier = Modifier
+                            .width(190.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Equalizer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
+                            leadingIcon = { AppIcon(name = "equalizer", size = 20.dp) },
+                            onClick = {
+                                isSlidersMenuOpen = false
+                                onOpenEqualizer()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                val label = if (sleepTimerMinutes != null && sleepTimerMinutes > 0) {
+                                    "Sleep Timer (${sleepTimerMinutes}m)"
+                                } else {
+                                    "Sleep Timer"
                                 }
-                            )
-                            DropdownMenuItem(
-                                text = {
-                                    val label = if (sleepTimerMinutes != null && sleepTimerMinutes > 0) {
-                                        "Sleep Timer (${sleepTimerMinutes}m)"
-                                    } else {
-                                        "Sleep Timer"
-                                    }
-                                    Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                },
-                                leadingIcon = { AppIcon(name = "timer", size = 20.dp) },
-                                onClick = {
-                                    isSlidersMenuOpen = false
-                                    isSleepTimerDialogOpen = true
-                                }
-                            )
-                        }
+                                Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            },
+                            leadingIcon = { AppIcon(name = "timer", size = 20.dp) },
+                            onClick = {
+                                isSlidersMenuOpen = false
+                                isSleepTimerDialogOpen = true
+                            }
+                        )
                     }
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            // 2. Large Album Artwork with rounded corners matching screenshot
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+                contentAlignment = Alignment.Center
+            ) {
+                KyotoGardenArt(modifier = Modifier.fillMaxSize())
+            }
 
-            // Vinyl Record Art with Tonearm
-            VinylRecordPlayer(isPlaying = isPlaying)
-
-            Spacer(Modifier.height(14.dp))
-
-            // Metadata & Like Icon on music player line
+            // 3. Song Title, Artist & Like Button
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "NOW PLAYING • VINYL",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
                         text = title,
-                        fontSize = 23.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Spacer(Modifier.height(3.dp))
                     Text(
-                        text = "$artist • $album",
-                        fontSize = 13.5.sp,
+                        text = artist,
+                        fontSize = 15.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                // Heart Like Icon on the music player line
                 IconButton(
                     onClick = onToggleLike,
                     modifier = Modifier.size(42.dp)
                 ) {
                     AppIcon(
                         name = if (isLiked) "heart" else "heart_border",
-                        size = 24.dp,
+                        size = 26.dp,
                         tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
-
-            // Progress Slider
-            Slider(
-                value = currentProgress,
-                onValueChange = { currentProgress = it },
-                modifier = Modifier.fillMaxWidth(),
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            // 4. Progress Bar & Timestamps
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
             ) {
-                Text(text = currentTime, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(text = totalTime, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(20.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures { offset ->
+                                currentProgress = (offset.x / size.width).coerceIn(0f, 1f)
+                            }
+                        },
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    // Track Background
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    )
+                    // Active Track
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(currentProgress)
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(if (isDark) Color(0xFF8FA3B8) else Color(0xFF4A5568))
+                    )
+                }
+
+                Spacer(Modifier.height(4.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = currentTime,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = totalTime,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
-            Spacer(Modifier.height(10.dp))
-
-            // Playback Controls Row matching exact stroke reference in Image 3
+            // 5. Playback Controls Row: Shuffle, Previous, Large Play/Pause circle, Next, Repeat
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Shuffle Button (Stroke crossed arrows)
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .clickable { isShuffleOn = !isShuffleOn },
-                    contentAlignment = Alignment.Center
+                IconButton(
+                    onClick = { isShuffleOn = !isShuffleOn },
+                    modifier = Modifier.size(44.dp)
                 ) {
-                    StrokeShuffleIcon(
-                        tint = if (isShuffleOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        size = 22.dp
+                    AppIcon(
+                        name = "shuffle",
+                        size = 23.dp,
+                        tint = if (isShuffleOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                // Previous Button: |< stroke icon
-                Box(
-                    modifier = Modifier
-                        .size(46.dp)
-                        .clip(CircleShape)
-                        .clickable(onClick = onPrevious),
-                    contentAlignment = Alignment.Center
+                IconButton(
+                    onClick = onPrevious,
+                    modifier = Modifier.size(48.dp)
                 ) {
-                    StrokePreviousIcon(
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        size = 26.dp
+                    AppIcon(
+                        name = "skip_previous",
+                        size = 30.dp,
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                // Center Large White Play/Pause Button with Clean Outlined Triangle (▷)
+                // Center Large Circular Play/Pause Button matching screenshot
                 Box(
                     modifier = Modifier
-                        .size(64.dp)
-                        .shadow(elevation = 8.dp, shape = CircleShape)
+                        .size(68.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(if (isDark) Color(0xFF434E5F) else Color(0xFF4A5568))
                         .clickable(onClick = onPlayPause),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (isPlaying) {
-                        OutlinedPauseBars(
-                            tint = Color(0xFF1E222D),
-                            size = 24.dp
-                        )
-                    } else {
-                        OutlinedPlayTriangle(
-                            tint = Color(0xFF1E222D),
-                            size = 24.dp
-                        )
-                    }
-                }
-
-                // Next Button: >| stroke icon
-                Box(
-                    modifier = Modifier
-                        .size(46.dp)
-                        .clip(CircleShape)
-                        .clickable(onClick = onNext),
-                    contentAlignment = Alignment.Center
-                ) {
-                    StrokeNextIcon(
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        size = 26.dp
+                    AppIcon(
+                        name = if (isPlaying) "pause" else "play",
+                        size = 32.dp,
+                        tint = Color.White
                     )
                 }
 
-                // Repeat Button (Stroke loop arrows)
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .clickable { isRepeatOn = !isRepeatOn },
-                    contentAlignment = Alignment.Center
+                IconButton(
+                    onClick = onNext,
+                    modifier = Modifier.size(48.dp)
                 ) {
-                    StrokeRepeatIcon(
-                        tint = if (isRepeatOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        size = 22.dp
+                    AppIcon(
+                        name = "skip_next",
+                        size = 30.dp,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                IconButton(
+                    onClick = { isRepeatOn = !isRepeatOn },
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    AppIcon(
+                        name = "repeat",
+                        size = 23.dp,
+                        tint = if (isRepeatOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
-
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
-                thickness = 0.75.dp
-            )
-
-            Spacer(Modifier.height(10.dp))
-
-            // Bottom Actions: Lyrics & Up Next
+            // 6. Source & Audio Format Line
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                AppIcon(
+                    name = "storage",
+                    size = 14.dp,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = "FLAC • 44.1 kHz • On device",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // 7. Bottom Actions: Equalizer, Queue, Sleep Timer (Moon)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onOpenEqualizer,
+                    modifier = Modifier.size(40.dp)
                 ) {
-                    AppIcon(name = "lyrics", size = 18.dp, tint = MaterialTheme.colorScheme.onSurface)
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = "Lyrics", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    AppIcon(
+                        name = "tune",
+                        size = 22.dp,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
                 Row(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(99.dp))
                         .clickable { }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    AppIcon(name = "queue", size = 18.dp, tint = MaterialTheme.colorScheme.onSurface)
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = "Up next (12)", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    AppIcon(
+                        name = "queue",
+                        size = 18.dp,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = "Queue • 12 songs",
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                IconButton(
+                    onClick = { isSleepTimerDialogOpen = true },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    AppIcon(
+                        name = "bedtime",
+                        size = 22.dp,
+                        tint = if (sleepTimerMinutes != null && sleepTimerMinutes > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -1147,6 +1254,7 @@ fun DroidLabNowPlayingScreen(
         )
     }
 }
+
 
 /**
  * Outlined Play Triangle (▷) matching exact reference in Image 3.
