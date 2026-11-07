@@ -77,6 +77,7 @@ fun AppIcon(
             "playlist_add" -> Icons.AutoMirrored.Rounded.PlaylistAdd
             "keep", "download", "downloads" -> Icons.Rounded.Download
             "settings" -> Icons.Rounded.Settings
+            "notifications", "bell" -> Icons.Rounded.Notifications
             "more_vert", "three_dots" -> Icons.Rounded.MoreVert
             "more_horiz", "more_horizontal", "dots" -> Icons.Rounded.MoreHoriz
             "drawer", "menu", "hamburger" -> Icons.Rounded.Menu

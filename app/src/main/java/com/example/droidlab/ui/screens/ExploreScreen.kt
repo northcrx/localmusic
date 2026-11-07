@@ -233,25 +233,7 @@ fun ExploreRoute(
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
-
-            // 4. Match Summary
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 12.dp)
-            ) {
-                AppIcon(
-                    name = "storage",
-                    size = 15.dp,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = "${filteredSongs.size + 3} matches in your local library",
-                    fontSize = 12.5.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Spacer(Modifier.height(10.dp))
 
             // 5. Categorized Results List
             LazyColumn(
