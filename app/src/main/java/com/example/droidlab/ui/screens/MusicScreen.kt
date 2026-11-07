@@ -1,5 +1,10 @@
 package com.example.droidlab.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.droidlab.ui.viewmodel.MusicViewModel
+import com.example.droidlab.data.entity.SongEntity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -75,7 +80,9 @@ fun MusicRoute(
     selectedMiniPlayerStyle: String = "Classic Pill",
     onMiniPlayerStyleChanged: (String) -> Unit = {},
     onAlbumSelected: ((AlbumItem) -> Unit)? = null,
-    onArtistSelected: ((ArtistItem) -> Unit)? = null
+    onArtistSelected: ((ArtistItem) -> Unit)? = null,
+    musicViewModel: MusicViewModel? = null,
+    onScanRequested: () -> Unit = {}
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var selectedAlbumForDetail by remember { mutableStateOf<AlbumItem?>(null) }
@@ -109,8 +116,30 @@ fun MusicRoute(
             TrackItem(9, "Velvet Moon", "Jazz Quartet", "4:32")
         )
     }
-    var displayedTracks by remember { mutableStateOf(initialTracks) }
-    var currentSortOption by remember { mutableStateOf("Recently added") }
+    val realSongs by musicViewModel?.songs?.collectAsStateWithLifecycle(emptyList()) ?: remember { mutableStateOf(emptyList<SongEntity>()) }
+    val realAlbums by musicViewModel?.albums?.collectAsStateWithLifecycle(emptyList()) ?: remember { mutableStateOf(emptyList<AlbumItem>()) }
+    val realArtists by musicViewModel?.artists?.collectAsStateWithLifecycle(emptyList()) ?: remember { mutableStateOf(emptyList<ArtistItem>()) }
+    val vmSortOption by musicViewModel?.sortOption?.collectAsStateWithLifecycle("Recently added") ?: remember { mutableStateOf("Recently added") }
+
+    var localSortOption by remember { mutableStateOf("Recently added") }
+    val currentSortOption = if (musicViewModel != null) vmSortOption else localSortOption
+
+    val displayedTracks = remember(realSongs, musicViewModel) {
+        if (musicViewModel != null) {
+            realSongs.mapIndexed { index, song ->
+                val mins = (song.durationMs / 1000) / 60
+                val secs = (song.durationMs / 1000) % 60
+                TrackItem(
+                    id = (song.mediaStoreId % 100000).toInt(),
+                    title = song.title,
+                    artist = song.artist,
+                    duration = if (song.durationMs > 0) String.format("%d:%02d", mins, secs) else "--:--"
+                )
+            }
+        } else {
+            initialTracks
+        }
+    }
 
     val albums = remember {
         listOf(
@@ -134,6 +163,9 @@ fun MusicRoute(
         )
     }
 
+    val activeAlbums = if (musicViewModel != null) realAlbums else albums
+    val activeArtists = if (musicViewModel != null) realArtists else artists
+
     val alphabetRail = remember {
         listOf("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
     }
@@ -146,7 +178,12 @@ fun MusicRoute(
                 onSearchClick = onOpenSearch,
                 onOpenSettings = onOpenSettings,
                 onOpenEqualizer = onOpenEqualizer,
-                onAddClick = { showAddDialog = true }
+                onAddClick = { showAddDialog = true },
+                onActionClick = { action ->
+                    if (action == "Scan Library") {
+                        onScanRequested()
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -182,19 +219,15 @@ fun MusicRoute(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
                                         .clickable {
-                                            when (currentSortOption) {
-                                                "Recently added" -> {
-                                                    currentSortOption = "Title (A–Z)"
-                                                    displayedTracks = displayedTracks.sortedBy { it.title }
-                                                }
-                                                "Title (A–Z)" -> {
-                                                    currentSortOption = "Artist (A–Z)"
-                                                    displayedTracks = displayedTracks.sortedBy { it.artist }
-                                                }
-                                                else -> {
-                                                    currentSortOption = "Recently added"
-                                                    displayedTracks = initialTracks
-                                                }
+                                            val nextOption = when (currentSortOption) {
+                                                "Recently added" -> "Title (A–Z)"
+                                                "Title (A–Z)" -> "Artist (A–Z)"
+                                                else -> "Recently added"
+                                            }
+                                            if (musicViewModel != null) {
+                                                musicViewModel.setSortOption(nextOption)
+                                            } else {
+                                                localSortOption = nextOption
                                             }
                                         }
                                         .padding(vertical = 4.dp, horizontal = 2.dp)
@@ -219,7 +252,6 @@ fun MusicRoute(
                                         .clip(RoundedCornerShape(8.dp))
                                         .clickable {
                                             val shuffled = displayedTracks.shuffled()
-                                            displayedTracks = shuffled
                                             if (shuffled.isNotEmpty()) {
                                                 onSongSelected(shuffled.first().title, shuffled.first().artist)
                                             }
@@ -238,6 +270,56 @@ fun MusicRoute(
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.primary
                                     )
+                                }
+                            }
+                        }
+
+                        // Empty State if no songs found
+                        if (displayedTracks.isEmpty()) {
+                            item {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 72.dp, bottom = 48.dp, start = 24.dp, end = 24.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(56.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AppIcon(
+                                            name = "music",
+                                            size = 28.dp,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                    Spacer(Modifier.height(16.dp))
+                                    Text(
+                                        text = "No music found",
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        text = "Scan your device to index your local audio files",
+                                        fontSize = 12.5.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Spacer(Modifier.height(18.dp))
+                                    OutlinedButton(
+                                        onClick = onScanRequested,
+                                        shape = RoundedCornerShape(99.dp),
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                                    ) {
+                                        AppIcon(name = "search", size = 16.dp, tint = MaterialTheme.colorScheme.primary)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Scan Music Folders", fontSize = 13.sp)
+                                    }
                                 }
                             }
                         }
@@ -387,7 +469,7 @@ fun MusicRoute(
                         verticalArrangement = Arrangement.spacedBy(18.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(albums, key = { it.id }) { album ->
+                        items(activeAlbums, key = { it.id }) { album ->
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -490,7 +572,7 @@ fun MusicRoute(
                             }
 
                             // Grouped by initial letter
-                            val grouped = artists.groupBy { it.name.first().uppercaseChar() }
+                            val grouped = activeArtists.groupBy { it.name.first().uppercaseChar() }
 
                             grouped.forEach { (initial, artistList) ->
                                 item(key = "header_$initial") {

@@ -2794,29 +2794,40 @@ fun SkeletonTrackRow() {
  */
 @Composable
 fun ScanMusicFoldersDialog(
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
+    onStartScan: ((Set<String>?) -> Unit)? = null,
+    scanProgress: Float = 0f,
+    isScanning: Boolean = false,
+    currentFileName: String = "",
+    isScanFinished: Boolean = false,
+    totalFound: Int = 0
 ) {
     var selectedFolders by remember {
         mutableStateOf(
             setOf(
-                "/storage/emulated/0/Music",
-                "/storage/emulated/0/Download/Music",
-                "/storage/emulated/0/Podcasts"
+                "Music",
+                "Download",
+                "Podcasts"
             )
         )
     }
     val allFolders = remember {
         listOf(
-            "/storage/emulated/0/Music" to "42 tracks • MP3, FLAC",
-            "/storage/emulated/0/Download/Music" to "16 tracks • Hi-Res Audio",
-            "/storage/emulated/0/Podcasts" to "6 tracks • Voice & Shows",
-            "/storage/emulated/0/Android/media" to "9 tracks • Local Cache"
+            "Music" to "Music folder • MP3, FLAC, M4A",
+            "Download" to "Downloads • Audio files",
+            "Podcasts" to "Podcasts • Voice & Shows",
+            "Audiobooks" to "Spoken audio & books"
         )
     }
-    var isScanning by remember { mutableStateOf(false) }
-    var scanProgress by remember { mutableFloatStateOf(0f) }
-    var currentScannedFile by remember { mutableStateOf("") }
-    var isScanFinished by remember { mutableStateOf(false) }
+    var localIsScanning by remember { mutableStateOf(false) }
+    var localScanProgress by remember { mutableFloatStateOf(0f) }
+    var localCurrentScannedFile by remember { mutableStateOf("") }
+    var localIsScanFinished by remember { mutableStateOf(false) }
+
+    val activeIsScanning = if (onStartScan != null) isScanning else localIsScanning
+    val activeScanProgress = if (onStartScan != null) scanProgress else localScanProgress
+    val activeCurrentFileName = if (onStartScan != null) currentFileName else localCurrentScannedFile
+    val activeIsScanFinished = if (onStartScan != null) isScanFinished else localIsScanFinished
 
     val scanFiles = remember {
         listOf(
@@ -2832,22 +2843,22 @@ fun ScanMusicFoldersDialog(
         )
     }
 
-    LaunchedEffect(isScanning) {
-        if (isScanning) {
-            scanProgress = 0f
-            isScanFinished = false
+    LaunchedEffect(localIsScanning) {
+        if (localIsScanning && onStartScan == null) {
+            localScanProgress = 0f
+            localIsScanFinished = false
             for (i in 1..20) {
                 delay(100)
-                scanProgress = i / 20f
-                currentScannedFile = scanFiles[(i - 1) % scanFiles.size]
+                localScanProgress = i / 20f
+                localCurrentScannedFile = scanFiles[(i - 1) % scanFiles.size]
             }
-            isScanning = false
-            isScanFinished = true
+            localIsScanning = false
+            localIsScanFinished = true
         }
     }
 
     AlertDialog(
-        onDismissRequest = { if (!isScanning) onDismissRequest() },
+        onDismissRequest = { if (!activeIsScanning) onDismissRequest() },
         shape = RoundedCornerShape(24.dp),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2858,7 +2869,7 @@ fun ScanMusicFoldersDialog(
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                if (!isScanning && !isScanFinished) {
+                if (!activeIsScanning && !activeIsScanFinished) {
                     Text(
                         text = "Select folders to index music library:",
                         fontSize = 13.sp,
@@ -2905,7 +2916,7 @@ fun ScanMusicFoldersDialog(
                             }
                         }
                     }
-                } else if (isScanning) {
+                } else if (activeIsScanning) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -2913,7 +2924,7 @@ fun ScanMusicFoldersDialog(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         LinearProgressIndicator(
-                            progress = { scanProgress },
+                            progress = { activeScanProgress },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(8.dp)
@@ -2933,7 +2944,7 @@ fun ScanMusicFoldersDialog(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "${(scanProgress * 100).toInt()}%",
+                                text = "${(activeScanProgress * 100).toInt()}%",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -2941,7 +2952,7 @@ fun ScanMusicFoldersDialog(
                         }
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            text = "Reading: $currentScannedFile",
+                            text = "Reading: $activeCurrentFileName",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -2965,7 +2976,7 @@ fun ScanMusicFoldersDialog(
                             )
                         }
                         Spacer(Modifier.height(10.dp))
-                        val trackCount = if (selectedFolders.size == 4) 73 else selectedFolders.size * 18 + 10
+                        val trackCount = if (onStartScan != null) totalFound else (if (selectedFolders.size == 4) 73 else selectedFolders.size * 18 + 10)
                         Text(
                             text = "Indexed $trackCount songs across ${selectedFolders.size} selected folders. All tracks are synchronized and ready to play.",
                             fontSize = 13.sp,
@@ -2977,9 +2988,9 @@ fun ScanMusicFoldersDialog(
             }
         },
         confirmButton = {
-            if (isScanning) {
+            if (activeIsScanning) {
                 // scanning
-            } else if (isScanFinished) {
+            } else if (activeIsScanFinished) {
                 Button(
                     onClick = onDismissRequest,
                     shape = RoundedCornerShape(12.dp)
@@ -2988,7 +2999,7 @@ fun ScanMusicFoldersDialog(
                 }
             } else {
                 Button(
-                    onClick = { isScanning = true },
+                    onClick = { if (onStartScan != null) onStartScan(selectedFolders) else localIsScanning = true },
                     enabled = selectedFolders.isNotEmpty(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -2997,9 +3008,9 @@ fun ScanMusicFoldersDialog(
             }
         },
         dismissButton = {
-            if (!isScanning) {
+            if (!activeIsScanning) {
                 TextButton(onClick = onDismissRequest) {
-                    Text(if (isScanFinished) "Close" else "Cancel")
+                    Text(if (activeIsScanFinished) "Close" else "Cancel")
                 }
             }
         }

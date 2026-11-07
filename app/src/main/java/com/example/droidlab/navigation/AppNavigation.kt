@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.droidlab.ui.screens.*
+import com.example.droidlab.ui.viewmodel.MusicViewModel
 
 /**
  * Screen destinations matching Droid Lab exported pages.
@@ -49,6 +50,8 @@ fun AppNavHost(
     onMiniPlayerStyleChanged: (String) -> Unit = {},
     onAlbumSelected: (AlbumItem) -> Unit = {},
     onArtistSelected: (ArtistItem) -> Unit = {},
+    musicViewModel: MusicViewModel? = null,
+    onScanRequested: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -85,7 +88,9 @@ fun AppNavHost(
                 selectedMiniPlayerStyle = selectedMiniPlayerStyle,
                 onMiniPlayerStyleChanged = onMiniPlayerStyleChanged,
                 onAlbumSelected = onAlbumSelected,
-                onArtistSelected = onArtistSelected
+                onArtistSelected = onArtistSelected,
+                musicViewModel = musicViewModel,
+                onScanRequested = onScanRequested
             )
         }
         composable(Screen.Playlist.route) {

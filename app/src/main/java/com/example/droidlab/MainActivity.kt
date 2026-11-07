@@ -13,6 +13,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.droidlab.ui.components.AudioPermissionDialog
+import com.example.droidlab.ui.viewmodel.MusicViewModel
+
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +81,44 @@ fun AppRoot(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
+
+    val context = LocalContext.current
+    val app = context.applicationContext as MusicApplication
+    val musicViewModel: MusicViewModel = viewModel(
+        factory = MusicViewModel.provideFactory(app.container)
+    )
+    val scanState by musicViewModel.scanState.collectAsStateWithLifecycle()
+    var showScanFoldersDialog by remember { mutableStateOf(false) }
+
+    // Permission Flow (themed explanation first, then system dialog; if permanently denied, show Open Settings)
+    val permissionToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_AUDIO
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+    var showPermissionExplanation by remember { mutableStateOf(false) }
+    var isPermanentlyDenied by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            showPermissionExplanation = false
+            // When permission is granted for the first time, start the first scan automatically
+            musicViewModel.startScan()
+        } else {
+            isPermanentlyDenied = true
+            showPermissionExplanation = true
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val hasPermission = ContextCompat.checkSelfPermission(context, permissionToRequest) == PackageManager.PERMISSION_GRANTED
+        if (!hasPermission) {
+            showPermissionExplanation = true
+        }
+    }
 
     var isNowPlayingOpen by remember { mutableStateOf(false) }
     var isEqualizerOpen by remember { mutableStateOf(false) }
@@ -202,6 +252,8 @@ fun AppRoot(
                         onMiniPlayerStyleChanged = { selectedMiniPlayerStyle = it },
                         onAlbumSelected = { album -> selectedAlbumDetail = album },
                         onArtistSelected = { artist -> selectedArtistDetail = artist },
+                        musicViewModel = musicViewModel,
+                        onScanRequested = { showScanFoldersDialog = true },
                         modifier = Modifier.fillMaxSize()
                     )
 
@@ -288,6 +340,32 @@ fun AppRoot(
                 )
             }
 
+
+            // Audio Permission Dialog
+            if (showPermissionExplanation) {
+                AudioPermissionDialog(
+                    isPermanentlyDenied = isPermanentlyDenied,
+                    onGrantClick = {
+                        showPermissionExplanation = false
+                        permissionLauncher.launch(permissionToRequest)
+                    },
+                    onDismissRequest = { showPermissionExplanation = false },
+                    context = context
+                )
+            }
+
+            // Real Scan Music Folders Dialog
+            if (showScanFoldersDialog) {
+                ScanMusicFoldersDialog(
+                    onDismissRequest = { showScanFoldersDialog = false },
+                    onStartScan = { folders -> musicViewModel.startScan(folders) },
+                    scanProgress = scanState.progress,
+                    isScanning = scanState.isScanning,
+                    currentFileName = scanState.currentFileName,
+                    isScanFinished = scanState.isCompleted,
+                    totalFound = scanState.totalFound
+                )
+            }
 
             // Full-Screen Album Detail Overlay
             val activeAlbum = selectedAlbumDetail
