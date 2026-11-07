@@ -117,6 +117,8 @@ fun AppRoot(
         val hasPermission = ContextCompat.checkSelfPermission(context, permissionToRequest) == PackageManager.PERMISSION_GRANTED
         if (!hasPermission) {
             showPermissionExplanation = true
+        } else {
+            musicViewModel.startScan()
         }
     }
 
