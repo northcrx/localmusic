@@ -1,5 +1,6 @@
 package com.example.droidlab.ui.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -23,18 +24,19 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
  * Top App Bar matching Droid Lab visual specification (.app-bar.elevated).
@@ -114,6 +116,7 @@ fun DroidLabTopAppBar(
 
 /**
  * Tabs row matching Droid Lab visual specification (.tabs-row .tab).
+ * Compact vertical padding providing tight, minimal spacing with top app bar.
  */
 @Composable
 fun DroidLabTabs(
@@ -135,7 +138,7 @@ fun DroidLabTabs(
                     modifier = Modifier
                         .weight(1f)
                         .clickable { onTabSelected(index) }
-                        .padding(top = 13.dp, bottom = 11.dp),
+                        .padding(top = 7.dp, bottom = 5.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -143,18 +146,18 @@ fun DroidLabTabs(
                     ) {
                         Text(
                             text = tab,
-                            fontSize = 13.sp,
+                            fontSize = 13.5.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             letterSpacing = 0.15.sp,
                             maxLines = 1
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(5.dp))
                         Box(
                             modifier = Modifier
-                                .height(3.dp)
-                                .fillMaxWidth(0.72f)
-                                .clip(RoundedCornerShape(1.5.dp))
+                                .height(2.5.dp)
+                                .fillMaxWidth(0.68f)
+                                .clip(RoundedCornerShape(1.25.dp))
                                 .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
                         )
                     }
@@ -162,15 +165,15 @@ fun DroidLabTabs(
             }
         }
         HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-            thickness = 1.dp
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+            thickness = 0.75.dp
         )
     }
 }
 
 /**
  * Bottom Navigation Bar matching Droid Lab visual specification (.nav-bar.nav-material).
- * Provides generous breathing room for system gesture controllers.
+ * Clean, compact height with system gesture bar padding and zero extra bloat.
  */
 @Composable
 fun DroidLabBottomNav(
@@ -188,22 +191,21 @@ fun DroidLabBottomNav(
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp
+        tonalElevation = 2.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(bottom = 8.dp)
         ) {
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                thickness = 1.dp
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                thickness = 0.75.dp
             )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 6.dp),
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 items.forEachIndexed { index, (label, icon) ->
@@ -211,18 +213,18 @@ fun DroidLabBottomNav(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(14.dp))
                             .clickable { onTabSelected(index) }
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = 3.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         // Pill icon indicator
                         Box(
                             modifier = Modifier
-                                .width(56.dp)
-                                .height(30.dp)
-                                .clip(RoundedCornerShape(15.dp))
+                                .width(52.dp)
+                                .height(28.dp)
+                                .clip(RoundedCornerShape(14.dp))
                                 .background(
                                     if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
                                 ),
@@ -231,7 +233,7 @@ fun DroidLabBottomNav(
                             AppIcon(
                                 name = icon,
                                 contentDescription = label,
-                                size = 21.dp,
+                                size = 20.dp,
                                 tint = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -239,7 +241,7 @@ fun DroidLabBottomNav(
                         Text(
                             text = label,
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                             color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1
                         )
@@ -251,8 +253,9 @@ fun DroidLabBottomNav(
 }
 
 /**
- * High-attention Floating Mini Music Player (.mini-ring).
- * Sleek glowing accent border, gradient avatar, and circular progress ring with play/pause.
+ * Clean, compact Floating Mini Music Player matching exact reference Image 2.
+ * Subtle container, dark circular avatar (#4A5060) with white headset, crisp typography,
+ * and circular progress ring with dark inner play circle.
  */
 @Composable
 fun DroidLabMiniPlayer(
@@ -268,96 +271,79 @@ fun DroidLabMiniPlayer(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 4.dp)
+            .padding(horizontal = 14.dp, vertical = 3.dp)
             .shadow(
-                elevation = 10.dp,
-                shape = RoundedCornerShape(26.dp),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                elevation = 3.dp,
+                shape = RoundedCornerShape(20.dp)
             )
             .border(
-                BorderStroke(1.2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
-                shape = RoundedCornerShape(26.dp)
+                BorderStroke(0.75.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                shape = RoundedCornerShape(20.dp)
             )
-            .clip(RoundedCornerShape(26.dp))
+            .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(26.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E222D)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Gradient Headphone Avatar
+            // Dark Slate Headphone Avatar matching Image 2
             Box(
                 modifier = Modifier
-                    .size(46.dp)
+                    .size(42.dp)
                     .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(Color(0xFF3B82F6), Color(0xFF8B5CF6))
-                        )
-                    ),
+                    .background(Color(0xFF454B58)),
                 contentAlignment = Alignment.Center
             ) {
-                AppIcon(name = "headset", size = 22.dp, tint = Color.White)
+                AppIcon(name = "headset", size = 20.dp, tint = Color.White)
             }
 
             Spacer(Modifier.width(12.dp))
 
-            // Center details with mini animated equalizer bars
+            // Center details: Title and Artist (crisp, neat, single lines)
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = title,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    if (isPlaying) {
-                        Spacer(Modifier.width(8.dp))
-                        MiniAnimatedWaveform()
-                    }
-                }
+                Text(
+                    text = title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.height(1.dp))
                 Text(
                     text = artist,
                     fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "$progressPercent% played",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1
-                )
             }
 
-            // Circular progress ring enclosing circular play/pause button
+            // Circular progress ring enclosing dark circular play/pause button
             val ringProgress = (progressPercent / 100f).coerceIn(0f, 1f)
-            val ringPrimaryColor = MaterialTheme.colorScheme.primary
-            val ringTrackColor = ringPrimaryColor.copy(alpha = 0.22f)
+            val ringPrimaryColor = Color(0xFF454B58)
+            val ringTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
 
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(42.dp)
                     .clip(CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val strokeWidthPx = 3.2.dp.toPx()
+                    val strokeWidthPx = 2.4.dp.toPx()
                     val radius = (size.minDimension - strokeWidthPx) / 2
                     val centerOffset = Offset(size.width / 2, size.height / 2)
 
-                    // Track circle
+                    // Subtle Track ring
                     drawCircle(
                         color = ringTrackColor,
                         radius = radius,
@@ -377,24 +363,50 @@ fun DroidLabMiniPlayer(
                     )
                 }
 
-                // Inner circular play/pause button
+                // Inner dark circular play/pause button
                 Box(
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(30.dp)
                         .clip(CircleShape)
                         .background(ringPrimaryColor)
                         .clickable(onClick = onPlayPause),
                     contentAlignment = Alignment.Center
                 ) {
-                    AppIcon(
-                        name = if (isPlaying) "pause" else "play",
-                        size = 18.dp,
-                        tint = Color.White
-                    )
+                    if (isPlaying) {
+                        Canvas(modifier = Modifier.size(12.dp)) {
+                            val w = size.width
+                            val h = size.height
+                            val barW = 2.4.dp.toPx()
+                            drawRoundRect(
+                                color = Color.White,
+                                topLeft = Offset(w * 0.28f - barW / 2, 0f),
+                                size = androidx.compose.ui.geometry.Size(barW, h),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.dp.toPx())
+                            )
+                            drawRoundRect(
+                                color = Color.White,
+                                topLeft = Offset(w * 0.72f - barW / 2, 0f),
+                                size = androidx.compose.ui.geometry.Size(barW, h),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.dp.toPx())
+                            )
+                        }
+                    } else {
+                        Canvas(modifier = Modifier.size(12.dp)) {
+                            val w = size.width
+                            val h = size.height
+                            val path = Path().apply {
+                                moveTo(w * 0.25f, 0f)
+                                lineTo(w * 0.88f, h * 0.5f)
+                                lineTo(w * 0.25f, h)
+                                close()
+                            }
+                            drawPath(path = path, color = Color.White)
+                        }
+                    }
                 }
             }
 
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(4.dp))
 
             // Skip next button
             Box(
@@ -404,46 +416,12 @@ fun DroidLabMiniPlayer(
                     .clickable(onClick = onNext),
                 contentAlignment = Alignment.Center
             ) {
-                AppIcon(
-                    name = "skip_next",
-                    size = 22.dp,
-                    tint = MaterialTheme.colorScheme.onSurface
+                StrokeNextIcon(
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    size = 20.dp
                 )
             }
         }
-    }
-}
-
-/**
- * Bouncing mini equalizer wave bars.
- */
-@Composable
-fun MiniAnimatedWaveform() {
-    val infiniteTransition = rememberInfiniteTransition(label = "waveform")
-    val h1 by infiniteTransition.animateFloat(
-        initialValue = 4f, targetValue = 14f,
-        animationSpec = infiniteRepeatable(tween(400, easing = LinearEasing), RepeatMode.Reverse),
-        label = "h1"
-    )
-    val h2 by infiniteTransition.animateFloat(
-        initialValue = 12f, targetValue = 5f,
-        animationSpec = infiniteRepeatable(tween(320, easing = LinearEasing), RepeatMode.Reverse),
-        label = "h2"
-    )
-    val h3 by infiniteTransition.animateFloat(
-        initialValue = 6f, targetValue = 16f,
-        animationSpec = infiniteRepeatable(tween(480, easing = LinearEasing), RepeatMode.Reverse),
-        label = "h3"
-    )
-
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        verticalAlignment = Alignment.Bottom,
-        modifier = Modifier.height(16.dp)
-    ) {
-        Box(Modifier.width(2.5.dp).height(h1.dp).clip(RoundedCornerShape(1.dp)).background(MaterialTheme.colorScheme.primary))
-        Box(Modifier.width(2.5.dp).height(h2.dp).clip(RoundedCornerShape(1.dp)).background(MaterialTheme.colorScheme.primary))
-        Box(Modifier.width(2.5.dp).height(h3.dp).clip(RoundedCornerShape(1.dp)).background(MaterialTheme.colorScheme.primary))
     }
 }
 
@@ -455,7 +433,6 @@ fun VinylRecordPlayer(
     isPlaying: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    // Rotation animation
     val infiniteTransition = rememberInfiniteTransition(label = "vinyl_spin")
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -477,7 +454,7 @@ fun VinylRecordPlayer(
         Box(
             modifier = Modifier
                 .size(255.dp)
-                .shadow(elevation = 16.dp, shape = CircleShape)
+                .shadow(elevation = 14.dp, shape = CircleShape)
                 .clip(CircleShape)
                 .background(Color(0xFF14161A)),
             contentAlignment = Alignment.Center
@@ -555,20 +532,27 @@ fun VinylRecordPlayer(
 }
 
 /**
- * Interactive Clock Dial Sleep Timer Dialog.
+ * Clean, preset-based Sleep Timer Dialog with active state indicator and cancel action.
  */
 @Composable
 fun SleepTimerDialog(
+    activeMinutes: Int?,
     onDismissRequest: () -> Unit,
-    onTimerSet: (Int) -> Unit
+    onTimerSet: (Int?) -> Unit
 ) {
-    var selectedMinutes by remember { mutableIntStateOf(30) }
-    val presets = listOf(15, 30, 45, 60, 90)
+    val presets = listOf(
+        Pair("15 minutes", 15),
+        Pair("30 minutes", 30),
+        Pair("45 minutes", 45),
+        Pair("60 minutes", 60),
+        Pair("End of current track", 4)
+    )
 
     Dialog(onDismissRequest = onDismissRequest) {
         Card(
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -576,144 +560,140 @@ fun SleepTimerDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(22.dp)
             ) {
+                // Header
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    AppIcon(name = "timer", size = 24.dp, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AppIcon(name = "timer", size = 20.dp, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
+                    Spacer(Modifier.width(12.dp))
                     Text(
                         text = "Sleep Timer",
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(16.dp))
 
-                // Circular Clock Dial representation
-                Box(
-                    modifier = Modifier
-                        .size(170.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val center = Offset(size.width / 2, size.height / 2)
-                        val radius = size.minDimension / 2 - 12.dp.toPx()
-
-                        // Clock ring
-                        drawCircle(
-                            color = Color(0xFF3A4254),
-                            radius = radius,
-                            center = center,
-                            style = Stroke(width = 2.dp.toPx())
-                        )
-
-                        // 12 ticks
-                        for (i in 0 until 12) {
-                            val angleRad = Math.toRadians((i * 30 - 90).toDouble())
-                            val startX = center.x + (radius - 8.dp.toPx()) * cos(angleRad).toFloat()
-                            val startY = center.y + (radius - 8.dp.toPx()) * sin(angleRad).toFloat()
-                            val endX = center.x + radius * cos(angleRad).toFloat()
-                            val endY = center.y + radius * sin(angleRad).toFloat()
-                            drawLine(
-                                color = Color.White.copy(alpha = 0.6f),
-                                start = Offset(startX, startY),
-                                end = Offset(endX, endY),
-                                strokeWidth = 2.dp.toPx()
-                            )
-                        }
-
-                        // Clock hand pointing according to selected minutes (0 to 60 mapped to 360)
-                        val handAngle = Math.toRadians(((selectedMinutes % 60) * 6 - 90).toDouble())
-                        val handX = center.x + (radius * 0.65f) * cos(handAngle).toFloat()
-                        val handY = center.y + (radius * 0.65f) * sin(handAngle).toFloat()
-                        drawLine(
-                            color = Color(0xFF4F80FF),
-                            start = center,
-                            end = Offset(handX, handY),
-                            strokeWidth = 3.5.dp.toPx(),
-                            cap = StrokeCap.Round
-                        )
-                        drawCircle(color = Color(0xFF4F80FF), radius = 6.dp.toPx(), center = center)
-                    }
-
-                    // Display time
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(top = 44.dp)
+                // Active status banner if already running
+                if (activeMinutes != null && activeMinutes > 0) {
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            text = "$selectedMinutes min",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(18.dp))
-
-                // Preset Chips
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    presets.forEach { mins ->
-                        val isSelected = selectedMinutes == mins
-                        Box(
+                        Row(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(99.dp))
-                                .background(
-                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-                                )
-                                .clickable { selectedMinutes = mins }
-                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "${mins}m",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            AppIcon(
+                                name = "check_circle",
+                                size = 18.dp,
+                                tint = MaterialTheme.colorScheme.primary
                             )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Active: stops playback in $activeMinutes min",
+                                fontSize = 12.5.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.weight(1f)
+                            )
+                            TextButton(
+                                onClick = {
+                                    onTimerSet(null)
+                                    onDismissRequest()
+                                },
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    "Turn Off",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     }
+                    Spacer(Modifier.height(14.dp))
                 }
-
-                Spacer(Modifier.height(12.dp))
 
                 Text(
-                    text = "App will gently fade out music and close when the timer completes.",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    text = "Select when to pause playback:",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(10.dp))
 
-                // Actions
+                // Presets list
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    presets.forEach { (label, mins) ->
+                        val isSelected = activeMinutes == mins
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    onTimerSet(mins)
+                                    onDismissRequest()
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 14.sp,
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (isSelected) {
+                                    AppIcon(
+                                        name = "check",
+                                        size = 18.dp,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Bottom actions
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismissRequest) {
-                        Text("Cancel", fontSize = 14.sp)
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            onTimerSet(selectedMinutes)
-                            onDismissRequest()
-                        },
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Set Timer", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Close", fontSize = 14.sp)
                     }
                 }
             }
@@ -722,12 +702,11 @@ fun SleepTimerDialog(
 }
 
 /**
- * True Full-Screen Now Playing Modal Sheet matching exact Droid Lab Vinyl specification.
+ * True Full-Screen Now Playing Screen (0dp corners, edge-to-edge).
+ * Features clean stroked music control icons matching Image 3.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DroidLabNowPlayingSheet(
-    visible: Boolean,
+fun DroidLabNowPlayingScreen(
     title: String = "Midnight Drive",
     artist: String = "Nova Lane",
     album: String = "Neon Hours",
@@ -738,10 +717,13 @@ fun DroidLabNowPlayingSheet(
     onPlayPause: () -> Unit = { },
     onPrevious: () -> Unit = { },
     onNext: () -> Unit = { },
-    onDismiss: () -> Unit = { },
+    onClose: () -> Unit = { },
+    sleepTimerMinutes: Int? = null,
+    onSetSleepTimer: (Int?) -> Unit = { },
     modifier: Modifier = Modifier
 ) {
-    if (!visible) return
+    // Intercept back gesture to close full screen
+    BackHandler(onBack = onClose)
 
     var currentProgress by remember { mutableFloatStateOf(progress) }
     var isShuffleOn by remember { mutableStateOf(false) }
@@ -750,18 +732,17 @@ fun DroidLabNowPlayingSheet(
     var isSlidersMenuOpen by remember { mutableStateOf(false) }
     var isSleepTimerDialogOpen by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surface,
-        dragHandle = null,
-        modifier = modifier.fillMaxSize()
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface,
+        shape = RectangleShape
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(horizontal = 20.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Top Bar
@@ -774,8 +755,8 @@ fun DroidLabNowPlayingSheet(
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                        .clickable(onClick = onDismiss),
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                        .clickable(onClick = onClose),
                     contentAlignment = Alignment.Center
                 ) {
                     AppIcon(name = "chevron_down", size = 22.dp)
@@ -787,13 +768,13 @@ fun DroidLabNowPlayingSheet(
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(99.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                         .padding(horizontal = 14.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AppIcon(
                         name = "phone_speaker",
-                        size = 16.dp,
+                        size = 15.dp,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.width(6.dp))
@@ -807,49 +788,81 @@ fun DroidLabNowPlayingSheet(
 
                 Spacer(Modifier.weight(1f))
 
-                // Sliders / 3-Line Tune Icon with Dropdown Menu
-                Box {
-                    IconButton(
-                        onClick = { isSlidersMenuOpen = true },
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                    ) {
-                        AppIcon(name = "tune", size = 22.dp)
+                // Sleep timer badge if active + Tune Sliders Icon
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (sleepTimerMinutes != null && sleepTimerMinutes > 0) {
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(99.dp))
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .clickable { isSleepTimerDialogOpen = true }
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AppIcon(
+                                name = "timer",
+                                size = 13.dp,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "${sleepTimerMinutes}m",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(Modifier.width(6.dp))
                     }
 
-                    DropdownMenu(
-                        expanded = isSlidersMenuOpen,
-                        onDismissRequest = { isSlidersMenuOpen = false },
-                        modifier = Modifier
-                            .width(175.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Equalizer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
-                            leadingIcon = { AppIcon(name = "equalizer", size = 20.dp) },
-                            onClick = {
-                                isSlidersMenuOpen = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Sleep Timer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
-                            leadingIcon = { AppIcon(name = "timer", size = 20.dp) },
-                            onClick = {
-                                isSlidersMenuOpen = false
-                                isSleepTimerDialogOpen = true
-                            }
-                        )
+                    Box {
+                        IconButton(
+                            onClick = { isSlidersMenuOpen = true },
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                        ) {
+                            AppIcon(name = "tune", size = 22.dp)
+                        }
+
+                        DropdownMenu(
+                            expanded = isSlidersMenuOpen,
+                            onDismissRequest = { isSlidersMenuOpen = false },
+                            modifier = Modifier
+                                .width(180.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Equalizer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
+                                leadingIcon = { AppIcon(name = "equalizer", size = 20.dp) },
+                                onClick = { isSlidersMenuOpen = false }
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    val label = if (sleepTimerMinutes != null && sleepTimerMinutes > 0) {
+                                        "Sleep Timer (${sleepTimerMinutes}m)"
+                                    } else {
+                                        "Sleep Timer"
+                                    }
+                                    Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                },
+                                leadingIcon = { AppIcon(name = "timer", size = 20.dp) },
+                                onClick = {
+                                    isSlidersMenuOpen = false
+                                    isSleepTimerDialogOpen = true
+                                }
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             // Vinyl Record Art with Tonearm
             VinylRecordPlayer(isPlaying = isPlaying)
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(14.dp))
 
             // Metadata
             Text(
@@ -860,11 +873,11 @@ fun DroidLabNowPlayingSheet(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
 
             Text(
                 text = title,
-                fontSize = 24.sp,
+                fontSize = 23.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
@@ -875,13 +888,13 @@ fun DroidLabNowPlayingSheet(
 
             Text(
                 text = "$artist • $album",
-                fontSize = 14.sp,
+                fontSize = 13.5.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(16.dp))
 
             // Progress Slider
             Slider(
@@ -903,14 +916,15 @@ fun DroidLabNowPlayingSheet(
                 Text(text = totalTime, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
-            // Playback Controls Row
+            // Playback Controls Row matching exact stroke reference in Image 3
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Shuffle Button (Stroke crossed arrows)
                 Box(
                     modifier = Modifier
                         .size(42.dp)
@@ -918,13 +932,13 @@ fun DroidLabNowPlayingSheet(
                         .clickable { isShuffleOn = !isShuffleOn },
                     contentAlignment = Alignment.Center
                 ) {
-                    AppIcon(
-                        name = "shuffle",
-                        size = 20.dp,
-                        tint = if (isShuffleOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    StrokeShuffleIcon(
+                        tint = if (isShuffleOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        size = 22.dp
                     )
                 }
 
+                // Previous Button: |< stroke icon
                 Box(
                     modifier = Modifier
                         .size(46.dp)
@@ -932,26 +946,36 @@ fun DroidLabNowPlayingSheet(
                         .clickable(onClick = onPrevious),
                     contentAlignment = Alignment.Center
                 ) {
-                    AppIcon(name = "skip_previous", size = 26.dp)
+                    StrokePreviousIcon(
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        size = 26.dp
+                    )
                 }
 
-                // Center large Play/Pause Button
+                // Center Large White Play/Pause Button with Clean Outlined Triangle (▷)
                 Box(
                     modifier = Modifier
-                        .size(62.dp)
-                        .shadow(elevation = 10.dp, shape = CircleShape)
+                        .size(64.dp)
+                        .shadow(elevation = 8.dp, shape = CircleShape)
                         .clip(CircleShape)
                         .background(Color.White)
                         .clickable(onClick = onPlayPause),
                     contentAlignment = Alignment.Center
                 ) {
-                    AppIcon(
-                        name = if (isPlaying) "pause" else "play",
-                        size = 28.dp,
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
+                    if (isPlaying) {
+                        OutlinedPauseBars(
+                            tint = Color(0xFF1E222D),
+                            size = 24.dp
+                        )
+                    } else {
+                        OutlinedPlayTriangle(
+                            tint = Color(0xFF1E222D),
+                            size = 24.dp
+                        )
+                    }
                 }
 
+                // Next Button: >| stroke icon
                 Box(
                     modifier = Modifier
                         .size(46.dp)
@@ -959,9 +983,13 @@ fun DroidLabNowPlayingSheet(
                         .clickable(onClick = onNext),
                     contentAlignment = Alignment.Center
                 ) {
-                    AppIcon(name = "skip_next", size = 26.dp)
+                    StrokeNextIcon(
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        size = 26.dp
+                    )
                 }
 
+                // Repeat Button (Stroke loop arrows)
                 Box(
                     modifier = Modifier
                         .size(42.dp)
@@ -969,22 +997,21 @@ fun DroidLabNowPlayingSheet(
                         .clickable { isRepeatOn = !isRepeatOn },
                     contentAlignment = Alignment.Center
                 ) {
-                    AppIcon(
-                        name = "repeat",
-                        size = 20.dp,
-                        tint = if (isRepeatOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    StrokeRepeatIcon(
+                        tint = if (isRepeatOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        size = 22.dp
                     )
                 }
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(14.dp))
 
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                thickness = 1.dp
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                thickness = 0.75.dp
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             // Bottom Actions: Lyrics & Up Next
             Row(
@@ -1021,9 +1048,226 @@ fun DroidLabNowPlayingSheet(
     // Sleep Timer Dialog
     if (isSleepTimerDialogOpen) {
         SleepTimerDialog(
+            activeMinutes = sleepTimerMinutes,
             onDismissRequest = { isSleepTimerDialogOpen = false },
-            onTimerSet = { _ -> }
+            onTimerSet = onSetSleepTimer
         )
+    }
+}
+
+/**
+ * Outlined Play Triangle (▷) matching exact reference in Image 3.
+ */
+@Composable
+fun OutlinedPlayTriangle(
+    tint: Color = Color(0xFF1E222D),
+    size: Dp = 24.dp
+) {
+    Canvas(modifier = Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val path = Path().apply {
+            moveTo(w * 0.32f, h * 0.22f)
+            lineTo(w * 0.78f, h * 0.50f)
+            lineTo(w * 0.32f, h * 0.78f)
+            close()
+        }
+        drawPath(
+            path = path,
+            color = tint,
+            style = Stroke(
+                width = 2.4.dp.toPx(),
+                cap = StrokeCap.Round,
+                join = StrokeJoin.Round
+            )
+        )
+    }
+}
+
+/**
+ * Outlined Pause Bars (||) matching exact reference in Image 3.
+ */
+@Composable
+fun OutlinedPauseBars(
+    tint: Color = Color(0xFF1E222D),
+    size: Dp = 24.dp
+) {
+    Canvas(modifier = Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val barWidth = 3.2.dp.toPx()
+        val barHeight = h * 0.52f
+        val topY = (h - barHeight) / 2
+        drawRoundRect(
+            color = tint,
+            topLeft = Offset(w * 0.34f - barWidth / 2, topY),
+            size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.5.dp.toPx())
+        )
+        drawRoundRect(
+            color = tint,
+            topLeft = Offset(w * 0.66f - barWidth / 2, topY),
+            size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.5.dp.toPx())
+        )
+    }
+}
+
+/**
+ * Stroke Previous Track Icon (|<) matching exact reference in Image 3.
+ */
+@Composable
+fun StrokePreviousIcon(
+    tint: Color = LocalContentColor.current,
+    size: Dp = 24.dp
+) {
+    Canvas(modifier = Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val strokeWidth = 2.2.dp.toPx()
+        // Left vertical stroke line
+        drawLine(
+            color = tint,
+            start = Offset(w * 0.22f, h * 0.24f),
+            end = Offset(w * 0.22f, h * 0.76f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
+        )
+        // Left-pointing triangle
+        val path = Path().apply {
+            moveTo(w * 0.78f, h * 0.24f)
+            lineTo(w * 0.32f, h * 0.50f)
+            lineTo(w * 0.78f, h * 0.76f)
+            close()
+        }
+        drawPath(
+            path = path,
+            color = tint,
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        )
+    }
+}
+
+/**
+ * Stroke Next Track Icon (>|) matching exact reference in Image 3.
+ */
+@Composable
+fun StrokeNextIcon(
+    tint: Color = LocalContentColor.current,
+    size: Dp = 24.dp
+) {
+    Canvas(modifier = Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val strokeWidth = 2.2.dp.toPx()
+        // Right-pointing triangle
+        val path = Path().apply {
+            moveTo(w * 0.22f, h * 0.24f)
+            lineTo(w * 0.68f, h * 0.50f)
+            lineTo(w * 0.22f, h * 0.76f)
+            close()
+        }
+        drawPath(
+            path = path,
+            color = tint,
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        )
+        // Right vertical stroke line
+        drawLine(
+            color = tint,
+            start = Offset(w * 0.78f, h * 0.24f),
+            end = Offset(w * 0.78f, h * 0.76f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
+        )
+    }
+}
+
+/**
+ * Stroke Shuffle Icon (crossed arrows) matching exact reference in Image 3.
+ */
+@Composable
+fun StrokeShuffleIcon(
+    tint: Color = LocalContentColor.current,
+    size: Dp = 22.dp
+) {
+    Canvas(modifier = Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val strokeWidth = 2.dp.toPx()
+
+        // Upper to lower line
+        val path1 = Path().apply {
+            moveTo(w * 0.18f, h * 0.32f)
+            cubicTo(w * 0.45f, h * 0.32f, w * 0.55f, h * 0.68f, w * 0.76f, h * 0.68f)
+        }
+        drawPath(path1, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round))
+        // Arrowhead 1
+        val arrow1 = Path().apply {
+            moveTo(w * 0.64f, h * 0.56f)
+            lineTo(w * 0.80f, h * 0.68f)
+            lineTo(w * 0.64f, h * 0.80f)
+        }
+        drawPath(arrow1, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+
+        // Lower to upper line
+        val path2 = Path().apply {
+            moveTo(w * 0.18f, h * 0.68f)
+            cubicTo(w * 0.45f, h * 0.68f, w * 0.55f, h * 0.32f, w * 0.76f, h * 0.32f)
+        }
+        drawPath(path2, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round))
+        // Arrowhead 2
+        val arrow2 = Path().apply {
+            moveTo(w * 0.64f, h * 0.20f)
+            lineTo(w * 0.80f, h * 0.32f)
+            lineTo(w * 0.64f, h * 0.44f)
+        }
+        drawPath(arrow2, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
+}
+
+/**
+ * Stroke Repeat Icon (loop arrows) matching exact reference in Image 3.
+ */
+@Composable
+fun StrokeRepeatIcon(
+    tint: Color = LocalContentColor.current,
+    size: Dp = 22.dp
+) {
+    Canvas(modifier = Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val strokeWidth = 2.dp.toPx()
+
+        // Top line pointing right
+        val topPath = Path().apply {
+            moveTo(w * 0.22f, h * 0.55f)
+            lineTo(w * 0.22f, h * 0.34f)
+            cubicTo(w * 0.22f, h * 0.26f, w * 0.28f, h * 0.26f, w * 0.38f, h * 0.26f)
+            lineTo(w * 0.76f, h * 0.26f)
+        }
+        drawPath(topPath, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round))
+        val arrowTop = Path().apply {
+            moveTo(w * 0.64f, h * 0.16f)
+            lineTo(w * 0.80f, h * 0.26f)
+            lineTo(w * 0.64f, h * 0.36f)
+        }
+        drawPath(arrowTop, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+
+        // Bottom line pointing left
+        val botPath = Path().apply {
+            moveTo(w * 0.78f, h * 0.45f)
+            lineTo(w * 0.78f, h * 0.66f)
+            cubicTo(w * 0.78f, h * 0.74f, w * 0.72f, h * 0.74f, w * 0.62f, h * 0.74f)
+            lineTo(w * 0.24f, h * 0.74f)
+        }
+        drawPath(botPath, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round))
+        val arrowBot = Path().apply {
+            moveTo(w * 0.36f, h * 0.64f)
+            lineTo(w * 0.20f, h * 0.74f)
+            lineTo(w * 0.36f, h * 0.84f)
+        }
+        drawPath(arrowBot, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }
 

@@ -4,14 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -49,6 +50,7 @@ fun AppRoot() {
     val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
 
     var isNowPlayingOpen by remember { mutableStateOf(false) }
+    var sleepTimerMinutes by remember { mutableStateOf<Int?>(null) }
 
     var currentSongTitle by remember { mutableStateOf("Midnight Drive") }
     var currentSongArtist by remember { mutableStateOf("Nova Lane") }
@@ -117,7 +119,6 @@ fun AppRoot() {
                                 },
                                 onClick = { isNowPlayingOpen = true }
                             )
-                            Spacer(Modifier.height(2.dp))
                             DroidLabBottomNav(
                                 selectedIndex = bottomNavIndex,
                                 onTabSelected = { index ->
@@ -150,23 +151,40 @@ fun AppRoot() {
                 )
             }
 
-            // Full Now Playing Sheet (True Full-Screen Vinyl Player)
-            DroidLabNowPlayingSheet(
+            // True Full-Screen Now Playing Experience (0dp corner radius, edge-to-edge)
+            AnimatedVisibility(
                 visible = isNowPlayingOpen,
-                title = currentSongTitle,
-                artist = currentSongArtist,
-                isPlaying = isPlaying,
-                onPlayPause = { isPlaying = !isPlaying },
-                onPrevious = {
-                    currentSongTitle = "Blue Bottle Coffee"
-                    currentSongArtist = "Chillhop Beats"
-                },
-                onNext = {
-                    currentSongTitle = "Neon Horizon"
-                    currentSongArtist = "Retro Wave"
-                },
-                onDismiss = { isNowPlayingOpen = false }
-            )
+                enter = slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(200)),
+                exit = slideOutVertically(
+                    targetOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(200))
+            ) {
+                DroidLabNowPlayingScreen(
+                    title = currentSongTitle,
+                    artist = currentSongArtist,
+                    album = "Neon Hours",
+                    progress = 0.42f,
+                    currentTime = "1:48",
+                    totalTime = "4:12",
+                    isPlaying = isPlaying,
+                    onPlayPause = { isPlaying = !isPlaying },
+                    onPrevious = {
+                        currentSongTitle = "Blue Bottle Coffee"
+                        currentSongArtist = "Chillhop Beats"
+                    },
+                    onNext = {
+                        currentSongTitle = "Neon Horizon"
+                        currentSongArtist = "Retro Wave"
+                    },
+                    onClose = { isNowPlayingOpen = false },
+                    sleepTimerMinutes = sleepTimerMinutes,
+                    onSetSleepTimer = { mins -> sleepTimerMinutes = mins }
+                )
+            }
         }
     }
 }

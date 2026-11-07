@@ -132,33 +132,33 @@ fun HomeRoute(
                     // "For you" Tab: 2x2 Shuffle Grid ONLY HERE + Tracks list
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 80.dp)
+                        contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
-                        // 4-Box Rounded Shuffle Grid
+                        // 4-Box Rounded Shuffle Grid (tight, minimal padding)
                         item {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 // Row 1
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     // Box 1: Shuffle Button Box (Top-Left)
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(96.dp)
-                                            .clip(RoundedCornerShape(18.dp))
+                                            .height(88.dp)
+                                            .clip(RoundedCornerShape(16.dp))
                                             .clickable {
                                                 trackList = trackList.shuffled()
                                                 val picked = trackList.first()
                                                 onSongSelected(picked.first, picked.second)
                                             },
-                                        shape = RoundedCornerShape(18.dp),
+                                        shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
                                         )
@@ -166,19 +166,19 @@ fun HomeRoute(
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .padding(12.dp),
+                                                .padding(11.dp),
                                             verticalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(36.dp)
+                                                    .size(34.dp)
                                                     .clip(CircleShape)
                                                     .background(MaterialTheme.colorScheme.primary),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 AppIcon(
                                                     name = "shuffle",
-                                                    size = 18.dp,
+                                                    size = 17.dp,
                                                     tint = Color.White
                                                 )
                                             }
@@ -203,12 +203,12 @@ fun HomeRoute(
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(96.dp)
-                                            .clip(RoundedCornerShape(18.dp))
+                                            .height(88.dp)
+                                            .clip(RoundedCornerShape(16.dp))
                                             .clickable {
                                                 onSongSelected("Midnight Drive", "Nova Lane")
                                             },
-                                        shape = RoundedCornerShape(18.dp),
+                                        shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
                                         )
@@ -216,17 +216,17 @@ fun HomeRoute(
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .padding(12.dp),
+                                                .padding(11.dp),
                                             verticalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(34.dp)
+                                                    .size(32.dp)
                                                     .clip(RoundedCornerShape(8.dp))
                                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(name = "music", size = 18.dp)
+                                                AppIcon(name = "music", size = 17.dp)
                                             }
                                             Column {
                                                 Text(
@@ -250,18 +250,18 @@ fun HomeRoute(
                                 // Row 2
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     // Box 3 (Bottom-Left)
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(96.dp)
-                                            .clip(RoundedCornerShape(18.dp))
+                                            .height(88.dp)
+                                            .clip(RoundedCornerShape(16.dp))
                                             .clickable {
                                                 onSongSelected("Kyoto Garden", "Zen Echoes")
                                             },
-                                        shape = RoundedCornerShape(18.dp),
+                                        shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
                                         )
@@ -269,17 +269,17 @@ fun HomeRoute(
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .padding(12.dp),
+                                                .padding(11.dp),
                                             verticalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(34.dp)
+                                                    .size(32.dp)
                                                     .clip(RoundedCornerShape(8.dp))
                                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(name = "music", size = 18.dp)
+                                                AppIcon(name = "music", size = 17.dp)
                                             }
                                             Column {
                                                 Text(
@@ -303,12 +303,12 @@ fun HomeRoute(
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(96.dp)
-                                            .clip(RoundedCornerShape(18.dp))
+                                            .height(88.dp)
+                                            .clip(RoundedCornerShape(16.dp))
                                             .clickable {
                                                 onSongSelected("The Reading Room", "Ambient Works")
                                             },
-                                        shape = RoundedCornerShape(18.dp),
+                                        shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
                                         )
@@ -316,17 +316,17 @@ fun HomeRoute(
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .padding(12.dp),
+                                                .padding(11.dp),
                                             verticalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(34.dp)
+                                                    .size(32.dp)
                                                     .clip(RoundedCornerShape(8.dp))
                                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(name = "music", size = 18.dp)
+                                                AppIcon(name = "music", size = 17.dp)
                                             }
                                             Column {
                                                 Text(
@@ -372,47 +372,47 @@ fun HomeRoute(
                     // "Following" Tab: List of artists with profile avatar & Follow/Following toggle
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                     ) {
                         item {
                             Text(
                                 text = "Artists you follow",
                                 fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
                         }
 
                         items(artistsList, key = { it.id }) { artist ->
                             Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 5.dp),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                                )
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 5.dp)
                             ) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(12.dp),
+                                        .padding(14.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // Profile User Icon Avatar
                                     Box(
                                         modifier = Modifier
                                             .size(46.dp)
                                             .clip(CircleShape)
-                                            .background(
-                                                Brush.linearGradient(
-                                                    listOf(artist.initialColor, artist.initialColor.copy(alpha = 0.6f))
-                                                )
-                                            ),
+                                            .background(artist.initialColor),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AppIcon(name = "person", size = 22.dp, tint = Color.White)
+                                        Text(
+                                            text = artist.name.take(1).uppercase(),
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
                                     }
 
                                     Spacer(Modifier.width(14.dp))
@@ -431,37 +431,25 @@ fun HomeRoute(
                                         )
                                     }
 
-                                    // Follow / Following Button
                                     Button(
                                         onClick = {
                                             artistsList = artistsList.map {
                                                 if (it.id == artist.id) it.copy(isFollowing = !it.isFollowing) else it
                                             }
                                         },
-                                        shape = RoundedCornerShape(99.dp),
                                         colors = if (artist.isFollowing) {
-                                            ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                                contentColor = MaterialTheme.colorScheme.onSurface
-                                            )
+                                            ButtonDefaults.filledTonalButtonColors()
                                         } else {
-                                            ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.primary,
-                                                contentColor = Color.White
-                                            )
+                                            ButtonDefaults.buttonColors()
                                         },
-                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                                        modifier = Modifier.height(34.dp)
+                                        shape = RoundedCornerShape(99.dp),
+                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                                     ) {
-                                        if (artist.isFollowing) {
-                                            AppIcon(name = "check", size = 15.dp, tint = MaterialTheme.colorScheme.primary)
-                                            Spacer(Modifier.width(4.dp))
-                                            Text("Following", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                        } else {
-                                            AppIcon(name = "person_add", size = 15.dp, tint = Color.White)
-                                            Spacer(Modifier.width(4.dp))
-                                            Text("Follow", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                        }
+                                        Text(
+                                            text = if (artist.isFollowing) "Following" else "Follow",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
                                     }
                                 }
                             }
@@ -469,89 +457,84 @@ fun HomeRoute(
                     }
                 }
                 2 -> {
-                    // "Top Tracks" Tab: Ranked top tracks with play counts
+                    // "Top Tracks" Tab: Ranked top tracks
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(vertical = 10.dp, horizontal = 12.dp)
+                        contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
                         item {
-                            Text(
-                                text = "Most listened tracks this month",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
-                            )
-                        }
-
-                        items(topTracks) { track ->
-                            Card(
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
-                                    .clickable {
-                                        onSongSelected(track.title, track.artist)
-                                    },
-                                shape = RoundedCornerShape(14.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
-                                )
+                                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
+                                Text(
+                                    text = "Most Played",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "All Time",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        items(topTracks, key = { it.rank }) { track ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onSongSelected(track.title, track.artist) }
+                                    .padding(horizontal = 16.dp, vertical = 11.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (track.rank <= 3) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                                        ),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    // Rank Badge
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(
-                                                when (track.rank) {
-                                                    1 -> Color(0xFFF59E0B) // Gold
-                                                    2 -> Color(0xFF94A3B8) // Silver
-                                                    3 -> Color(0xFFB45309) // Bronze
-                                                    else -> MaterialTheme.colorScheme.surfaceVariant
-                                                }
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = "#${track.rank}",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (track.rank <= 3) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-
-                                    Spacer(Modifier.width(14.dp))
-
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = track.title,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Text(
-                                            text = "${track.artist} • ${track.playCount}",
-                                            fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-
                                     Text(
-                                        text = track.duration,
+                                        text = "#${track.rank}",
                                         fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (track.rank <= 3) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
+
+                                Spacer(Modifier.width(14.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = track.title,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(Modifier.height(2.dp))
+                                    Text(
+                                        text = "${track.artist} • ${track.playCount}",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+
+                                Text(
+                                    text = track.duration,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
