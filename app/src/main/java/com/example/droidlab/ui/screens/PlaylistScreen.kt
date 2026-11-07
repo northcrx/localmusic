@@ -28,7 +28,9 @@ data class PlaylistItem(
     val trackCount: Int,
     val duration: String,
     val iconName: String = "playlist",
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val coverSongTitle: String? = null,
+    val coverSongArtist: String? = null
 )
 
 /**
@@ -65,10 +67,10 @@ fun PlaylistRoute(
     var playlists by remember {
         mutableStateOf(
             listOf(
-                PlaylistItem(1, "Slow mornings", 12, "46 min", "coffee", isFavorite = false),
-                PlaylistItem(2, "A quiet corner", 18, "1 hr 12 min", "book", isFavorite = true),
-                PlaylistItem(3, "Evening walks", 16, "58 min", "moon", isFavorite = false),
-                PlaylistItem(4, "On repeat", 9, "34 min", "repeat", isFavorite = true)
+                PlaylistItem(1, "Slow mornings", 12, "46 min", "coffee", isFavorite = false, coverSongTitle = "Blue Bottle Coffee", coverSongArtist = "Chillhop Beats"),
+                PlaylistItem(2, "A quiet corner", 18, "1 hr 12 min", "book", isFavorite = true, coverSongTitle = "The Reading Room", coverSongArtist = "Ambient Works"),
+                PlaylistItem(3, "Evening walks", 16, "58 min", "moon", isFavorite = false, coverSongTitle = "Midnight Drive", coverSongArtist = "Nova Lane"),
+                PlaylistItem(4, "On repeat", 9, "34 min", "repeat", isFavorite = true, coverSongTitle = "Kyoto Garden", coverSongArtist = "Zen Echoes")
             )
         )
     }
@@ -596,16 +598,24 @@ fun PlaylistRoute(
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(42.dp)
+                                                    .size(44.dp)
                                                     .clip(RoundedCornerShape(12.dp))
                                                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(
-                                                    name = playlist.iconName,
-                                                    size = 20.dp,
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
+                                                if (playlist.coverSongTitle != null) {
+                                                    MusicTrackArtCover(
+                                                        title = playlist.coverSongTitle,
+                                                        artist = playlist.coverSongArtist ?: "",
+                                                        modifier = Modifier.fillMaxSize()
+                                                    )
+                                                } else {
+                                                    AppIcon(
+                                                        name = playlist.iconName,
+                                                        size = 20.dp,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
                                             }
 
                                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -695,12 +705,32 @@ fun PlaylistRoute(
         }
     }
 
+    var selectedIconForNewPlaylist by remember { mutableStateOf("playlist") }
+    var selectedCoverForNewPlaylist by remember { mutableStateOf<Pair<String, String>?>(null) }
+
+    val availableIcons = remember {
+        listOf("playlist", "coffee", "book", "moon", "repeat", "music", "heart", "headset", "star")
+    }
+
+    val availableSongCovers = remember {
+        listOf(
+            "Auto (1st Song)" to "",
+            "Kyoto Garden" to "Zen Echoes",
+            "Blue Bottle Coffee" to "Chillhop Beats",
+            "Midnight Drive" to "Nova Lane",
+            "Neon Horizon" to "Retro Wave",
+            "The Reading Room" to "Ambient Works"
+        )
+    }
+
     // Create New Playlist Dialog
     if (showCreatePlaylistDialog) {
         AlertDialog(
             onDismissRequest = {
                 showCreatePlaylistDialog = false
                 newPlaylistName = ""
+                selectedCoverForNewPlaylist = null
+                selectedIconForNewPlaylist = "playlist"
             },
             shape = RoundedCornerShape(22.dp),
             title = {
@@ -720,6 +750,101 @@ fun PlaylistRoute(
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    Spacer(Modifier.height(14.dp))
+
+                    Text(
+                        text = "Choose Icon",
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        availableIcons.take(6).forEach { iconName ->
+                            val isSelected = selectedIconForNewPlaylist == iconName && selectedCoverForNewPlaylist == null
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                    )
+                                    .clickable {
+                                        selectedIconForNewPlaylist = iconName
+                                        selectedCoverForNewPlaylist = null
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AppIcon(
+                                    name = iconName,
+                                    size = 18.dp,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(14.dp))
+
+                    Text(
+                        text = "Or Choose Cover Artwork",
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        availableSongCovers.take(4).forEach { (coverTitle, coverArtist) ->
+                            val isSelected = if (coverTitle == "Auto (1st Song)") {
+                                selectedCoverForNewPlaylist == null && selectedIconForNewPlaylist == "playlist"
+                            } else {
+                                selectedCoverForNewPlaylist?.first == coverTitle
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(52.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                                    )
+                                    .clickable {
+                                        if (coverTitle == "Auto (1st Song)") {
+                                            selectedCoverForNewPlaylist = null
+                                            selectedIconForNewPlaylist = "playlist"
+                                        } else {
+                                            selectedCoverForNewPlaylist = Pair(coverTitle, coverArtist)
+                                        }
+                                    }
+                                    .padding(6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (coverTitle == "Auto (1st Song)") {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        AppIcon(name = "music", size = 16.dp, tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("Auto", fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                                    }
+                                } else {
+                                    MusicTrackArtCover(
+                                        title = coverTitle,
+                                        artist = coverArtist,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -727,17 +852,22 @@ fun PlaylistRoute(
                     onClick = {
                         if (newPlaylistName.isNotBlank()) {
                             val newId = (playlists.maxOfOrNull { it.id } ?: 0) + 1
+                            val finalCover = selectedCoverForNewPlaylist ?: Pair("Kyoto Garden", "Zen Echoes")
                             playlists = playlists + PlaylistItem(
                                 id = newId,
                                 name = newPlaylistName.trim(),
                                 trackCount = 0,
                                 duration = "0 min",
-                                iconName = "playlist",
-                                isFavorite = false
+                                iconName = selectedIconForNewPlaylist,
+                                isFavorite = false,
+                                coverSongTitle = finalCover.first,
+                                coverSongArtist = finalCover.second
                             )
                         }
                         showCreatePlaylistDialog = false
                         newPlaylistName = ""
+                        selectedCoverForNewPlaylist = null
+                        selectedIconForNewPlaylist = "playlist"
                     },
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -749,6 +879,8 @@ fun PlaylistRoute(
                     onClick = {
                         showCreatePlaylistDialog = false
                         newPlaylistName = ""
+                        selectedCoverForNewPlaylist = null
+                        selectedIconForNewPlaylist = "playlist"
                     }
                 ) {
                     Text("Cancel")

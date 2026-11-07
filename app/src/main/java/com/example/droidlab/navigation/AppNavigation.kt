@@ -47,6 +47,8 @@ fun AppNavHost(
     onFontPreferenceChanged: (String) -> Unit = {},
     selectedMiniPlayerStyle: String = "Classic Pill",
     onMiniPlayerStyleChanged: (String) -> Unit = {},
+    onAlbumSelected: (AlbumItem) -> Unit = {},
+    onArtistSelected: (ArtistItem) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -64,7 +66,9 @@ fun AppNavHost(
                 likedSongs = likedSongs,
                 onToggleLike = onToggleLike,
                 currentSongTitle = currentSongTitle,
-                isPlaying = isPlaying
+                isPlaying = isPlaying,
+                onAlbumSelected = onAlbumSelected,
+                onNavigateToMusicTab = { navController.navigate(Screen.Music.route) }
             )
         }
         composable(Screen.Music.route) {
@@ -79,7 +83,9 @@ fun AppNavHost(
                 likedSongs = likedSongs,
                 onToggleLike = onToggleLike,
                 selectedMiniPlayerStyle = selectedMiniPlayerStyle,
-                onMiniPlayerStyleChanged = onMiniPlayerStyleChanged
+                onMiniPlayerStyleChanged = onMiniPlayerStyleChanged,
+                onAlbumSelected = onAlbumSelected,
+                onArtistSelected = onArtistSelected
             )
         }
         composable(Screen.Playlist.route) {
@@ -117,7 +123,9 @@ fun AppNavHost(
                         }
                     }
                 },
-                onSongSelected = { title, artist -> onPlaySong(title, artist, false) }
+                onSongSelected = { title, artist -> onPlaySong(title, artist, false) },
+                onAlbumSelected = onAlbumSelected,
+                onArtistSelected = onArtistSelected
             )
         }
         // Backward-compatibility alias for explore
@@ -134,7 +142,9 @@ fun AppNavHost(
                         }
                     }
                 },
-                onSongSelected = { title, artist -> onPlaySong(title, artist, false) }
+                onSongSelected = { title, artist -> onPlaySong(title, artist, false) },
+                onAlbumSelected = onAlbumSelected,
+                onArtistSelected = onArtistSelected
             )
         }
         composable(Screen.Settings.route) {

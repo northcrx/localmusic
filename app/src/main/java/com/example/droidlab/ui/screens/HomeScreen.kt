@@ -122,7 +122,9 @@ fun HomeRoute(
     likedSongs: List<Pair<String, String>> = emptyList(),
     onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> },
     currentSongTitle: String = "",
-    isPlaying: Boolean = false
+    isPlaying: Boolean = false,
+    onAlbumSelected: (AlbumItem) -> Unit = {},
+    onNavigateToMusicTab: (Int) -> Unit = {}
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
@@ -498,6 +500,8 @@ fun HomeRoute(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { onNavigateToMusicTab(0) }
                                     .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -595,6 +599,8 @@ fun HomeRoute(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { onNavigateToMusicTab(1) }
                                     .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -620,7 +626,17 @@ fun HomeRoute(
                                     Column(
                                         modifier = Modifier
                                             .width(96.dp)
-                                            .clickable { onSongSelected(album.title, album.artist) }
+                                            .clickable {
+                                                onAlbumSelected(
+                                                    AlbumItem(
+                                                        id = album.id,
+                                                        title = album.title,
+                                                        artist = album.artist,
+                                                        trackCount = album.trackCount,
+                                                        year = "2024"
+                                                    )
+                                                )
+                                            }
                                     ) {
                                         // Square card with album disc icon matching user's design
                                         Box(
@@ -659,6 +675,8 @@ fun HomeRoute(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { onNavigateToMusicTab(0) }
                                     .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {

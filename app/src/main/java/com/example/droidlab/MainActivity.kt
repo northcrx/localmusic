@@ -27,6 +27,10 @@ import com.example.droidlab.ui.components.*
 import com.example.droidlab.ui.screens.AvailableDevicePresets
 import com.example.droidlab.ui.screens.DeviceHardwarePreset
 import com.example.droidlab.ui.screens.EqualizerRoute
+import com.example.droidlab.ui.screens.AlbumItem
+import com.example.droidlab.ui.screens.ArtistItem
+import com.example.droidlab.ui.screens.AlbumDetailScreen
+import com.example.droidlab.ui.screens.ArtistDetailScreen
 import com.example.droidlab.ui.theme.DroidLabTheme
 import com.example.droidlab.ui.theme.ManropeFontFamily
 import com.example.droidlab.ui.theme.SpaceGroteskFontFamily
@@ -70,6 +74,8 @@ fun AppRoot(
     var isEqualizerOpen by remember { mutableStateOf(false) }
     var sleepTimerMinutes by remember { mutableStateOf<Int?>(null) }
     var selectedMiniPlayerStyle by remember { mutableStateOf("Classic Pill") }
+    var selectedAlbumDetail by remember { mutableStateOf<AlbumItem?>(null) }
+    var selectedArtistDetail by remember { mutableStateOf<ArtistItem?>(null) }
 
     // Connected Audio Device / Hardware Profile (reflected in player and throughout app)
     var activeDevicePreset by remember { mutableStateOf<DeviceHardwarePreset>(AvailableDevicePresets.first()) }
@@ -194,6 +200,8 @@ fun AppRoot(
                         onFontPreferenceChanged = onFontPreferenceChanged,
                         selectedMiniPlayerStyle = selectedMiniPlayerStyle,
                         onMiniPlayerStyleChanged = { selectedMiniPlayerStyle = it },
+                        onAlbumSelected = { album -> selectedAlbumDetail = album },
+                        onArtistSelected = { artist -> selectedArtistDetail = artist },
                         modifier = Modifier.fillMaxSize()
                     )
 
@@ -266,8 +274,56 @@ fun AppRoot(
                         isPlaying = true
                     },
                     onClose = { isNowPlayingOpen = false },
+                    onGoToArtist = { artistName ->
+                        selectedArtistDetail = ArtistItem(1, artistName, 2, 14)
+                    },
+                    onGoToAlbum = { albumTitle, artistName ->
+                        selectedAlbumDetail = AlbumItem(1, albumTitle, artistName, 8, "2024")
+                    },
+                    onOpenSettings = {
+                        navController.navigate(Screen.Settings.route)
+                    },
                     sleepTimerMinutes = sleepTimerMinutes,
                     onSetSleepTimer = { mins -> sleepTimerMinutes = mins }
+                )
+            }
+
+
+            // Full-Screen Album Detail Overlay
+            val activeAlbum = selectedAlbumDetail
+            if (activeAlbum != null) {
+                AlbumDetailScreen(
+                    album = activeAlbum,
+                    onBack = { selectedAlbumDetail = null },
+                    onSongSelected = { title: String, artist: String ->
+                        currentSongTitle = title
+                        currentSongArtist = artist
+                        isPlaying = true
+                    },
+                    likedSongs = likedSongs,
+                    onToggleLike = toggleLike,
+                    currentSongTitle = currentSongTitle,
+                    isPlaying = isPlaying,
+                    onAlbumSelected = { album: AlbumItem -> selectedAlbumDetail = album }
+                )
+            }
+
+            // Full-Screen Artist Detail Overlay
+            val activeArtist = selectedArtistDetail
+            if (activeArtist != null) {
+                ArtistDetailScreen(
+                    artist = activeArtist,
+                    onBack = { selectedArtistDetail = null },
+                    onSongSelected = { title: String, artist: String ->
+                        currentSongTitle = title
+                        currentSongArtist = artist
+                        isPlaying = true
+                    },
+                    likedSongs = likedSongs,
+                    onToggleLike = toggleLike,
+                    currentSongTitle = currentSongTitle,
+                    isPlaying = isPlaying,
+                    onAlbumSelected = { album: AlbumItem -> selectedAlbumDetail = album }
                 )
             }
 

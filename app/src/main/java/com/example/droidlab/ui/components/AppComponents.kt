@@ -1,5 +1,7 @@
 package com.example.droidlab.ui.components
 
+import kotlinx.coroutines.delay
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -205,74 +207,8 @@ fun DroidLabTopAppBar(
 
     // 2. Scan Music Folders Dialog
     if (showScanFoldersDialog) {
-        AlertDialog(
-            onDismissRequest = { showScanFoldersDialog = false },
-            shape = RoundedCornerShape(22.dp),
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AppIcon(name = "folder", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(10.dp))
-                    Text("Scan music folders", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                }
-            },
-            text = {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "Scanned audio directories on device:",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    val folders = listOf(
-                        "/storage/emulated/0/Music" to "38 audio tracks",
-                        "/storage/emulated/0/Download" to "14 audio tracks",
-                        "/storage/emulated/0/Podcasts" to "6 audio tracks"
-                    )
-                    folders.forEach { (path, count) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            AppIcon(name = "folder", size = 20.dp, tint = MaterialTheme.colorScheme.primary)
-                            Spacer(Modifier.width(12.dp))
-                            Column {
-                                Text(
-                                    text = path,
-                                    fontSize = 13.5.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Text(
-                                    text = count,
-                                    fontSize = 11.5.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        text = "Total 58 tracks indexed and ready to play.",
-                        fontSize = 12.5.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showScanFoldersDialog = false }) {
-                    Text("Done")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showScanFoldersDialog = false }) {
-                    Text("Rescan")
-                }
-            }
+        ScanMusicFoldersDialog(
+            onDismissRequest = { showScanFoldersDialog = false }
         )
     }
 
@@ -1257,6 +1193,9 @@ fun DroidLabNowPlayingScreen(
     onNext: () -> Unit = {},
     onClose: () -> Unit = {},
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
+    onGoToArtist: (String) -> Unit = {},
+    onGoToAlbum: (String, String) -> Unit = { _, _ -> },
+    onOpenSettings: () -> Unit = {},
     sleepTimerMinutes: Int? = null,
     onSetSleepTimer: (Int?) -> Unit = {},
     modifier: Modifier = Modifier
@@ -1268,6 +1207,7 @@ fun DroidLabNowPlayingScreen(
     var isShuffleOn by remember { mutableStateOf(false) }
     var isRepeatOn by remember { mutableStateOf(false) }
     var isOptionsSheetOpen by remember { mutableStateOf(false) }
+    var showFileDetailsDialog by remember { mutableStateOf(false) }
     var isQueueOpen by remember { mutableStateOf(false) }
     var isSleepTimerDialogOpen by remember { mutableStateOf(false) }
 
@@ -1703,7 +1643,11 @@ fun DroidLabNowPlayingScreen(
                     icon = "person",
                     text = "Go to artist",
                     hasChevron = true,
-                    onClick = { isOptionsSheetOpen = false }
+                    onClick = {
+                        isOptionsSheetOpen = false
+                        onClose()
+                        onGoToArtist(artist)
+                    }
                 )
 
                 // 5. Go to album
@@ -1711,7 +1655,11 @@ fun DroidLabNowPlayingScreen(
                     icon = "album",
                     text = "Go to album",
                     hasChevron = true,
-                    onClick = { isOptionsSheetOpen = false }
+                    onClick = {
+                        isOptionsSheetOpen = false
+                        onClose()
+                        onGoToAlbum(album, artist)
+                    }
                 )
 
                 // 6. File details
@@ -1719,7 +1667,10 @@ fun DroidLabNowPlayingScreen(
                     icon = "info",
                     text = "File details",
                     hasChevron = true,
-                    onClick = { isOptionsSheetOpen = false }
+                    onClick = {
+                        isOptionsSheetOpen = false
+                        showFileDetailsDialog = true
+                    }
                 )
 
                 // 7. Settings
@@ -1727,7 +1678,11 @@ fun DroidLabNowPlayingScreen(
                     icon = "settings",
                     text = "Settings",
                     hasChevron = true,
-                    onClick = { isOptionsSheetOpen = false }
+                    onClick = {
+                        isOptionsSheetOpen = false
+                        onClose()
+                        onOpenSettings()
+                    }
                 )
             }
         }
@@ -1741,6 +1696,62 @@ fun DroidLabNowPlayingScreen(
             onTimerSet = onSetSleepTimer
         )
     }
+
+    // File Details Dialog
+    if (showFileDetailsDialog) {
+        AlertDialog(
+            onDismissRequest = { showFileDetailsDialog = false },
+            shape = RoundedCornerShape(22.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AppIcon(name = "info", size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(10.dp))
+                    Text("File Details", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val details = listOf(
+                        "Title" to title,
+                        "Artist" to artist,
+                        "Album" to album,
+                        "Format" to "FLAC 24-bit / 96.0 kHz",
+                        "Bitrate" to "1411 kbps",
+                        "File Size" to "34.8 MB",
+                        "Duration" to totalTime,
+                        "Path" to "/storage/emulated/0/Music/${album}/${title.replace(" ", "_").lowercase()}.flac"
+                    )
+                    details.forEach { (label, value) ->
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = label,
+                                fontSize = 11.5.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = value,
+                                fontSize = 13.5.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showFileDetailsDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
 }
 
 /**
@@ -2774,4 +2785,223 @@ fun SkeletonTrackRow() {
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha * 0.7f))
         )
     }
+}
+
+
+/**
+ * Interactive Scan Music Folders Dialog with folder selection checkboxes
+ * and animated 0-100% indexing progress.
+ */
+@Composable
+fun ScanMusicFoldersDialog(
+    onDismissRequest: () -> Unit
+) {
+    var selectedFolders by remember {
+        mutableStateOf(
+            setOf(
+                "/storage/emulated/0/Music",
+                "/storage/emulated/0/Download/Music",
+                "/storage/emulated/0/Podcasts"
+            )
+        )
+    }
+    val allFolders = remember {
+        listOf(
+            "/storage/emulated/0/Music" to "42 tracks • MP3, FLAC",
+            "/storage/emulated/0/Download/Music" to "16 tracks • Hi-Res Audio",
+            "/storage/emulated/0/Podcasts" to "6 tracks • Voice & Shows",
+            "/storage/emulated/0/Android/media" to "9 tracks • Local Cache"
+        )
+    }
+    var isScanning by remember { mutableStateOf(false) }
+    var scanProgress by remember { mutableFloatStateOf(0f) }
+    var currentScannedFile by remember { mutableStateOf("") }
+    var isScanFinished by remember { mutableStateOf(false) }
+
+    val scanFiles = remember {
+        listOf(
+            "kyoto_garden.flac",
+            "midnight_drive.wav",
+            "blue_bottle_coffee.mp3",
+            "the_reading_room.flac",
+            "neon_horizon.flac",
+            "solar_drift.wav",
+            "golden_hour.mp3",
+            "rainy_cafe.flac",
+            "velvet_moon.flac"
+        )
+    }
+
+    LaunchedEffect(isScanning) {
+        if (isScanning) {
+            scanProgress = 0f
+            isScanFinished = false
+            for (i in 1..20) {
+                delay(100)
+                scanProgress = i / 20f
+                currentScannedFile = scanFiles[(i - 1) % scanFiles.size]
+            }
+            isScanning = false
+            isScanFinished = true
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = { if (!isScanning) onDismissRequest() },
+        shape = RoundedCornerShape(24.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIcon(name = "folder", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(10.dp))
+                Text("Scan Music Folders", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            }
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                if (!isScanning && !isScanFinished) {
+                    Text(
+                        text = "Select folders to index music library:",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    allFolders.forEach { (path, info) ->
+                        val isChecked = selectedFolders.contains(path)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    selectedFolders = if (isChecked) {
+                                        selectedFolders - path
+                                    } else {
+                                        selectedFolders + path
+                                    }
+                                }
+                                .padding(vertical = 6.dp, horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = isChecked,
+                                onCheckedChange = { checked ->
+                                    selectedFolders = if (checked) selectedFolders + path else selectedFolders - path
+                                }
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = path,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = info,
+                                    fontSize = 11.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                } else if (isScanning) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        LinearProgressIndicator(
+                            progress = { scanProgress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Indexing audio...",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "${(scanProgress * 100).toInt()}%",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = "Reading: $currentScannedFile",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            AppIcon(name = "check", size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Scan Complete! (100%)",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        val trackCount = if (selectedFolders.size == 4) 73 else selectedFolders.size * 18 + 10
+                        Text(
+                            text = "Indexed $trackCount songs across ${selectedFolders.size} selected folders. All tracks are synchronized and ready to play.",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (isScanning) {
+                // scanning
+            } else if (isScanFinished) {
+                Button(
+                    onClick = onDismissRequest,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Done")
+                }
+            } else {
+                Button(
+                    onClick = { isScanning = true },
+                    enabled = selectedFolders.isNotEmpty(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Scan Now")
+                }
+            }
+        },
+        dismissButton = {
+            if (!isScanning) {
+                TextButton(onClick = onDismissRequest) {
+                    Text(if (isScanFinished) "Close" else "Cancel")
+                }
+            }
+        }
+    )
 }
