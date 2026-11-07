@@ -74,7 +74,9 @@ fun AppNavHost(
                 currentSongTitle = currentSongTitle,
                 isPlaying = isPlaying,
                 onAlbumSelected = onAlbumSelected,
-                onNavigateToMusicTab = { navController.navigate(Screen.Music.route) }
+                onNavigateToMusicTab = { navController.navigate(Screen.Music.route) },
+                musicViewModel = musicViewModel,
+                onPlaySongEntity = onPlaySongEntity
             )
         }
         composable(Screen.Music.route) {
@@ -107,7 +109,9 @@ fun AppNavHost(
                 currentSongTitle = currentSongTitle,
                 isPlaying = isPlaying,
                 likedSongs = likedSongs,
-                onToggleLike = onToggleLike
+                onToggleLike = onToggleLike,
+                musicViewModel = musicViewModel,
+                onPlaySongEntity = onPlaySongEntity
             )
         }
         composable(Screen.Keep.route) {

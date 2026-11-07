@@ -26,7 +26,8 @@ data class AlbumItem(
     val title: String,
     val artist: String,
     val trackCount: Int,
-    val year: String = "2024"
+    val year: String = "2024",
+    val albumId: Long = 0L
 )
 
 data class ArtistItem(
@@ -148,6 +149,7 @@ fun AlbumDetailScreen(
                         MusicTrackArtCover(
                             title = album.title,
                             artist = album.artist,
+                            albumId = album.albumId,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -286,6 +288,7 @@ fun AlbumDetailScreen(
                         MusicTrackArtCover(
                             title = title,
                             artist = album.artist,
+                            albumId = album.albumId,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -659,6 +662,7 @@ fun ArtistDetailScreen(
                                 MusicTrackArtCover(
                                     title = album.title,
                                     artist = artist.name,
+                                    albumId = album.albumId,
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }

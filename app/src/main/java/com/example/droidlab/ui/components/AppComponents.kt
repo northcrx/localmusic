@@ -1,6 +1,10 @@
 package com.example.droidlab.ui.components
 
 import com.example.droidlab.data.entity.SongEntity
+import android.content.ContentUris
+import android.net.Uri
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 import kotlinx.coroutines.delay
 
@@ -485,11 +489,43 @@ fun DroidLabBottomNav(
 fun MusicTrackArtCover(
     title: String,
     artist: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    albumId: Long? = null,
+    contentUri: String? = null
 ) {
     val cleanTitle = title.lowercase()
     val cleanArtist = artist.lowercase()
 
+    val artUri: Any? = when {
+        !contentUri.isNullOrEmpty() -> Uri.parse(contentUri)
+        albumId != null && albumId > 0 -> ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId)
+        else -> null
+    }
+
+    if (artUri != null) {
+        var isError by remember(artUri) { mutableStateOf(false) }
+        if (!isError) {
+            AsyncImage(
+                model = artUri,
+                contentDescription = "$title artwork",
+                contentScale = ContentScale.Crop,
+                modifier = modifier.clip(RoundedCornerShape(8.dp)),
+                onError = { isError = true }
+            )
+        } else {
+            DefaultTrackPlaceholder(cleanTitle, cleanArtist, modifier)
+        }
+    } else {
+        DefaultTrackPlaceholder(cleanTitle, cleanArtist, modifier)
+    }
+}
+
+@Composable
+private fun DefaultTrackPlaceholder(
+    cleanTitle: String,
+    cleanArtist: String,
+    modifier: Modifier = Modifier
+) {
     if (cleanTitle.contains("kyoto") || cleanTitle.contains("zen") || cleanArtist.contains("zen")) {
         KyotoGardenArt(modifier = modifier)
     } else {
@@ -510,18 +546,48 @@ fun MusicTrackArtCover(
 
 /**
  * Album artwork cover:
+ * - Attempts to load real album cover via Coil with graceful fallback
  * - Shows authentic artwork for Zen Echoes
- * - For all other albums, shows the clean album disc icon in a rounded container matching Music -> Albums
+ * - For all other albums without artwork, shows the clean album disc icon in a rounded container matching Music -> Albums
  */
 @Composable
 fun AlbumArtCover(
     title: String,
     artist: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    albumId: Long? = null
 ) {
     val cleanTitle = title.lowercase()
     val cleanArtist = artist.lowercase()
 
+    val artUri: Any? = if (albumId != null && albumId > 0) {
+        ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId)
+    } else null
+
+    if (artUri != null) {
+        var isError by remember(artUri) { mutableStateOf(false) }
+        if (!isError) {
+            AsyncImage(
+                model = artUri,
+                contentDescription = "$title album art",
+                contentScale = ContentScale.Crop,
+                modifier = modifier.clip(RoundedCornerShape(10.dp)),
+                onError = { isError = true }
+            )
+        } else {
+            DefaultAlbumPlaceholder(cleanTitle, cleanArtist, modifier)
+        }
+    } else {
+        DefaultAlbumPlaceholder(cleanTitle, cleanArtist, modifier)
+    }
+}
+
+@Composable
+private fun DefaultAlbumPlaceholder(
+    cleanTitle: String,
+    cleanArtist: String,
+    modifier: Modifier = Modifier
+) {
     if (cleanTitle.contains("zen") || cleanArtist.contains("zen")) {
         KyotoGardenArt(modifier = modifier)
     } else {
@@ -568,6 +634,8 @@ fun DroidLabMiniPlayer(
     style: String = "Classic Pill",
     showLikeButton: Boolean = true,
     showNextButton: Boolean = true,
+    albumId: Long? = null,
+    contentUri: String? = null,
     modifier: Modifier = Modifier
 ) {
     val cornerRadius = when (style) {
@@ -617,15 +685,13 @@ fun DroidLabMiniPlayer(
                     .background(Color(0xFF22242A)),
                 contentAlignment = Alignment.Center
             ) {
-                if (title.lowercase().contains("kyoto") || artist.lowercase().contains("zen")) {
-                    KyotoGardenArt(modifier = Modifier.fillMaxSize())
-                } else {
-                    AppIcon(
-                        name = if (isPlaying) "graphic_eq" else "music",
-                        size = 20.dp,
-                        tint = Color.White.copy(alpha = 0.85f)
-                    )
-                }
+                MusicTrackArtCover(
+                    title = title,
+                    artist = artist,
+                    albumId = albumId,
+                    contentUri = contentUri,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
 
             Spacer(Modifier.width(12.dp))
@@ -1210,6 +1276,9 @@ fun DroidLabNowPlayingScreen(
     queueList: List<SongEntity> = emptyList(),
     onRemoveFromQueue: (Int) -> Unit = {},
     onClearQueue: () -> Unit = {}
+,
+    albumId: Long? = null,
+    contentUri: String? = null
 ) {
     BackHandler(onBack = onClose)
 
@@ -1315,6 +1384,8 @@ fun DroidLabNowPlayingScreen(
                     MusicTrackArtCover(
                         title = title,
                         artist = artist,
+                        albumId = albumId,
+                        contentUri = contentUri,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -2662,6 +2733,8 @@ fun DroidLabTrackRow(
     onGoToAlbum: () -> Unit = {},
     onGoToArtist: () -> Unit = {},
     onClick: () -> Unit = {},
+    albumId: Long? = null,
+    contentUri: String? = null,
     modifier: Modifier = Modifier
 ) {
     var showTrackMenu by remember { mutableStateOf(false) }
@@ -2683,6 +2756,8 @@ fun DroidLabTrackRow(
             MusicTrackArtCover(
                 title = title,
                 artist = artist,
+                albumId = albumId,
+                contentUri = contentUri,
                 modifier = Modifier.fillMaxSize()
             )
         }

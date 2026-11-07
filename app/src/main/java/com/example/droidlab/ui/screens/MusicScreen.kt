@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.droidlab.ui.components.AppIcon
 import com.example.droidlab.ui.components.MusicTrackArtCover
+import com.example.droidlab.ui.components.AlbumArtCover
 import com.example.droidlab.ui.components.DroidLabTabs
 import com.example.droidlab.ui.components.DroidLabTopAppBar
 import com.example.droidlab.ui.components.DroidLabTrackRow
@@ -36,7 +37,9 @@ data class TrackItem(
     val id: Int,
     val title: String,
     val artist: String,
-    val duration: String
+    val duration: String,
+    val albumId: Long = 0L,
+    val contentUri: String = ""
 )
 
 // Shared AlbumItem and ArtistItem imported from DetailScreens.kt
@@ -134,7 +137,9 @@ fun MusicRoute(
                     id = (song.mediaStoreId % 100000).toInt(),
                     title = song.title,
                     artist = song.artist,
-                    duration = if (song.durationMs > 0) String.format("%d:%02d", mins, secs) else "--:--"
+                    duration = if (song.durationMs > 0) String.format("%d:%02d", mins, secs) else "--:--",
+                    albumId = song.albumId,
+                    contentUri = song.contentUriString
                 )
             }
         } else {
@@ -179,7 +184,6 @@ fun MusicRoute(
                 onSearchClick = onOpenSearch,
                 onOpenSettings = onOpenSettings,
                 onOpenEqualizer = onOpenEqualizer,
-                onAddClick = { showAddDialog = true },
                 onActionClick = { action ->
                     if (action == "Scan Library") {
                         onScanRequested()
@@ -359,15 +363,13 @@ fun MusicRoute(
                                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    if (track.title == "Kyoto Garden") {
-                                        KyotoGardenArt(modifier = Modifier.fillMaxSize())
-                                    } else {
-                                        AppIcon(
-                                            name = "music",
-                                            size = 22.dp,
-                                            tint = if (isThisPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
-                                        )
-                                    }
+                                    MusicTrackArtCover(
+                                        title = track.title,
+                                        artist = track.artist,
+                                        albumId = track.albumId,
+                                        contentUri = track.contentUri,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
                                 }
 
                                 Spacer(Modifier.width(14.dp))
@@ -495,23 +497,12 @@ fun MusicRoute(
                                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    if (album.title == "Zen Echoes") {
-                                        KyotoGardenArt(modifier = Modifier.fillMaxSize())
-                                    } else {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .clip(CircleShape)
-                                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            AppIcon(
-                                                name = "album",
-                                                size = 26.dp,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
+                                    AlbumArtCover(
+                                        title = album.title,
+                                        artist = album.artist,
+                                        albumId = album.albumId,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
                                 }
 
                                 Spacer(Modifier.height(8.dp))

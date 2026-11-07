@@ -1,5 +1,9 @@
 package com.example.droidlab.ui.screens
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.droidlab.data.entity.SongEntity
+import com.example.droidlab.ui.viewmodel.MusicViewModel
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -124,11 +128,16 @@ fun HomeRoute(
     currentSongTitle: String = "",
     isPlaying: Boolean = false,
     onAlbumSelected: (AlbumItem) -> Unit = {},
-    onNavigateToMusicTab: (Int) -> Unit = {}
+    onNavigateToMusicTab: (Int) -> Unit = {},
+    musicViewModel: MusicViewModel? = null,
+    onPlaySongEntity: ((SongEntity, List<SongEntity>) -> Unit)? = null
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
     val tabs = listOf("For you", "Liked", "Top Tracks")
+
+    val realSongs by musicViewModel?.songs?.collectAsStateWithLifecycle(emptyList()) ?: remember { mutableStateOf(emptyList<SongEntity>()) }
+    val realAlbums by musicViewModel?.albums?.collectAsStateWithLifecycle(emptyList()) ?: remember { mutableStateOf(emptyList<AlbumItem>()) }
 
     val homeMenuItems = remember {
         listOf(
@@ -241,8 +250,7 @@ fun HomeRoute(
                 onMenuClick = onOpenDrawer,
                 onSearchClick = onOpenSearch,
                 onOpenSettings = onOpenSettings,
-                onOpenEqualizer = onOpenEqualizer,
-                onAddClick = { showAddDialog = true }
+                onOpenEqualizer = onOpenEqualizer
             )
         }
     ) { innerPadding ->
@@ -284,11 +292,22 @@ fun HomeRoute(
                                             .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
-                                                val picked = recommendedTracks.random()
-                                                onSongSelected(picked.first, picked.second)
-                                                // Also shuffle the 3 songs displayed in the surrounding three boxes
-                                                val newThree = recommendedTracks.shuffled().take(3)
-                                                shuffleGridTracks = newThree
+                                                if (realSongs.isNotEmpty()) {
+                                                    val shuffled = realSongs.shuffled()
+                                                    if (onPlaySongEntity != null) {
+                                                        onPlaySongEntity(shuffled.first(), shuffled)
+                                                    }
+                                                    onSongSelected(shuffled.first().title, shuffled.first().artist)
+                                                    val newThree = shuffled.drop(1).take(3).map { it.title to it.artist }
+                                                    if (newThree.isNotEmpty()) {
+                                                        shuffleGridTracks = newThree
+                                                    }
+                                                } else {
+                                                    val picked = recommendedTracks.random()
+                                                    onSongSelected(picked.first, picked.second)
+                                                    val newThree = recommendedTracks.shuffled().take(3)
+                                                    shuffleGridTracks = newThree
+                                                }
                                             },
                                         shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
@@ -337,13 +356,21 @@ fun HomeRoute(
                                     }
 
                                     // Box 2 (Top-Right)
-                                    val box2Track = shuffleGridTracks.getOrNull(0) ?: Pair("Midnight Drive", "Nova Lane")
+                                    val box2Track = if (realSongs.isNotEmpty()) {
+                                        shuffleGridTracks.getOrNull(0) ?: (realSongs.getOrNull(0)?.let { it.title to it.artist } ?: Pair("Midnight Drive", "Nova Lane"))
+                                    } else {
+                                        shuffleGridTracks.getOrNull(0) ?: Pair("Midnight Drive", "Nova Lane")
+                                    }
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
+                                                val matched = realSongs.find { it.title == box2Track.first && it.artist == box2Track.second }
+                                                if (matched != null && onPlaySongEntity != null) {
+                                                    onPlaySongEntity(matched, realSongs)
+                                                }
                                                 onSongSelected(box2Track.first, box2Track.second)
                                             },
                                         shape = RoundedCornerShape(16.dp),
@@ -364,7 +391,18 @@ fun HomeRoute(
                                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(name = "music", size = 16.dp)
+                                                val matched = realSongs.find { it.title == box2Track.first && it.artist == box2Track.second }
+                                                if (matched != null) {
+                                                    MusicTrackArtCover(
+                                                        title = matched.title,
+                                                        artist = matched.artist,
+                                                        albumId = matched.albumId,
+                                                        contentUri = matched.contentUriString,
+                                                        modifier = Modifier.fillMaxSize()
+                                                    )
+                                                } else {
+                                                    AppIcon(name = "music", size = 16.dp)
+                                                }
                                             }
                                             Column {
                                                 Text(
@@ -393,13 +431,21 @@ fun HomeRoute(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     // Box 3 (Bottom-Left)
-                                    val box3Track = shuffleGridTracks.getOrNull(1) ?: Pair("Kyoto Garden", "Zen Echoes")
+                                    val box3Track = if (realSongs.isNotEmpty()) {
+                                        shuffleGridTracks.getOrNull(1) ?: (realSongs.getOrNull(1)?.let { it.title to it.artist } ?: Pair("Kyoto Garden", "Zen Echoes"))
+                                    } else {
+                                        shuffleGridTracks.getOrNull(1) ?: Pair("Kyoto Garden", "Zen Echoes")
+                                    }
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
+                                                val matched = realSongs.find { it.title == box3Track.first && it.artist == box3Track.second }
+                                                if (matched != null && onPlaySongEntity != null) {
+                                                    onPlaySongEntity(matched, realSongs)
+                                                }
                                                 onSongSelected(box3Track.first, box3Track.second)
                                             },
                                         shape = RoundedCornerShape(16.dp),
@@ -420,7 +466,18 @@ fun HomeRoute(
                                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(name = "music", size = 16.dp)
+                                                val matched = realSongs.find { it.title == box3Track.first && it.artist == box3Track.second }
+                                                if (matched != null) {
+                                                    MusicTrackArtCover(
+                                                        title = matched.title,
+                                                        artist = matched.artist,
+                                                        albumId = matched.albumId,
+                                                        contentUri = matched.contentUriString,
+                                                        modifier = Modifier.fillMaxSize()
+                                                    )
+                                                } else {
+                                                    AppIcon(name = "music", size = 16.dp)
+                                                }
                                             }
                                             Column {
                                                 Text(
@@ -443,13 +500,21 @@ fun HomeRoute(
                                     }
 
                                     // Box 4 (Bottom-Right)
-                                    val box4Track = shuffleGridTracks.getOrNull(2) ?: Pair("The Reading Room", "Ambient Works")
+                                    val box4Track = if (realSongs.isNotEmpty()) {
+                                        shuffleGridTracks.getOrNull(2) ?: (realSongs.getOrNull(2)?.let { it.title to it.artist } ?: Pair("The Reading Room", "Ambient Works"))
+                                    } else {
+                                        shuffleGridTracks.getOrNull(2) ?: Pair("The Reading Room", "Ambient Works")
+                                    }
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
+                                                val matched = realSongs.find { it.title == box4Track.first && it.artist == box4Track.second }
+                                                if (matched != null && onPlaySongEntity != null) {
+                                                    onPlaySongEntity(matched, realSongs)
+                                                }
                                                 onSongSelected(box4Track.first, box4Track.second)
                                             },
                                         shape = RoundedCornerShape(16.dp),
@@ -470,7 +535,18 @@ fun HomeRoute(
                                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(name = "music", size = 16.dp)
+                                                val matched = realSongs.find { it.title == box4Track.first && it.artist == box4Track.second }
+                                                if (matched != null) {
+                                                    MusicTrackArtCover(
+                                                        title = matched.title,
+                                                        artist = matched.artist,
+                                                        albumId = matched.albumId,
+                                                        contentUri = matched.contentUriString,
+                                                        modifier = Modifier.fillMaxSize()
+                                                    )
+                                                } else {
+                                                    AppIcon(name = "music", size = 16.dp)
+                                                }
                                             }
                                             Column {
                                                 Text(
@@ -519,72 +595,152 @@ fun HomeRoute(
                                 )
                             }
 
+                            val displayRec = if (realSongs.isNotEmpty()) realSongs.take(6) else emptyList()
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                items(recommendedTracks.take(4)) { (title, artist) ->
-                                    Column(
-                                        modifier = Modifier
-                                            .width(280.dp)
-                                            .clickable { onSongSelected(title, artist) }
-                                    ) {
-                                        // Large rounded card with music artwork cover
-                                        Box(
+                                if (displayRec.isNotEmpty()) {
+                                    items(displayRec) { song ->
+                                        Column(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(160.dp)
-                                                .clip(RoundedCornerShape(22.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                                            contentAlignment = Alignment.Center
+                                                .width(280.dp)
+                                                .clickable {
+                                                    if (onPlaySongEntity != null) {
+                                                        onPlaySongEntity(song, realSongs)
+                                                    }
+                                                    onSongSelected(song.title, song.artist)
+                                                }
                                         ) {
-                                            MusicTrackArtCover(
-                                                title = title,
-                                                artist = artist,
-                                                modifier = Modifier.fillMaxSize()
-                                            )
-                                        }
-
-                                        Spacer(Modifier.height(10.dp))
-
-                                        // Bottom Row: Artist & Title on left, circular Play Button on right
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                Text(
-                                                    text = artist,
-                                                    fontSize = 13.5.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                                Spacer(Modifier.height(2.dp))
-                                                Text(
-                                                    text = title,
-                                                    fontSize = 12.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
+                                            // Large rounded card with music artwork cover
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(160.dp)
+                                                    .clip(RoundedCornerShape(22.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                MusicTrackArtCover(
+                                                    title = song.title,
+                                                    artist = song.artist,
+                                                    albumId = song.albumId,
+                                                    contentUri = song.contentUriString,
+                                                    modifier = Modifier.fillMaxSize()
                                                 )
                                             }
 
+                                            Spacer(Modifier.height(10.dp))
+
+                                            // Bottom Row: Artist & Title on left, circular Play Button on right
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Text(
+                                                        text = song.artist,
+                                                        fontSize = 13.5.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                    Spacer(Modifier.height(2.dp))
+                                                    Text(
+                                                        text = song.title,
+                                                        fontSize = 12.sp,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                }
+
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(38.dp)
+                                                        .clip(CircleShape)
+                                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                                        .clickable {
+                                                            if (onPlaySongEntity != null) {
+                                                                onPlaySongEntity(song, realSongs)
+                                                            }
+                                                            onSongSelected(song.title, song.artist)
+                                                        },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    AppIcon(
+                                                        name = "play",
+                                                        size = 20.dp,
+                                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    items(recommendedTracks.take(4)) { (title, artist) ->
+                                        Column(
+                                            modifier = Modifier
+                                                .width(280.dp)
+                                                .clickable { onSongSelected(title, artist) }
+                                        ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(38.dp)
-                                                    .clip(CircleShape)
-                                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                                                    .clickable { onSongSelected(title, artist) },
+                                                    .fillMaxWidth()
+                                                    .height(160.dp)
+                                                    .clip(RoundedCornerShape(22.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                AppIcon(
-                                                    name = "play",
-                                                    size = 20.dp,
-                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                MusicTrackArtCover(
+                                                    title = title,
+                                                    artist = artist,
+                                                    modifier = Modifier.fillMaxSize()
                                                 )
+                                            }
+
+                                            Spacer(Modifier.height(10.dp))
+
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Text(
+                                                        text = artist,
+                                                        fontSize = 13.5.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                    Spacer(Modifier.height(2.dp))
+                                                    Text(
+                                                        text = title,
+                                                        fontSize = 12.sp,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                }
+
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(38.dp)
+                                                        .clip(CircleShape)
+                                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                                        .clickable { onSongSelected(title, artist) },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    AppIcon(
+                                                        name = "play",
+                                                        size = 20.dp,
+                                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -618,51 +774,85 @@ fun HomeRoute(
                                 )
                             }
 
+                            val displayAlbums = if (realAlbums.isNotEmpty()) realAlbums else emptyList()
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
-                                items(featuredAlbums) { album ->
-                                    Column(
-                                        modifier = Modifier
-                                            .width(96.dp)
-                                            .clickable {
-                                                onAlbumSelected(
-                                                    AlbumItem(
-                                                        id = album.id,
-                                                        title = album.title,
-                                                        artist = album.artist,
-                                                        trackCount = album.trackCount,
-                                                        year = "2024"
-                                                    )
+                                if (displayAlbums.isNotEmpty()) {
+                                    items(displayAlbums) { album ->
+                                        Column(
+                                            modifier = Modifier
+                                                .width(96.dp)
+                                                .clickable { onAlbumSelected(album) }
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(96.dp)
+                                                    .clip(RoundedCornerShape(14.dp)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                AlbumArtCover(
+                                                    title = album.title,
+                                                    artist = album.artist,
+                                                    albumId = album.albumId,
+                                                    modifier = Modifier.fillMaxSize()
                                                 )
                                             }
-                                    ) {
-                                        // Square card with album disc icon matching user's design
-                                        Box(
-                                            modifier = Modifier
-                                                .size(96.dp)
-                                                .clip(RoundedCornerShape(14.dp)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            AlbumArtCover(
-                                                title = album.title,
-                                                artist = album.artist,
-                                                modifier = Modifier.fillMaxSize()
+
+                                            Spacer(Modifier.height(8.dp))
+
+                                            Text(
+                                                text = album.title,
+                                                fontSize = 12.5.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                         }
+                                    }
+                                } else {
+                                    items(featuredAlbums) { album ->
+                                        Column(
+                                            modifier = Modifier
+                                                .width(96.dp)
+                                                .clickable {
+                                                    onAlbumSelected(
+                                                        AlbumItem(
+                                                            id = album.id,
+                                                            title = album.title,
+                                                            artist = album.artist,
+                                                            trackCount = album.trackCount,
+                                                            year = "2024"
+                                                        )
+                                                    )
+                                                }
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(96.dp)
+                                                    .clip(RoundedCornerShape(14.dp)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                AlbumArtCover(
+                                                    title = album.title,
+                                                    artist = album.artist,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
 
-                                        Spacer(Modifier.height(8.dp))
+                                            Spacer(Modifier.height(8.dp))
 
-                                        // Label below the square
-                                        Text(
-                                            text = album.title,
-                                            fontSize = 12.5.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
+                                            Text(
+                                                text = album.title,
+                                                fontSize = 12.5.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -694,48 +884,99 @@ fun HomeRoute(
                                 )
                             }
 
+                            val displayAll = if (realSongs.isNotEmpty()) realSongs else emptyList()
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
-                                items(recommendedTracks) { (title, artist) ->
-                                    Column(
-                                        modifier = Modifier
-                                            .width(108.dp)
-                                            .clickable { onSongSelected(title, artist) }
-                                    ) {
-                                        Box(
+                                if (displayAll.isNotEmpty()) {
+                                    items(displayAll) { song ->
+                                        Column(
                                             modifier = Modifier
-                                                .size(108.dp)
-                                                .clip(RoundedCornerShape(14.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                                            contentAlignment = Alignment.Center
+                                                .width(108.dp)
+                                                .clickable {
+                                                    if (onPlaySongEntity != null) {
+                                                        onPlaySongEntity(song, realSongs)
+                                                    }
+                                                    onSongSelected(song.title, song.artist)
+                                                }
                                         ) {
-                                            MusicTrackArtCover(
-                                                title = title,
-                                                artist = artist,
-                                                modifier = Modifier.fillMaxSize()
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(108.dp)
+                                                    .clip(RoundedCornerShape(14.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                MusicTrackArtCover(
+                                                    title = song.title,
+                                                    artist = song.artist,
+                                                    albumId = song.albumId,
+                                                    contentUri = song.contentUriString,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
+
+                                            Spacer(Modifier.height(8.dp))
+
+                                            Text(
+                                                text = song.title,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            Spacer(Modifier.height(2.dp))
+                                            Text(
+                                                text = song.artist,
+                                                fontSize = 11.5.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                         }
+                                    }
+                                } else {
+                                    items(recommendedTracks) { (title, artist) ->
+                                        Column(
+                                            modifier = Modifier
+                                                .width(108.dp)
+                                                .clickable { onSongSelected(title, artist) }
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(108.dp)
+                                                    .clip(RoundedCornerShape(14.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                MusicTrackArtCover(
+                                                    title = title,
+                                                    artist = artist,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
 
-                                        Spacer(Modifier.height(8.dp))
+                                            Spacer(Modifier.height(8.dp))
 
-                                        Text(
-                                            text = title,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Spacer(Modifier.height(2.dp))
-                                        Text(
-                                            text = artist,
-                                            fontSize = 11.5.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
+                                            Text(
+                                                text = title,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            Spacer(Modifier.height(2.dp))
+                                            Text(
+                                                text = artist,
+                                                fontSize = 11.5.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -790,13 +1031,21 @@ fun HomeRoute(
                             contentPadding = PaddingValues(bottom = 96.dp)
                         ) {
                             items(likedSongs) { (title, artist) ->
+                                val matched = realSongs.find { it.title == title && it.artist == artist }
                                 DroidLabTrackRow(
                                     title = title,
                                     artist = artist,
                                     isPlaying = isPlaying && currentSongTitle == title,
                                     isLiked = true,
                                     onToggleLike = { onToggleLike(title, artist) },
-                                    onClick = { onSongSelected(title, artist) }
+                                    albumId = matched?.albumId,
+                                    contentUri = matched?.contentUriString,
+                                    onClick = {
+                                        if (matched != null && onPlaySongEntity != null) {
+                                            onPlaySongEntity(matched, realSongs)
+                                        }
+                                        onSongSelected(title, artist)
+                                    }
                                 )
                             }
                         }
@@ -830,15 +1079,33 @@ fun HomeRoute(
                             }
                         }
 
-                        items(topTracks, key = { it.rank }) { track ->
+                        val rankedTracks = if (realSongs.isNotEmpty()) {
+                            realSongs.take(15).mapIndexed { idx, s ->
+                                val mins = (s.durationMs / 1000) / 60
+                                val secs = (s.durationMs / 1000) % 60
+                                val dur = if (s.durationMs > 0) String.format("%d:%02d", mins, secs) else "--:--"
+                                val plays = "${(realSongs.size - idx).coerceAtLeast(1) * 12 + 7} plays"
+                                TopTrack(idx + 1, s.title, s.artist, plays, dur)
+                            }
+                        } else topTracks
+
+                        items(rankedTracks, key = { it.rank }) { track ->
+                            val matched = realSongs.find { it.title == track.title }
                             DroidLabTrackRow(
                                 title = track.title,
                                 artist = "${track.artist} • ${track.playCount}",
                                 duration = track.duration,
                                 isPlaying = isPlaying && currentSongTitle == track.title,
                                 isLiked = likedSongs.any { it.first == track.title },
-                                onToggleLike = { onToggleLike(track.title, track.artist) },
-                                onClick = { onSongSelected(track.title, track.artist) }
+                                onToggleLike = { onToggleLike(track.title, track.artist.substringBefore(" •")) },
+                                albumId = matched?.albumId,
+                                contentUri = matched?.contentUriString,
+                                onClick = {
+                                    if (matched != null && onPlaySongEntity != null) {
+                                        onPlaySongEntity(matched, realSongs)
+                                    }
+                                    onSongSelected(track.title, track.artist.substringBefore(" •"))
+                                }
                             )
                         }
                     }

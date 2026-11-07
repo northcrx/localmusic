@@ -1,5 +1,9 @@
 package com.example.droidlab.ui.screens
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.droidlab.data.entity.SongEntity
+import com.example.droidlab.ui.viewmodel.MusicViewModel
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -62,7 +66,9 @@ fun PlaylistRoute(
     currentSongTitle: String = "",
     isPlaying: Boolean = false,
     likedSongs: List<Pair<String, String>> = emptyList(),
-    onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> }
+    onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> },
+    musicViewModel: MusicViewModel? = null,
+    onPlaySongEntity: ((SongEntity, List<SongEntity>) -> Unit)? = null
 ) {
     var playlists by remember {
         mutableStateOf(
@@ -75,6 +81,7 @@ fun PlaylistRoute(
         )
     }
 
+    val realSongs by musicViewModel?.songs?.collectAsStateWithLifecycle(emptyList()) ?: remember { mutableStateOf(emptyList<SongEntity>()) }
     var selectedPlaylistForDetail by remember { mutableStateOf<PlaylistItem?>(null) }
     var isLikedSongsDetailOpen by remember { mutableStateOf(false) }
     var isLikedSongsFavorite by remember { mutableStateOf(true) }
@@ -93,31 +100,18 @@ fun PlaylistRoute(
         val defaultDuration = if (isLikedDetail) "1 hr 36 min" else (currentPlaylist?.duration ?: "46 min")
 
         // Tracks for this playlist
-        val baseTracks = remember(isLikedDetail, currentPlaylist, likedSongs) {
-            if (isLikedDetail) {
-                if (likedSongs.isNotEmpty()) {
-                    likedSongs.map { Triple(it.first, it.second, "3:45") }
-                } else {
-                    listOf(
-                        Triple("Kyoto Garden", "Zen Echoes", "4:12"),
-                        Triple("Blue Bottle Coffee", "Chillhop Beats", "3:45"),
-                        Triple("The Reading Room", "Ambient Works", "5:08"),
-                        Triple("Midnight Drive", "Nova Lane", "4:12"),
-                        Triple("Neon Horizon", "Retro Wave", "4:05"),
-                        Triple("Solar Drift", "Cosmic Sound", "3:50"),
-                        Triple("Golden Hour", "Acoustic Sunset", "3:15"),
-                        Triple("Rainy Cafe", "Lo-Fi Study", "2:45")
-                    )
+        val baseTracks = remember(isLikedDetail, currentPlaylist, likedSongs, realSongs) {
+            if (realSongs.isNotEmpty()) {
+                realSongs.map { s ->
+                    val mins = (s.durationMs / 1000) / 60
+                    val secs = (s.durationMs / 1000) % 60
+                    val dur = if (s.durationMs > 0) String.format("%d:%02d", mins, secs) else "--:--"
+                    Triple(s.title, s.artist, dur)
                 }
+            } else if (isLikedDetail && likedSongs.isNotEmpty()) {
+                likedSongs.map { Triple(it.first, it.second, "3:45") }
             } else {
-                listOf(
-                    Triple("${currentPlaylist?.name ?: "Track"} Part I", "Zen Echoes", "3:45"),
-                    Triple("Blue Bottle Coffee", "Chillhop Beats", "3:45"),
-                    Triple("The Reading Room", "Ambient Works", "5:08"),
-                    Triple("Midnight Drive", "Nova Lane", "4:12"),
-                    Triple("Evening Solitude", "Quiet Echoes", "3:30"),
-                    Triple("Sunset Reflections", "Nova Lane", "4:18")
-                ).take(currentPlaylist?.trackCount?.coerceAtLeast(4) ?: 6)
+                emptyList()
             }
         }
 
@@ -176,29 +170,7 @@ fun PlaylistRoute(
                             )
                         }
 
-                        // Favorite Playlist Button (Screenshot 3)
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                .clickable {
-                                    if (isLikedDetail) {
-                                        isLikedSongsFavorite = !isLikedSongsFavorite
-                                    } else if (currentPlaylist != null) {
-                                        val updated = currentPlaylist.copy(isFavorite = !currentPlaylist.isFavorite)
-                                        selectedPlaylistForDetail = updated
-                                        playlists = playlists.map { if (it.id == updated.id) updated else it }
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            AppIcon(
-                                name = if (isCurrentFavorite) "heart" else "heart_border",
-                                size = 20.dp,
-                                tint = if (isCurrentFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+
                     }
                 }
 
@@ -281,7 +253,11 @@ fun PlaylistRoute(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable {
-                                    if (filteredTracks.isNotEmpty()) {
+                                    if (realSongs.isNotEmpty() && onPlaySongEntity != null) {
+                                        val shuffled = realSongs.shuffled()
+                                        onPlaySongEntity(shuffled.first(), shuffled)
+                                        onSongSelected(shuffled.first().title, shuffled.first().artist)
+                                    } else if (filteredTracks.isNotEmpty()) {
                                         val picked = filteredTracks.random()
                                         onSongSelected(picked.first, picked.second)
                                     }
@@ -308,6 +284,7 @@ fun PlaylistRoute(
                 items(filteredTracks) { (title, artist, duration) ->
                     val isThisPlaying = isPlaying && currentSongTitle == title
                     val isLiked = likedSongs.any { it.first == title } || isLikedDetail
+                    val matchedSong = realSongs.find { it.title == title && it.artist == artist }
 
                     DroidLabTrackRow(
                         title = title,
@@ -315,8 +292,15 @@ fun PlaylistRoute(
                         duration = duration,
                         isPlaying = isThisPlaying,
                         isLiked = isLiked,
+                        albumId = matchedSong?.albumId,
+                        contentUri = matchedSong?.contentUriString,
                         onToggleLike = { onToggleLike(title, artist) },
-                        onClick = { onSongSelected(title, artist) }
+                        onClick = {
+                            if (matchedSong != null && onPlaySongEntity != null) {
+                                onPlaySongEntity(matchedSong, realSongs)
+                            }
+                            onSongSelected(title, artist)
+                        }
                     )
                 }
 
@@ -350,7 +334,11 @@ fun PlaylistRoute(
                             ),
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { onSongSelected("After the Rain", "Zen Echoes") }
+                                .clickable {
+                                val s = realSongs.getOrNull(0)
+                                if (s != null && onPlaySongEntity != null) onPlaySongEntity(s, realSongs)
+                                onSongSelected(s?.title ?: "After the Rain", s?.artist ?: "Zen Echoes")
+                            }
                         ) {
                             Column(
                                 modifier = Modifier
@@ -401,7 +389,11 @@ fun PlaylistRoute(
                             ),
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { onSongSelected("Paper Lanterns", "Ambient Works") }
+                                .clickable {
+                                val s = realSongs.getOrNull(1)
+                                if (s != null && onPlaySongEntity != null) onPlaySongEntity(s, realSongs)
+                                onSongSelected(s?.title ?: "Paper Lanterns", s?.artist ?: "Ambient Works")
+                            }
                         ) {
                             Column(
                                 modifier = Modifier
@@ -478,68 +470,6 @@ fun PlaylistRoute(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp)
                 ) {
-                    // 1. Top Card: Liked songs (Screenshot 4)
-                    item {
-                        val totalLikedCount = likedSongs.size.coerceAtLeast(24)
-                        Card(
-                            shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { isLikedSongsDetailOpen = true }
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Left squarish rounded heart container
-                                Box(
-                                    modifier = Modifier
-                                        .size(46.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AppIcon(
-                                        name = "heart_border",
-                                        size = 22.dp,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-
-                                Spacer(Modifier.width(14.dp))
-
-                                // Middle: Title and subtitle
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Liked songs",
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Spacer(Modifier.height(3.dp))
-                                    Text(
-                                        text = "$totalLikedCount songs · 1 hr 36 min",
-                                        fontSize = 12.5.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-
-                                // Right: Chevron right
-                                AppIcon(
-                                    name = "chevron_right",
-                                    size = 20.dp,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                )
-                            }
-                        }
-
-                        Spacer(Modifier.height(24.dp))
-                    }
 
                     // 2. Section Header: "Your playlists" & "Recently updated ↓"
                     item {
@@ -619,14 +549,7 @@ fun PlaylistRoute(
                                             }
 
                                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                                if (playlist.isFavorite) {
-                                                    AppIcon(
-                                                        name = "heart",
-                                                        size = 14.dp,
-                                                        tint = MaterialTheme.colorScheme.primary
-                                                    )
-                                                    Spacer(Modifier.width(4.dp))
-                                                }
+
                                                 IconButton(
                                                     onClick = { selectedPlaylistForDetail = playlist },
                                                     modifier = Modifier.size(28.dp)

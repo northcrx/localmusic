@@ -40,7 +40,8 @@ class MusicViewModel(
                 title = summary.album,
                 artist = summary.artist,
                 trackCount = summary.trackCount,
-                year = if (summary.year > 0) summary.year.toString() else "2024"
+                year = if (summary.year > 0) summary.year.toString() else "2024",
+                albumId = summary.albumId
             )
         }
     }.stateIn(

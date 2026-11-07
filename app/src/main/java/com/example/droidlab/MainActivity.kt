@@ -343,6 +343,8 @@ fun AppRoot(
                                 onPlayPause = { playerController.playPause() },
                                 onNext = { playerController.next() },
                                 style = selectedMiniPlayerStyle,
+                                albumId = currentSongEntity?.albumId,
+                                contentUri = currentSongEntity?.contentUriString,
                                 onClick = { isNowPlayingOpen = true }
                             )
                         }
@@ -378,6 +380,8 @@ fun AppRoot(
                     onPlayPause = { playerController.playPause() },
                     onPrevious = { playerController.previous() },
                     onNext = { playerController.next() },
+                    albumId = currentSongEntity?.albumId,
+                    contentUri = currentSongEntity?.contentUriString,
                     onSongSelected = { title, artist ->
                         val found = currentQueue.find { it.title.equals(title, ignoreCase = true) }
                         if (found != null) {
