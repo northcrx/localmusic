@@ -56,6 +56,8 @@ fun AppNavHost(
             HomeRoute(
                 onOpenDrawer = onOpenDrawer,
                 onOpenSearch = onOpenSearch,
+                onOpenSettings = { navController.navigate(Screen.Settings.route) },
+                onOpenEqualizer = { navController.navigate(Screen.Equalizer.route) },
                 onSongSelected = { title, artist -> onPlaySong(title, artist, false) },
                 likedSongs = likedSongs,
                 onToggleLike = onToggleLike,
@@ -67,6 +69,8 @@ fun AppNavHost(
             MusicRoute(
                 onOpenDrawer = onOpenDrawer,
                 onOpenSearch = onOpenSearch,
+                onOpenSettings = { navController.navigate(Screen.Settings.route) },
+                onOpenEqualizer = { navController.navigate(Screen.Equalizer.route) },
                 onSongSelected = { title, artist -> onPlaySong(title, artist, false) },
                 currentSongTitle = currentSongTitle,
                 isPlaying = isPlaying,
@@ -78,6 +82,8 @@ fun AppNavHost(
             PlaylistRoute(
                 onOpenDrawer = onOpenDrawer,
                 onOpenSearch = onOpenSearch,
+                onOpenSettings = { navController.navigate(Screen.Settings.route) },
+                onOpenEqualizer = { navController.navigate(Screen.Equalizer.route) },
                 onSongSelected = { title, artist -> onPlaySong(title, artist, false) },
                 likedSongs = likedSongs
             )
@@ -86,6 +92,8 @@ fun AppNavHost(
             KeepsRoute(
                 onOpenDrawer = onOpenDrawer,
                 onOpenSearch = onOpenSearch,
+                onOpenSettings = { navController.navigate(Screen.Settings.route) },
+                onOpenEqualizer = { navController.navigate(Screen.Equalizer.route) },
                 onSongSelected = { title, artist -> onPlaySong(title, artist, false) }
             )
         }

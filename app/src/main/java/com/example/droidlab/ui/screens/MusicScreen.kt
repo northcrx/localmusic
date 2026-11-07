@@ -76,6 +76,8 @@ data class ArtistItem(
 fun MusicRoute(
     onOpenDrawer: () -> Unit,
     onOpenSearch: () -> Unit,
+    onOpenSettings: () -> Unit = {},
+    onOpenEqualizer: () -> Unit = {},
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
     currentSongTitle: String = "",
     isPlaying: Boolean = false,
@@ -140,7 +142,8 @@ fun MusicRoute(
                 title = "Music",
                 onMenuClick = onOpenDrawer,
                 onSearchClick = onOpenSearch,
-                menuItems = musicMenuItems
+                onOpenSettings = onOpenSettings,
+                onOpenEqualizer = onOpenEqualizer
             )
         }
     ) { innerPadding ->

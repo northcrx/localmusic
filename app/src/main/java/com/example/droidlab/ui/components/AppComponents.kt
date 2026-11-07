@@ -47,7 +47,7 @@ import androidx.compose.ui.window.Dialog
 
 /**
  * Top App Bar matching Droid Lab visual specification (.app-bar.elevated).
- * Supports contextual 3-dot dropdown menu items per screen.
+ * Features uniform semi-transparent 3-dot overflow menu across every screen.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,15 +55,21 @@ fun DroidLabTopAppBar(
     title: String,
     onMenuClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
-    menuItems: List<Pair<String, String>> = listOf(
-        Pair("Analyze", "analyze"),
-        Pair("Manage", "manage"),
-        Pair("Equalizer", "equalizer")
-    ),
+    onOpenSettings: () -> Unit = {},
+    onOpenEqualizer: () -> Unit = {},
+    menuItems: List<Pair<String, String>> = emptyList(),
     onActionClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var isMoreMenuOpen by remember { mutableStateOf(false) }
+    var sleepTimerText by remember { mutableStateOf("Off") }
+
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
+    var showScanFoldersDialog by remember { mutableStateOf(false) }
+    var showSortDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+
+    var selectedSortOption by remember { mutableStateOf("Title (A to Z)") }
 
     TopAppBar(
         title = {
@@ -108,9 +114,14 @@ fun DroidLabTopAppBar(
                 }
                 DroidLabMoreMenu(
                     expanded = isMoreMenuOpen,
-                    items = menuItems,
                     onDismissRequest = { isMoreMenuOpen = false },
-                    onActionClick = onActionClick
+                    onOpenSettings = onOpenSettings,
+                    onOpenEqualizer = onOpenEqualizer,
+                    sleepTimerText = sleepTimerText,
+                    onSelectSleepTimer = { showSleepTimerDialog = true },
+                    onScanFolders = { showScanFoldersDialog = true },
+                    onSortLibrary = { showSortDialog = true },
+                    onAbout = { showAboutDialog = true }
                 )
             }
         },
@@ -119,6 +130,245 @@ fun DroidLabTopAppBar(
         ),
         modifier = modifier
     )
+
+    // 1. Sleep Timer Dialog
+    if (showSleepTimerDialog) {
+        AlertDialog(
+            onDismissRequest = { showSleepTimerDialog = false },
+            shape = RoundedCornerShape(22.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AppIcon(name = "moon", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(10.dp))
+                    Text("Sleep timer", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    val timerOptions = listOf(
+                        "Off" to "Off",
+                        "15 minutes" to "15m",
+                        "30 minutes" to "30m",
+                        "45 minutes" to "45m",
+                        "60 minutes" to "60m",
+                        "End of song" to "Track end"
+                    )
+                    timerOptions.forEach { (label, value) ->
+                        val isSelected = sleepTimerText == value
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    sleepTimerText = value
+                                    showSleepTimerDialog = false
+                                }
+                                .padding(vertical = 10.dp, horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 15.sp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                            if (isSelected) {
+                                AppIcon(name = "check", size = 18.dp, tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSleepTimerDialog = false }) {
+                    Text("Done")
+                }
+            }
+        )
+    }
+
+    // 2. Scan Music Folders Dialog
+    if (showScanFoldersDialog) {
+        AlertDialog(
+            onDismissRequest = { showScanFoldersDialog = false },
+            shape = RoundedCornerShape(22.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AppIcon(name = "folder", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(10.dp))
+                    Text("Scan music folders", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Scanned audio directories on device:",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    val folders = listOf(
+                        "/storage/emulated/0/Music" to "38 audio tracks",
+                        "/storage/emulated/0/Download" to "14 audio tracks",
+                        "/storage/emulated/0/Podcasts" to "6 audio tracks"
+                    )
+                    folders.forEach { (path, count) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AppIcon(name = "folder", size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = path,
+                                    fontSize = 13.5.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = count,
+                                    fontSize = 11.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "Total 58 tracks indexed and ready to play.",
+                        fontSize = 12.5.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showScanFoldersDialog = false }) {
+                    Text("Done")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showScanFoldersDialog = false }) {
+                    Text("Rescan")
+                }
+            }
+        )
+    }
+
+    // 3. Sort Library Dialog
+    if (showSortDialog) {
+        AlertDialog(
+            onDismissRequest = { showSortDialog = false },
+            shape = RoundedCornerShape(22.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AppIcon(name = "sort", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(10.dp))
+                    Text("Sort library", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    val sortOptions = listOf(
+                        "Title (A to Z)",
+                        "Artist name",
+                        "Recently added",
+                        "Duration (Longest first)",
+                        "Album name"
+                    )
+                    sortOptions.forEach { opt ->
+                        val isSelected = selectedSortOption == opt
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    selectedSortOption = opt
+                                    showSortDialog = false
+                                }
+                                .padding(vertical = 10.dp, horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = opt,
+                                fontSize = 15.sp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                            if (isSelected) {
+                                AppIcon(name = "check", size = 18.dp, tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSortDialog = false }) {
+                    Text("Done")
+                }
+            }
+        )
+    }
+
+    // 4. About & Version Dialog
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            shape = RoundedCornerShape(22.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AppIcon(name = "info", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(10.dp))
+                    Text("About & Version", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "DroidLab Music",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Version 1.4.2 (Universal Release)",
+                        fontSize = 13.5.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "High-fidelity local music player built with Jetpack Compose. Features automatic hardware profiling, manual equalizer tuning, and offline playback with zero tracking.",
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AppIcon(name = "check_circle", size = 16.dp, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "Hardware profiling active",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
 }
 
 /**
@@ -1900,34 +2150,158 @@ fun StrokeRepeatIcon(
 }
 
 /**
- * Dynamic Top Bar 3-dot Dropdown Menu matching Droid Lab (.ui-menu).
+ * Dynamic Top Bar 3-dot Dropdown Menu matching screenshot specification:
+ * - Semi-transparent background
+ * - Rounded corners (22.dp)
+ * - Identical options on every screen:
+ *   1. Settings
+ *   2. Equalizer & Sound
+ *   3. Sleep timer (Off)
+ *   4. Scan music folders
+ *   5. Sort library
+ *   [Divider]
+ *   6. About & Version (v1.4.2)
  */
 @Composable
 fun DroidLabMoreMenu(
     expanded: Boolean,
-    items: List<Pair<String, String>> = listOf(
-        Pair("Analyze", "analyze"),
-        Pair("Manage", "manage"),
-        Pair("Equalizer", "equalizer")
-    ),
     onDismissRequest: () -> Unit,
-    onActionClick: (String) -> Unit = {}
+    onOpenSettings: () -> Unit = {},
+    onOpenEqualizer: () -> Unit = {},
+    sleepTimerText: String = "Off",
+    onSelectSleepTimer: () -> Unit = {},
+    onScanFolders: () -> Unit = {},
+    onSortLibrary: () -> Unit = {},
+    onAbout: () -> Unit = {},
+    items: List<Pair<String, String>> = emptyList(),
+    onActionClick: (String) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
-        modifier = Modifier
-            .width(185.dp)
-            .clip(RoundedCornerShape(14.dp))
+        modifier = modifier
+            .width(235.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.88f))
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                shape = RoundedCornerShape(22.dp)
+            )
     ) {
-        items.forEach { (label, iconName) ->
-            DropdownMenuItem(
-                text = { Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium) },
-                leadingIcon = { AppIcon(name = iconName, size = 20.dp) },
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+        ) {
+            // 1. Settings
+            DroidLabMoreMenuItem(
+                iconName = "settings",
+                title = "Settings",
                 onClick = {
-                    onActionClick(label)
                     onDismissRequest()
+                    onOpenSettings()
                 }
+            )
+
+            // 2. Equalizer & Sound
+            DroidLabMoreMenuItem(
+                iconName = "tune",
+                title = "Equalizer & Sound",
+                onClick = {
+                    onDismissRequest()
+                    onOpenEqualizer()
+                }
+            )
+
+            // 3. Sleep timer
+            DroidLabMoreMenuItem(
+                iconName = "moon",
+                title = "Sleep timer",
+                trailingText = sleepTimerText,
+                onClick = {
+                    onDismissRequest()
+                    onSelectSleepTimer()
+                }
+            )
+
+            // 4. Scan music folders
+            DroidLabMoreMenuItem(
+                iconName = "folder",
+                title = "Scan music folders",
+                onClick = {
+                    onDismissRequest()
+                    onScanFolders()
+                }
+            )
+
+            // 5. Sort library
+            DroidLabMoreMenuItem(
+                iconName = "sort",
+                title = "Sort library",
+                onClick = {
+                    onDismissRequest()
+                    onSortLibrary()
+                }
+            )
+
+            // Thin subtle horizontal divider
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 5.dp),
+                thickness = 0.75.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+            )
+
+            // 6. About & Version
+            DroidLabMoreMenuItem(
+                iconName = "info",
+                title = "About & Version",
+                trailingText = "v1.4.2",
+                onClick = {
+                    onDismissRequest()
+                    onAbout()
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DroidLabMoreMenuItem(
+    iconName: String,
+    title: String,
+    trailingText: String? = null,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AppIcon(
+            name = iconName,
+            size = 20.dp,
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+        )
+        Spacer(Modifier.width(14.dp))
+        Text(
+            text = title,
+            fontSize = 14.5.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        if (trailingText != null) {
+            Text(
+                text = trailingText,
+                fontSize = 13.5.sp,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f)
             )
         }
     }

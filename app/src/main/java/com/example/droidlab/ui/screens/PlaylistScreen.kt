@@ -39,6 +39,8 @@ data class PlaylistItem(
 fun PlaylistRoute(
     onOpenDrawer: () -> Unit,
     onOpenSearch: () -> Unit,
+    onOpenSettings: () -> Unit = {},
+    onOpenEqualizer: () -> Unit = {},
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
     likedSongs: List<Pair<String, String>> = emptyList()
 ) {
@@ -72,7 +74,8 @@ fun PlaylistRoute(
                 title = "Playlists",
                 onMenuClick = onOpenDrawer,
                 onSearchClick = onOpenSearch,
-                menuItems = playlistMenuItems
+                onOpenSettings = onOpenSettings,
+                onOpenEqualizer = onOpenEqualizer
             )
         }
     ) { innerPadding ->

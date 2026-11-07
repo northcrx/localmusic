@@ -79,7 +79,7 @@ fun AppIcon(
             "arrow_back", "back", "chevron_left" -> Icons.AutoMirrored.Rounded.ArrowBack
             "arrow_forward", "forward", "arrow_right" -> Icons.AutoMirrored.Rounded.ArrowForward
             "chevron_right", "forward_chevron" -> Icons.Rounded.ChevronRight
-            "tune", "filter" -> Icons.Rounded.Tune
+            "tune", "filter", "equalizer_sound" -> Icons.Rounded.Tune
             "lightbulb" -> Icons.Rounded.Lightbulb
             "tips_and_updates" -> Icons.Rounded.TipsAndUpdates
             "check" -> Icons.Rounded.Check
@@ -106,6 +106,7 @@ fun AppIcon(
             "timer", "sleep_timer", "schedule" -> Icons.Rounded.Timer
             "bedtime", "night", "moon", "sleep" -> Icons.Rounded.Bedtime
             "storage", "device", "hard_drive" -> Icons.Rounded.Storage
+            "folder", "folder_open", "folders", "scan_folders" -> Icons.Rounded.FolderOpen
             "album", "disc" -> Icons.Rounded.Album
             "refresh" -> Icons.Rounded.Refresh
             "person" -> Icons.Rounded.Person

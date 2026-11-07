@@ -114,6 +114,8 @@ fun HomeAbstractArtPattern(
 fun HomeRoute(
     onOpenDrawer: () -> Unit,
     onOpenSearch: () -> Unit,
+    onOpenSettings: () -> Unit = {},
+    onOpenEqualizer: () -> Unit = {},
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
     likedSongs: List<Pair<String, String>> = emptyList(),
     onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> },
@@ -173,7 +175,8 @@ fun HomeRoute(
                 title = "Home",
                 onMenuClick = onOpenDrawer,
                 onSearchClick = onOpenSearch,
-                menuItems = homeMenuItems
+                onOpenSettings = onOpenSettings,
+                onOpenEqualizer = onOpenEqualizer
             )
         }
     ) { innerPadding ->

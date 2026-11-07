@@ -84,6 +84,8 @@ fun formatMusicTitle(name: String): String {
 fun KeepsRoute(
     onOpenDrawer: () -> Unit,
     onOpenSearch: () -> Unit,
+    onOpenSettings: () -> Unit = {},
+    onOpenEqualizer: () -> Unit = {},
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> }
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -183,20 +185,8 @@ fun KeepsRoute(
                     title = "Keeps",
                     onMenuClick = onOpenDrawer,
                     onSearchClick = onOpenSearch,
-                    menuItems = keepsMenuItems,
-                    onActionClick = { action ->
-                        when (action) {
-                            "Pause All" -> {
-                                downloadingList = downloadingList.map { it.copy(isPaused = true) }
-                            }
-                            "Resume All" -> {
-                                downloadingList = downloadingList.map { it.copy(isPaused = false) }
-                            }
-                            "Delete All Finished" -> {
-                                finishedList = emptyList()
-                            }
-                        }
-                    }
+                    onOpenSettings = onOpenSettings,
+                    onOpenEqualizer = onOpenEqualizer
                 )
             }
         }
