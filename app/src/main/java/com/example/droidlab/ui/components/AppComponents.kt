@@ -347,7 +347,7 @@ fun DroidLabMiniPlayer(
                 AppIcon(
                     name = if (isLiked) "heart" else "heart_border",
                     size = 20.dp,
-                    tint = if (isLiked) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -939,35 +939,53 @@ fun DroidLabNowPlayingScreen(
 
             Spacer(Modifier.height(14.dp))
 
-            // Metadata
-            Text(
-                text = "NOW PLAYING • VINYL",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.primary
-            )
+            // Metadata & Like Icon on music player line
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "NOW PLAYING • VINYL",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = title,
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        text = "$artist • $album",
+                        fontSize = 13.5.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
-            Spacer(Modifier.height(4.dp))
-
-            Text(
-                text = title,
-                fontSize = 23.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(Modifier.height(3.dp))
-
-            Text(
-                text = "$artist • $album",
-                fontSize = 13.5.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+                // Heart Like Icon on the music player line
+                IconButton(
+                    onClick = onToggleLike,
+                    modifier = Modifier.size(42.dp)
+                ) {
+                    AppIcon(
+                        name = if (isLiked) "heart" else "heart_border",
+                        size = 24.dp,
+                        tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
             Spacer(Modifier.height(16.dp))
 
@@ -1024,21 +1042,6 @@ fun DroidLabNowPlayingScreen(
                     StrokePreviousIcon(
                         tint = MaterialTheme.colorScheme.onSurface,
                         size = 26.dp
-                    )
-                }
-
-                // Heart / Like Button (beside pause and play on the left side)
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .clickable(onClick = onToggleLike),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AppIcon(
-                        name = if (isLiked) "heart" else "heart_border",
-                        size = 24.dp,
-                        tint = if (isLiked) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -1474,6 +1477,8 @@ fun DroidLabTrackRow(
     title: String,
     artist: String,
     duration: String = "3:30",
+    isLiked: Boolean? = null,
+    onToggleLike: (() -> Unit)? = null,
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -1519,12 +1524,25 @@ fun DroidLabTrackRow(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        Text(
-            text = duration,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+        if (isLiked != null && onToggleLike != null) {
+            IconButton(
+                onClick = onToggleLike,
+                modifier = Modifier.size(36.dp)
+            ) {
+                AppIcon(
+                    name = if (isLiked) "heart" else "heart_border",
+                    size = 20.dp,
+                    tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            Text(
+                text = duration,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+}
 }
 
 /**

@@ -403,90 +403,17 @@ fun HomeRoute(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            contentPadding = PaddingValues(bottom = 96.dp)
                         ) {
-                            item {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 6.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Liked Songs (${likedSongs.size})",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    Text(
-                                        text = "Tap to play",
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-
                             itemsIndexed(likedSongs) { index, (title, artist) ->
-                                Card(
-                                    shape = RoundedCornerShape(14.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                                    ),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { onSongSelected(title, artist) }
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(36.dp)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(MaterialTheme.colorScheme.secondaryContainer),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            AppIcon(name = "music", size = 18.dp)
-                                        }
-
-                                        Spacer(Modifier.width(12.dp))
-
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(
-                                                text = title,
-                                                fontSize = 14.5.sp,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                            Spacer(Modifier.height(2.dp))
-                                            Text(
-                                                text = artist,
-                                                fontSize = 12.sp,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
-
-                                        IconButton(
-                                            onClick = { onToggleLike(title, artist) },
-                                            modifier = Modifier.size(36.dp)
-                                        ) {
-                                            AppIcon(
-                                                name = "heart",
-                                                size = 20.dp,
-                                                tint = Color(0xFFEF4444)
-                                            )
-                                        }
-                                    }
-                                }
+                                DroidLabTrackRow(
+                                    index = index + 1,
+                                    title = title,
+                                    artist = artist,
+                                    isLiked = true,
+                                    onToggleLike = { onToggleLike(title, artist) },
+                                    onClick = { onSongSelected(title, artist) }
+                                )
                             }
                         }
                     }
