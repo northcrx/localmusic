@@ -149,6 +149,16 @@ fun HomeRoute(
         )
     }
 
+    var shuffleGridTracks by remember {
+        mutableStateOf(
+            listOf(
+                Pair("Midnight Drive", "Nova Lane"),
+                Pair("Kyoto Garden", "Zen Echoes"),
+                Pair("The Reading Room", "Ambient Works")
+            )
+        )
+    }
+
     val featuredAlbums = remember {
         listOf(
             HomeAlbumItem(1, "Neon Hours", "Retro Wave", 12),
@@ -274,6 +284,9 @@ fun HomeRoute(
                                             .clickable {
                                                 val picked = recommendedTracks.random()
                                                 onSongSelected(picked.first, picked.second)
+                                                // Also shuffle the 3 songs displayed in the surrounding three boxes
+                                                val newThree = recommendedTracks.shuffled().take(3)
+                                                shuffleGridTracks = newThree
                                             },
                                         shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
@@ -322,13 +335,14 @@ fun HomeRoute(
                                     }
 
                                     // Box 2 (Top-Right)
+                                    val box2Track = shuffleGridTracks.getOrNull(0) ?: Pair("Midnight Drive", "Nova Lane")
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
-                                                onSongSelected("Midnight Drive", "Nova Lane")
+                                                onSongSelected(box2Track.first, box2Track.second)
                                             },
                                         shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
@@ -352,7 +366,7 @@ fun HomeRoute(
                                             }
                                             Column {
                                                 Text(
-                                                    text = "Midnight Drive",
+                                                    text = box2Track.first,
                                                     fontSize = 13.5.sp,
                                                     fontWeight = FontWeight.SemiBold,
                                                     maxLines = 1,
@@ -360,7 +374,7 @@ fun HomeRoute(
                                                 )
                                                 Spacer(Modifier.height(3.dp))
                                                 Text(
-                                                    text = "Nova Lane",
+                                                    text = box2Track.second,
                                                     fontSize = 11.5.sp,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                     maxLines = 1,
@@ -377,13 +391,14 @@ fun HomeRoute(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     // Box 3 (Bottom-Left)
+                                    val box3Track = shuffleGridTracks.getOrNull(1) ?: Pair("Kyoto Garden", "Zen Echoes")
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
-                                                onSongSelected("Kyoto Garden", "Zen Echoes")
+                                                onSongSelected(box3Track.first, box3Track.second)
                                             },
                                         shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
@@ -407,7 +422,7 @@ fun HomeRoute(
                                             }
                                             Column {
                                                 Text(
-                                                    text = "Kyoto Garden",
+                                                    text = box3Track.first,
                                                     fontSize = 13.5.sp,
                                                     fontWeight = FontWeight.SemiBold,
                                                     maxLines = 1,
@@ -415,7 +430,7 @@ fun HomeRoute(
                                                 )
                                                 Spacer(Modifier.height(3.dp))
                                                 Text(
-                                                    text = "Zen Echoes",
+                                                    text = box3Track.second,
                                                     fontSize = 11.5.sp,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                     maxLines = 1,
@@ -426,13 +441,14 @@ fun HomeRoute(
                                     }
 
                                     // Box 4 (Bottom-Right)
+                                    val box4Track = shuffleGridTracks.getOrNull(2) ?: Pair("The Reading Room", "Ambient Works")
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(106.dp)
                                             .clip(RoundedCornerShape(16.dp))
                                             .clickable {
-                                                onSongSelected("The Reading Room", "Ambient Works")
+                                                onSongSelected(box4Track.first, box4Track.second)
                                             },
                                         shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
@@ -456,7 +472,7 @@ fun HomeRoute(
                                             }
                                             Column {
                                                 Text(
-                                                    text = "The Reading Room",
+                                                    text = box4Track.first,
                                                     fontSize = 13.5.sp,
                                                     fontWeight = FontWeight.SemiBold,
                                                     maxLines = 1,
@@ -464,7 +480,7 @@ fun HomeRoute(
                                                 )
                                                 Spacer(Modifier.height(3.dp))
                                                 Text(
-                                                    text = "Ambient Works",
+                                                    text = box4Track.second,
                                                     fontSize = 11.5.sp,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                     maxLines = 1,

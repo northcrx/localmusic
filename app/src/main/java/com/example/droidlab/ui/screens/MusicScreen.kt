@@ -91,6 +91,10 @@ fun MusicRoute(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var selectedAlbumForDetail by remember { mutableStateOf<AlbumItem?>(null) }
     var selectedArtistForDetail by remember { mutableStateOf<ArtistItem?>(null) }
+    var albumSearchQuery by remember { mutableStateOf("") }
+    var isAlbumFavorite by remember { mutableStateOf(false) }
+    var artistSearchQuery by remember { mutableStateOf("") }
+    var isArtistFavorite by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
     val tabs = listOf("For you", "Albums", "Artists", "Mini player")
 
@@ -598,7 +602,7 @@ fun MusicRoute(
         }
     }
 
-    // Album Detail Overlay View
+    // Album Detail Overlay View (Styled identically to Playlist detail)
     if (selectedAlbumForDetail != null) {
         val album = selectedAlbumForDetail!!
         val albumTracks = remember(album) {
@@ -614,129 +618,354 @@ fun MusicRoute(
             )
         }
 
+        val filteredAlbumTracks = if (albumSearchQuery.isBlank()) {
+            albumTracks
+        } else {
+            albumTracks.filter {
+                it.first.contains(albumSearchQuery, ignoreCase = true) ||
+                album.artist.contains(albumSearchQuery, ignoreCase = true)
+            }
+        }
+
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 12.dp)
+                    .statusBarsPadding(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
             ) {
-                // Top Bar
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { selectedAlbumForDetail = null }) {
-                        AppIcon(name = "arrow_back", size = 22.dp)
+                // 1. Top Bar: "< Albums" on left, Favorite Heart on right
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    selectedAlbumForDetail = null
+                                    albumSearchQuery = ""
+                                }
+                                .padding(vertical = 4.dp, horizontal = 2.dp)
+                        ) {
+                            AppIcon(
+                                name = "chevron_left",
+                                size = 20.dp,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "Albums",
+                                fontSize = 14.5.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        // Favorite Album Heart Button
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .clickable { isAlbumFavorite = !isAlbumFavorite },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AppIcon(
+                                name = if (isAlbumFavorite) "heart" else "heart_border",
+                                size = 20.dp,
+                                tint = if (isAlbumFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "Album Details",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
                 }
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 96.dp)
-                ) {
-                    item {
-                        Column(
+                // 2. Large Title, Artwork, and Subtitle
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(150.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                MusicTrackArtCover(
-                                    title = album.title,
-                                    artist = album.artist,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            Spacer(Modifier.height(16.dp))
+                            MusicTrackArtCover(
+                                title = album.title,
+                                artist = album.artist,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
+                        Spacer(Modifier.width(16.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = album.title,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.5).sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = album.artist,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium
+                                text = "${album.artist} · ${album.trackCount} tracks · ${album.year} · On device",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                            Spacer(Modifier.height(2.dp))
+                        }
+                    }
+                    Spacer(Modifier.height(18.dp))
+                }
+
+                // 3. Search Bar Pill: "Search in this album"
+                item {
+                    OutlinedTextField(
+                        value = albumSearchQuery,
+                        onValueChange = { albumSearchQuery = it },
+                        placeholder = {
                             Text(
-                                text = "${album.trackCount} tracks • ${album.year}",
-                                fontSize = 12.sp,
+                                text = "Search in ${album.title}",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        },
+                        leadingIcon = {
+                            AppIcon(
+                                name = "search",
+                                size = 18.dp,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        },
+                        trailingIcon = {
+                            if (albumSearchQuery.isNotEmpty()) {
+                                IconButton(onClick = { albumSearchQuery = "" }) {
+                                    AppIcon(name = "close", size = 16.dp)
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(24.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                    )
+                    Spacer(Modifier.height(18.dp))
+                }
+
+                // 4. Action Row: "Track order ↓" on left, "Shuffle all" on right
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Track order ↓",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    if (filteredAlbumTracks.isNotEmpty()) {
+                                        val picked = filteredAlbumTracks.random()
+                                        onSongSelected(picked.first, album.artist)
+                                    }
+                                }
+                                .padding(vertical = 4.dp, horizontal = 6.dp)
+                        ) {
+                            AppIcon(
+                                name = "shuffle",
+                                size = 16.dp,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = "Shuffle all",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+                    }
+                }
 
-                            Spacer(Modifier.height(16.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Button(
-                                    onClick = { onSongSelected(albumTracks.first().first, album.artist) },
-                                    shape = RoundedCornerShape(20.dp)
+                // 5. Track Entries
+                items(filteredAlbumTracks) { (trackTitle, trackDuration) ->
+                    val isThisPlaying = isPlaying && currentSongTitle == trackTitle
+                    val isLiked = likedSongs.any { it.first == trackTitle }
+
+                    DroidLabTrackRow(
+                        title = trackTitle,
+                        artist = album.artist,
+                        duration = trackDuration,
+                        isPlaying = isThisPlaying,
+                        isLiked = isLiked,
+                        onToggleLike = { onToggleLike(trackTitle, album.artist) },
+                        onClick = { onSongSelected(trackTitle, album.artist) }
+                    )
+                }
+
+                // 6. Recommendation section
+                item {
+                    Spacer(Modifier.height(28.dp))
+                    Text(
+                        text = "More from ${album.artist}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "A few listening ideas from your library, inspired by this album.",
+                        fontSize = 12.5.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                            ),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onSongSelected("Drifting Harmony", album.artist) }
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    AppIcon(name = "play", size = 18.dp, tint = Color.White)
-                                    Spacer(Modifier.width(6.dp))
-                                    Text("Play All")
+                                    AppIcon(
+                                        name = "music",
+                                        size = 20.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    AppIcon(
+                                        name = "heart_border",
+                                        size = 18.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
-                                OutlinedButton(
-                                    onClick = {
-                                        val picked = albumTracks.random()
-                                        onSongSelected(picked.first, album.artist)
-                                    },
-                                    shape = RoundedCornerShape(20.dp)
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    text = "Drifting Harmony",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = album.artist,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                            ),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onSongSelected("Solitude", album.artist) }
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    AppIcon(name = "shuffle", size = 18.dp)
-                                    Spacer(Modifier.width(6.dp))
-                                    Text("Shuffle")
+                                    AppIcon(
+                                        name = "music",
+                                        size = 20.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    AppIcon(
+                                        name = "heart_border",
+                                        size = 18.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    text = "Solitude",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = album.artist,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
                         }
                     }
 
-                    item {
-                        Text(
-                            text = "Tracks",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                    }
-
-                    items(albumTracks) { (trackTitle, trackDuration) ->
-                        DroidLabTrackRow(
-                            title = trackTitle,
-                            artist = album.artist,
-                            duration = trackDuration,
-                            isPlaying = isPlaying && currentSongTitle == trackTitle,
-                            isLiked = likedSongs.any { it.first == trackTitle },
-                            onToggleLike = { onToggleLike(trackTitle, album.artist) },
-                            onClick = { onSongSelected(trackTitle, album.artist) }
-                        )
-                    }
+                    Spacer(Modifier.height(20.dp))
+                    Text(
+                        text = "Listening ideas only · Nothing is added automatically",
+                        fontSize = 11.5.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
                 }
             }
         }
     }
 
-    // Artist Detail Overlay View
+    // Artist Detail Overlay View (Styled identically to Playlist detail)
     if (selectedArtistForDetail != null) {
         val artist = selectedArtistForDetail!!
         val artistTracks = remember(artist) {
@@ -745,124 +974,357 @@ fun MusicRoute(
                 Pair("${artist.name} - Evening Echo", "4:10"),
                 Pair("${artist.name} - Midnight Breeze", "3:25"),
                 Pair("${artist.name} - Skyline Melody", "3:58"),
-                Pair("${artist.name} - Ambient Waves", "4:20")
+                Pair("${artist.name} - Ambient Waves", "4:20"),
+                Pair("${artist.name} - Quiet Morning", "3:10")
             )
+        }
+
+        val filteredArtistTracks = if (artistSearchQuery.isBlank()) {
+            artistTracks
+        } else {
+            artistTracks.filter {
+                it.first.contains(artistSearchQuery, ignoreCase = true) ||
+                artist.name.contains(artistSearchQuery, ignoreCase = true)
+            }
         }
 
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 12.dp)
+                    .statusBarsPadding(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
             ) {
-                // Top Bar
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { selectedArtistForDetail = null }) {
-                        AppIcon(name = "arrow_back", size = 22.dp)
+                // 1. Top Bar: "< Artists" on left, Favorite Heart on right
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    selectedArtistForDetail = null
+                                    artistSearchQuery = ""
+                                }
+                                .padding(vertical = 4.dp, horizontal = 2.dp)
+                        ) {
+                            AppIcon(
+                                name = "chevron_left",
+                                size = 20.dp,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "Artists",
+                                fontSize = 14.5.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        // Favorite Artist Heart Button
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .clickable { isArtistFavorite = !isArtistFavorite },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AppIcon(
+                                name = if (isArtistFavorite) "heart" else "heart_border",
+                                size = 20.dp,
+                                tint = if (isArtistFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "Artist Details",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
                 }
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 96.dp)
-                ) {
-                    item {
-                        Column(
+                // 2. Large Title, Artist Avatar, and Subtitle
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(96.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = ("${artist.name.firstOrNull()?.uppercaseChar() ?: "A"}"),
-                                    fontSize = 36.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Spacer(Modifier.height(14.dp))
+                            Text(
+                                text = ("${artist.name.firstOrNull()?.uppercaseChar() ?: "A"}"),
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        Spacer(Modifier.width(16.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = artist.name,
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.5).sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = "${artist.albumsCount} albums • ${artist.songsCount} songs",
+                                text = "${artist.albumsCount} albums · ${artist.songsCount} songs · On device",
                                 fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(18.dp))
+                }
+
+                // 3. Search Bar Pill: "Search artist songs"
+                item {
+                    OutlinedTextField(
+                        value = artistSearchQuery,
+                        onValueChange = { artistSearchQuery = it },
+                        placeholder = {
+                            Text(
+                                text = "Search ${artist.name} songs",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        },
+                        leadingIcon = {
+                            AppIcon(
+                                name = "search",
+                                size = 18.dp,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        },
+                        trailingIcon = {
+                            if (artistSearchQuery.isNotEmpty()) {
+                                IconButton(onClick = { artistSearchQuery = "" }) {
+                                    AppIcon(name = "close", size = 16.dp)
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(24.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                    )
+                    Spacer(Modifier.height(18.dp))
+                }
+
+                // 4. Action Row: "Popular tracks ↓" on left, "Shuffle all" on right
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Popular tracks ↓",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    if (filteredArtistTracks.isNotEmpty()) {
+                                        val picked = filteredArtistTracks.random()
+                                        onSongSelected(picked.first, artist.name)
+                                    }
+                                }
+                                .padding(vertical = 4.dp, horizontal = 6.dp)
+                        ) {
+                            AppIcon(
+                                name = "shuffle",
+                                size = 16.dp,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = "Shuffle all",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+                    }
+                }
 
-                            Spacer(Modifier.height(16.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Button(
-                                    onClick = { onSongSelected(artistTracks.first().first, artist.name) },
-                                    shape = RoundedCornerShape(20.dp)
+                // 5. Track Entries
+                items(filteredArtistTracks) { (trackTitle, trackDuration) ->
+                    val isThisPlaying = isPlaying && currentSongTitle == trackTitle
+                    val isLiked = likedSongs.any { it.first == trackTitle }
+
+                    DroidLabTrackRow(
+                        title = trackTitle,
+                        artist = artist.name,
+                        duration = trackDuration,
+                        isPlaying = isThisPlaying,
+                        isLiked = isLiked,
+                        onToggleLike = { onToggleLike(trackTitle, artist.name) },
+                        onClick = { onSongSelected(trackTitle, artist.name) }
+                    )
+                }
+
+                // 6. Recommendation section
+                item {
+                    Spacer(Modifier.height(28.dp))
+                    Text(
+                        text = "More like ${artist.name}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "A few listening ideas from your library, inspired by this artist.",
+                        fontSize = 12.5.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                            ),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onSongSelected("${artist.name} - Evening Echo", artist.name) }
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    AppIcon(name = "play", size = 18.dp, tint = Color.White)
-                                    Spacer(Modifier.width(6.dp))
-                                    Text("Play Popular")
+                                    AppIcon(
+                                        name = "music",
+                                        size = 20.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    AppIcon(
+                                        name = "heart_border",
+                                        size = 18.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
-                                OutlinedButton(
-                                    onClick = {
-                                        val picked = artistTracks.random()
-                                        onSongSelected(picked.first, artist.name)
-                                    },
-                                    shape = RoundedCornerShape(20.dp)
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    text = "Evening Echo",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = artist.name,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                            ),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onSongSelected("${artist.name} - Skyline Melody", artist.name) }
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    AppIcon(name = "shuffle", size = 18.dp)
-                                    Spacer(Modifier.width(6.dp))
-                                    Text("Shuffle")
+                                    AppIcon(
+                                        name = "music",
+                                        size = 20.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    AppIcon(
+                                        name = "heart_border",
+                                        size = 18.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    text = "Skyline Melody",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = artist.name,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
                         }
                     }
 
-                    item {
-                        Text(
-                            text = "Popular Songs",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                    }
-
-                    items(artistTracks) { (trackTitle, trackDuration) ->
-                        DroidLabTrackRow(
-                            title = trackTitle,
-                            artist = artist.name,
-                            duration = trackDuration,
-                            isPlaying = isPlaying && currentSongTitle == trackTitle,
-                            isLiked = likedSongs.any { it.first == trackTitle },
-                            onToggleLike = { onToggleLike(trackTitle, artist.name) },
-                            onClick = { onSongSelected(trackTitle, artist.name) }
-                        )
-                    }
+                    Spacer(Modifier.height(20.dp))
+                    Text(
+                        text = "Listening ideas only · Nothing is added automatically",
+                        fontSize = 11.5.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
                 }
             }
         }
     }
-
 }

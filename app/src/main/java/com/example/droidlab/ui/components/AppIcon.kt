@@ -45,7 +45,7 @@ fun AppIcon(
             ?: context.resources.getIdentifier("ic_msr_search", "drawable", context.packageName).takeIf { it != 0 }
         "music" -> context.resources.getIdentifier("ic_lucide_music", "drawable", context.packageName).takeIf { it != 0 }
         "keep", "download", "downloads" -> context.resources.getIdentifier("ic_msr_download", "drawable", context.packageName).takeIf { it != 0 }
-        "playlist", "playlists" -> context.resources.getIdentifier("ic_lucide_library", "drawable", context.packageName).takeIf { it != 0 }
+        "playlist", "playlists" -> context.resources.getIdentifier("ic_lucide_playlist", "drawable", context.packageName).takeIf { it != 0 } ?: context.resources.getIdentifier("ic_lucide_library", "drawable", context.packageName).takeIf { it != 0 }
         "settings" -> context.resources.getIdentifier("ic_lucide_settings", "drawable", context.packageName).takeIf { it != 0 }
         "more_vert", "three_dots" -> context.resources.getIdentifier("ic_msr_more_vert", "drawable", context.packageName).takeIf { it != 0 }
         "drawer", "menu", "hamburger" -> context.resources.getIdentifier("ic_menu_hamburger", "drawable", context.packageName).takeIf { it != 0 }
@@ -73,7 +73,7 @@ fun AppIcon(
             "book", "menu_book" -> Icons.AutoMirrored.Rounded.MenuBook
 "search", "explore" -> Icons.Rounded.Search
             "music", "song" -> Icons.Rounded.MusicNote
-            "playlist", "playlists", "playlist_play" -> Icons.AutoMirrored.Rounded.PlaylistPlay
+            "playlist", "playlists", "playlist_play" -> Icons.AutoMirrored.Rounded.QueueMusic
             "playlist_add" -> Icons.AutoMirrored.Rounded.PlaylistAdd
             "keep", "download", "downloads" -> Icons.Rounded.Download
             "settings" -> Icons.Rounded.Settings
