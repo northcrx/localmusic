@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.droidlab.ui.components.AppIcon
 import com.example.droidlab.ui.components.MusicTrackArtCover
+import com.example.droidlab.ui.components.AlbumArtCover
 import com.example.droidlab.ui.components.DroidLabTabs
 import com.example.droidlab.ui.components.DroidLabTopAppBar
 import com.example.droidlab.ui.components.DroidLabTrackRow
@@ -605,15 +606,14 @@ fun HomeRoute(
                                             .width(96.dp)
                                             .clickable { onSongSelected(album.title, album.artist) }
                                     ) {
-                                        // Square card with music artwork cover
+                                        // Square card with album disc icon matching user's design
                                         Box(
                                             modifier = Modifier
                                                 .size(96.dp)
-                                                .clip(RoundedCornerShape(16.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                                .clip(RoundedCornerShape(14.dp)),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            MusicTrackArtCover(
+                                            AlbumArtCover(
                                                 title = album.title,
                                                 artist = album.artist,
                                                 modifier = Modifier.fillMaxSize()

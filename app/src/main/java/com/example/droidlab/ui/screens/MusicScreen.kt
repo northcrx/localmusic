@@ -101,7 +101,7 @@ fun MusicRoute(
         )
     }
 
-    val tracks = remember {
+    val initialTracks = remember {
         listOf(
             TrackItem(1, "Kyoto Garden", "Zen Echoes", "2:58"),
             TrackItem(2, "Blue Bottle Coffee", "Chillhop Beats", "3:45"),
@@ -114,6 +114,8 @@ fun MusicRoute(
             TrackItem(9, "Velvet Moon", "Jazz Quartet", "4:32")
         )
     }
+    var displayedTracks by remember { mutableStateOf(initialTracks) }
+    var currentSortOption by remember { mutableStateOf("Recently added") }
 
     val albums = remember {
         listOf(
@@ -184,11 +186,26 @@ fun MusicRoute(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
-                                        .clickable { }
+                                        .clickable {
+                                            when (currentSortOption) {
+                                                "Recently added" -> {
+                                                    currentSortOption = "Title (A–Z)"
+                                                    displayedTracks = displayedTracks.sortedBy { it.title }
+                                                }
+                                                "Title (A–Z)" -> {
+                                                    currentSortOption = "Artist (A–Z)"
+                                                    displayedTracks = displayedTracks.sortedBy { it.artist }
+                                                }
+                                                else -> {
+                                                    currentSortOption = "Recently added"
+                                                    displayedTracks = initialTracks
+                                                }
+                                            }
+                                        }
                                         .padding(vertical = 4.dp, horizontal = 2.dp)
                                 ) {
                                     Text(
-                                        text = "Recently added",
+                                        text = currentSortOption,
                                         fontSize = 13.5.sp,
                                         fontWeight = FontWeight.Medium,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -206,8 +223,11 @@ fun MusicRoute(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
                                         .clickable {
-                                            val picked = tracks.random()
-                                            onSongSelected(picked.title, picked.artist)
+                                            val shuffled = displayedTracks.shuffled()
+                                            displayedTracks = shuffled
+                                            if (shuffled.isNotEmpty()) {
+                                                onSongSelected(shuffled.first().title, shuffled.first().artist)
+                                            }
                                         }
                                         .padding(vertical = 4.dp, horizontal = 6.dp)
                                 ) {
@@ -228,7 +248,7 @@ fun MusicRoute(
                         }
 
                         // Track List
-                        items(tracks, key = { it.id }) { track ->
+                        items(displayedTracks, key = { it.id }) { track ->
                             val isCurrentSong = currentSongTitle.equals(track.title, ignoreCase = true)
                             val isThisPlaying = isCurrentSong && isPlaying
 

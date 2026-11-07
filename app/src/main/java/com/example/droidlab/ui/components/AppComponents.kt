@@ -537,6 +537,12 @@ fun DroidLabBottomNav(
  * - Genre-styled music covers for diverse tracks
  * - Clean music note logo / icon if specific artwork is not available
  */
+/**
+ * Music artwork cover:
+ * - Shows authentic artwork (KyotoGardenArt) for Kyoto Garden / Zen Echoes
+ * - By default, if tracks do not have artwork, displays the clean stroked music symbol
+ *   in a soft rounded corner box matching the user's screenshot exactly.
+ */
 @Composable
 fun MusicTrackArtCover(
     title: String,
@@ -546,103 +552,57 @@ fun MusicTrackArtCover(
     val cleanTitle = title.lowercase()
     val cleanArtist = artist.lowercase()
 
-    when {
-        cleanTitle.contains("kyoto") || cleanTitle.contains("zen") || cleanArtist.contains("zen") -> {
-            KyotoGardenArt(modifier = modifier)
+    if (cleanTitle.contains("kyoto") || cleanTitle.contains("zen") || cleanArtist.contains("zen")) {
+        KyotoGardenArt(modifier = modifier)
+    } else {
+        Box(
+            modifier = modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
+            contentAlignment = Alignment.Center
+        ) {
+            AppIcon(
+                name = "music",
+                size = 22.dp,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+            )
         }
-        cleanTitle.contains("midnight") || cleanArtist.contains("nova") -> {
-            // Elegant dark slate vinyl theme (monochrome immersion)
+    }
+}
+
+/**
+ * Album artwork cover:
+ * - Shows authentic artwork for Zen Echoes
+ * - For all other albums, shows the clean album disc icon in a rounded container matching Music -> Albums
+ */
+@Composable
+fun AlbumArtCover(
+    title: String,
+    artist: String,
+    modifier: Modifier = Modifier
+) {
+    val cleanTitle = title.lowercase()
+    val cleanArtist = artist.lowercase()
+
+    if (cleanTitle.contains("zen") || cleanArtist.contains("zen")) {
+        KyotoGardenArt(modifier = modifier)
+    } else {
+        Box(
+            modifier = modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
+        ) {
             Box(
-                modifier = modifier.background(
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFF23262C), Color(0xFF191B1F))
-                    )
-                ),
-                contentAlignment = Alignment.Center
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize(0.76f)) {
-                    val radius = size.minDimension / 2f
-                    drawCircle(color = Color.White.copy(alpha = 0.09f), radius = radius, style = Stroke(width = 1.2.dp.toPx()))
-                    drawCircle(color = Color.White.copy(alpha = 0.05f), radius = radius * 0.72f, style = Stroke(width = 1.dp.toPx()))
-                    drawCircle(color = Color.White.copy(alpha = 0.12f), radius = radius * 0.38f)
-                }
-                AppIcon(name = "album", size = 22.dp, tint = Color.White.copy(alpha = 0.85f))
-            }
-        }
-        cleanTitle.contains("blue bottle") || cleanTitle.contains("chillhop") || cleanArtist.contains("chillhop") -> {
-            // Soft warm charcoal theme
-            Box(
-                modifier = modifier.background(
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFF2C2E33), Color(0xFF202125))
-                    )
-                ),
-                contentAlignment = Alignment.Center
-            ) {
-                AppIcon(name = "music", size = 24.dp, tint = Color.White.copy(alpha = 0.8f))
-            }
-        }
-        cleanTitle.contains("neon") || cleanArtist.contains("retro") -> {
-            // Muted graphite rhythm theme
-            Box(
-                modifier = modifier.background(
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFF292A32), Color(0xFF1C1D22))
-                    )
-                ),
-                contentAlignment = Alignment.Center
-            ) {
-                AppIcon(name = "graphic_eq", size = 22.dp, tint = Color.White.copy(alpha = 0.82f))
-            }
-        }
-        cleanTitle.contains("solar") || cleanArtist.contains("cosmic") -> {
-            // Deep cosmic graphite theme
-            Box(
-                modifier = modifier.background(
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFF21242B), Color(0xFF16181D))
-                    )
-                ),
-                contentAlignment = Alignment.Center
-            ) {
-                AppIcon(name = "album", size = 22.dp, tint = Color.White.copy(alpha = 0.8f))
-            }
-        }
-        cleanTitle.contains("golden") || cleanArtist.contains("acoustic") -> {
-            // Subtle warm slate theme
-            Box(
-                modifier = modifier.background(
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFF2F3138), Color(0xFF23252A))
-                    )
-                ),
-                contentAlignment = Alignment.Center
-            ) {
-                AppIcon(name = "music", size = 24.dp, tint = Color.White.copy(alpha = 0.85f))
-            }
-        }
-        cleanTitle.contains("reading") || cleanArtist.contains("ambient") -> {
-            // Minimal ambient slate theme
-            Box(
-                modifier = modifier.background(
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFF282B30), Color(0xFF1C1E22))
-                    )
-                ),
-                contentAlignment = Alignment.Center
-            ) {
-                AppIcon(name = "lyrics", size = 22.dp, tint = Color.White.copy(alpha = 0.8f))
-            }
-        }
-        else -> {
-            // Theme neutral surfaceVariant fallback
-            Box(
-                modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)),
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 AppIcon(
                     name = "album",
-                    size = 24.dp,
+                    size = 26.dp,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -695,19 +655,23 @@ fun DroidLabMiniPlayer(
                 .padding(horizontal = 12.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Squarish rounded corner music artwork box
+            // Squarish rounded corner music artwork box (matching user's screenshot)
             Box(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    .background(Color(0xFF22242A)),
                 contentAlignment = Alignment.Center
             ) {
-                MusicTrackArtCover(
-                    title = title,
-                    artist = artist,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (title.lowercase().contains("kyoto") || artist.lowercase().contains("zen")) {
+                    KyotoGardenArt(modifier = Modifier.fillMaxSize())
+                } else {
+                    AppIcon(
+                        name = if (isPlaying) "graphic_eq" else "music",
+                        size = 20.dp,
+                        tint = Color.White.copy(alpha = 0.85f)
+                    )
+                }
             }
 
             Spacer(Modifier.width(12.dp))
