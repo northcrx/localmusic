@@ -363,7 +363,8 @@ fun AppRoot(
                     isScanning = scanState.isScanning,
                     currentFileName = scanState.currentFileName,
                     isScanFinished = scanState.isCompleted,
-                    totalFound = scanState.totalFound
+                    totalFound = scanState.totalFound,
+                    errorMessage = scanState.errorMessage
                 )
             }
 

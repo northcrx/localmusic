@@ -2800,7 +2800,8 @@ fun ScanMusicFoldersDialog(
     isScanning: Boolean = false,
     currentFileName: String = "",
     isScanFinished: Boolean = false,
-    totalFound: Int = 0
+    totalFound: Int = 0,
+    errorMessage: String? = null
 ) {
     var selectedFolders by remember {
         mutableStateOf(
@@ -2959,6 +2960,30 @@ fun ScanMusicFoldersDialog(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
+                } else if (errorMessage != null) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            AppIcon(name = "info", size = 20.dp, tint = MaterialTheme.colorScheme.error)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Scan Encountered an Issue",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = errorMessage,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 18.sp
+                        )
+                    }
                 } else {
                     Column(
                         modifier = Modifier
@@ -2995,7 +3020,7 @@ fun ScanMusicFoldersDialog(
                     onClick = onDismissRequest,
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Done")
+                    Text(if (errorMessage != null) "Close" else "Done")
                 }
             } else {
                 Button(
