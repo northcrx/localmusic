@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Universal Icon Component supporting local drawables and fallback Material Icons.
+ * Universal Icon Component supporting local drawables and Material Rounded icons fallback.
  */
 @Composable
 fun AppIcon(
@@ -32,14 +32,21 @@ fun AppIcon(
     val context = LocalContext.current
     val clean = name.lowercase().trim()
 
+    // 1. Try resolving exact drawable resources if present
     val resId = when (clean) {
-        "home" -> context.resources.getIdentifier("ic_home", "drawable", context.packageName).takeIf { it != 0 }
-        "search" -> context.resources.getIdentifier("ic_search", "drawable", context.packageName).takeIf { it != 0 }
-        "keep" -> context.resources.getIdentifier("ic_keep", "drawable", context.packageName).takeIf { it != 0 }
-        "music" -> context.resources.getIdentifier("ic_music", "drawable", context.packageName).takeIf { it != 0 }
-        "settings" -> context.resources.getIdentifier("ic_settings", "drawable", context.packageName).takeIf { it != 0 }
-        "more_vert", "three_dots" -> context.resources.getIdentifier("ic_three_dots", "drawable", context.packageName).takeIf { it != 0 }
-        "explore" -> context.resources.getIdentifier("ic_explore", "drawable", context.packageName).takeIf { it != 0 }
+        "home" -> context.resources.getIdentifier("ic_ph_house", "drawable", context.packageName).takeIf { it != 0 }
+            ?: context.resources.getIdentifier("ic_home", "drawable", context.packageName).takeIf { it != 0 }
+        "search", "explore" -> context.resources.getIdentifier("ic_ph_magnifying_glass", "drawable", context.packageName).takeIf { it != 0 }
+            ?: context.resources.getIdentifier("ic_msr_search", "drawable", context.packageName).takeIf { it != 0 }
+        "music" -> context.resources.getIdentifier("ic_lucide_music", "drawable", context.packageName).takeIf { it != 0 }
+        "keep", "download", "downloads" -> context.resources.getIdentifier("ic_msr_download", "drawable", context.packageName).takeIf { it != 0 }
+        "settings" -> context.resources.getIdentifier("ic_lucide_settings", "drawable", context.packageName).takeIf { it != 0 }
+        "more_vert", "three_dots" -> context.resources.getIdentifier("ic_msr_more_vert", "drawable", context.packageName).takeIf { it != 0 }
+        "drawer", "menu", "hamburger" -> context.resources.getIdentifier("ic_menu_hamburger", "drawable", context.packageName).takeIf { it != 0 }
+        "equalizer", "eq" -> context.resources.getIdentifier("ic_menu_equalizer", "drawable", context.packageName).takeIf { it != 0 }
+        "delete" -> context.resources.getIdentifier("ic_msr_delete", "drawable", context.packageName).takeIf { it != 0 }
+        "palette" -> context.resources.getIdentifier("ic_msr_palette", "drawable", context.packageName).takeIf { it != 0 }
+        "person" -> context.resources.getIdentifier("ic_msr_person", "drawable", context.packageName).takeIf { it != 0 }
         else -> null
     }
 
@@ -51,7 +58,15 @@ fun AppIcon(
             tint = tint
         )
     } else {
+        // Complete vector icon mapping - every icon has a rich Material icon fallback
         val vectorIcon: ImageVector = when (clean) {
+            "home" -> Icons.Rounded.Home
+            "search", "explore" -> Icons.Rounded.Search
+            "music", "song" -> Icons.Rounded.MusicNote
+            "keep", "download", "downloads" -> Icons.Rounded.Download
+            "settings" -> Icons.Rounded.Settings
+            "more_vert", "three_dots" -> Icons.Rounded.MoreVert
+            "drawer", "menu", "hamburger" -> Icons.Rounded.Menu
             "close", "clear" -> Icons.Rounded.Close
             "arrow_back", "back" -> Icons.AutoMirrored.Rounded.ArrowBack
             "tune", "filter" -> Icons.Rounded.Tune
@@ -59,7 +74,7 @@ fun AppIcon(
             "tips_and_updates" -> Icons.Rounded.TipsAndUpdates
             "check" -> Icons.Rounded.Check
             "check_circle" -> Icons.Rounded.CheckCircle
-            "headset", "headphones" -> Icons.Rounded.Headphones
+            "headset", "headphones", "earbuds", "neckband" -> Icons.Rounded.Headphones
             "bluetooth" -> Icons.Rounded.Bluetooth
             "equalizer", "eq" -> Icons.Rounded.Equalizer
             "graphic_eq" -> Icons.Rounded.GraphicEq
@@ -72,9 +87,9 @@ fun AppIcon(
             "heart", "favorite", "like" -> Icons.Rounded.Favorite
             "heart_border", "favorite_border", "unlike" -> Icons.Rounded.FavoriteBorder
             "chevron_down", "expand_more", "down" -> Icons.Rounded.KeyboardArrowDown
-            "speaker" -> Icons.Rounded.Speaker
-            "phone_speaker" -> Icons.Rounded.Smartphone
-            "tv", "home_theater" -> Icons.Rounded.Tv
+            "speaker", "soundbar" -> Icons.Rounded.Speaker
+            "phone_speaker", "phone", "smartphone" -> Icons.Rounded.Smartphone
+            "tv", "home_theater", "theater" -> Icons.Rounded.Tv
             "lyrics" -> Icons.AutoMirrored.Rounded.Notes
             "queue", "up_next" -> Icons.AutoMirrored.Rounded.QueueMusic
             "timer", "sleep_timer", "schedule" -> Icons.Rounded.Timer
@@ -82,7 +97,6 @@ fun AppIcon(
             "person" -> Icons.Rounded.Person
             "person_add" -> Icons.Rounded.PersonAdd
             "delete" -> Icons.Rounded.Delete
-            "download" -> Icons.Rounded.Download
             "cloud_download" -> Icons.Rounded.CloudDownload
             "palette" -> Icons.Rounded.Palette
             "font", "text_fields" -> Icons.Rounded.TextFields
@@ -94,7 +108,15 @@ fun AppIcon(
             "trending_up" -> Icons.AutoMirrored.Rounded.TrendingUp
             "public" -> Icons.Rounded.Public
             "library_music" -> Icons.Rounded.LibraryMusic
-            else -> Icons.Rounded.Circle
+            // Hardware preset name fallbacks
+            else -> when {
+                clean.contains("phone") || clean.contains("speaker") && clean.contains("phone") -> Icons.Rounded.Smartphone
+                clean.contains("neckband") || clean.contains("buds") || clean.contains("headphone") || clean.contains("sony") -> Icons.Rounded.Headphones
+                clean.contains("theater") || clean.contains("tv") -> Icons.Rounded.Tv
+                clean.contains("speaker") || clean.contains("soundbar") || clean.contains("jbl") -> Icons.Rounded.Speaker
+                clean.contains("music") || clean.contains("song") -> Icons.Rounded.MusicNote
+                else -> Icons.Rounded.MusicNote
+            }
         }
 
         Icon(

@@ -274,9 +274,9 @@ fun DroidLabMiniPlayer(
 ) {
     val isDark = androidx.compose.foundation.isSystemInDarkTheme()
     val containerBg = if (isDark) {
-        Color(0xCC202430) // Translucent dark slate, showing backside content
+        Color(0xF61E222D) // Nearly solid dark slate with subtle frost
     } else {
-        Color(0xDDE6EAF4) // Translucent light slate, showing backside content
+        Color(0xF8F0F3F9) // Nearly solid crisp light slate
     }
 
     Card(
