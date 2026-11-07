@@ -10,12 +10,15 @@ import com.example.droidlab.ui.screens.*
 
 /**
  * Screen destinations matching Droid Lab exported pages.
+ * Bottom nav displays: Home, Music, Playlist, Keeps.
+ * Dedicated search tab removed; Search is an overlay/destination opened from any top bar search button.
  */
 sealed class Screen(val route: String, val title: String, val icon: String) {
     data object Home : Screen("home", "Home", "home")
     data object Music : Screen("music", "Music", "music")
-    data object Explore : Screen("explore", "Search", "search")
+    data object Playlist : Screen("playlist", "Playlist", "playlist")
     data object Keep : Screen("keep", "Keeps", "keep")
+    data object Search : Screen("search", "Search", "search")
     data object Settings : Screen("settings", "Settings", "settings")
     data object Equalizer : Screen("equalizer", "Equalizer", "equalizer")
 }
@@ -23,7 +26,7 @@ sealed class Screen(val route: String, val title: String, val icon: String) {
 val BottomNavScreens = listOf(
     Screen.Home,
     Screen.Music,
-    Screen.Explore,
+    Screen.Playlist,
     Screen.Keep
 )
 
@@ -71,7 +74,22 @@ fun AppNavHost(
                 onToggleLike = onToggleLike
             )
         }
-        composable(Screen.Explore.route) {
+        composable(Screen.Playlist.route) {
+            PlaylistRoute(
+                onOpenDrawer = onOpenDrawer,
+                onOpenSearch = onOpenSearch,
+                onSongSelected = { title, artist -> onPlaySong(title, artist, false) },
+                likedSongs = likedSongs
+            )
+        }
+        composable(Screen.Keep.route) {
+            KeepsRoute(
+                onOpenDrawer = onOpenDrawer,
+                onOpenSearch = onOpenSearch,
+                onSongSelected = { title, artist -> onPlaySong(title, artist, false) }
+            )
+        }
+        composable(Screen.Search.route) {
             ExploreRoute(
                 onNavigateBack = {
                     if (!navController.popBackStack()) {
@@ -87,10 +105,20 @@ fun AppNavHost(
                 onSongSelected = { title, artist -> onPlaySong(title, artist, false) }
             )
         }
-        composable(Screen.Keep.route) {
-            KeepsRoute(
-                onOpenDrawer = onOpenDrawer,
-                onOpenSearch = onOpenSearch,
+        // Backward-compatibility alias for explore
+        composable("explore") {
+            ExploreRoute(
+                onNavigateBack = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                },
                 onSongSelected = { title, artist -> onPlaySong(title, artist, false) }
             )
         }

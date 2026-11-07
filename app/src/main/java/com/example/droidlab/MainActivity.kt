@@ -97,26 +97,21 @@ fun AppRoot(
         }
     }
 
+    // 4 Bottom Tabs: Home, Music, Playlist, Keeps (Dedicated Search tab removed from bar)
     val bottomNavIndex = when (currentRoute) {
         Screen.Home.route -> 0
         Screen.Music.route -> 1
-        Screen.Explore.route -> 2
+        Screen.Playlist.route -> 2
         Screen.Keep.route -> 3
         else -> -1
     }
 
-    // Mini Player ONLY shown at Home and Music pages when full player is not open
-    val showMiniPlayer = (currentRoute == Screen.Home.route || currentRoute == Screen.Music.route) && !isNowPlayingOpen
+    // Floating Mini Player shown at Home, Music, and Playlist pages when full player is closed
+    val showMiniPlayer = (currentRoute == Screen.Home.route || currentRoute == Screen.Music.route || currentRoute == Screen.Playlist.route) && !isNowPlayingOpen
 
     val navigateToSearch: () -> Unit = {
-        if (currentRoute != Screen.Explore.route) {
-            navController.navigate(Screen.Explore.route) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
-                }
-                launchSingleTop = true
-                restoreState = true
-            }
+        if (currentRoute != Screen.Search.route) {
+            navController.navigate(Screen.Search.route)
         }
     }
 
@@ -145,7 +140,7 @@ fun AppRoot(
             Scaffold(
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 bottomBar = {
-                    // Hide bottom nav bar completely when full music player or equalizer is active
+                    // Hide bottom nav bar completely when full music player, equalizer, or search is active
                     if (bottomNavIndex >= 0 && !isNowPlayingOpen && !isEqualizerOpen) {
                         DroidLabBottomNav(
                             selectedIndex = bottomNavIndex,
@@ -199,7 +194,7 @@ fun AppRoot(
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    // Floating Mini Player: ONLY at Home and Music pages
+                    // Floating Mini Player: at Home, Music, and Playlist pages
                     if (showMiniPlayer) {
                         Box(
                             modifier = Modifier
@@ -260,6 +255,11 @@ fun AppRoot(
                     onNext = {
                         currentSongTitle = "Blue Bottle Coffee"
                         currentSongArtist = "Chillhop Beats"
+                    },
+                    onSongSelected = { title, artist ->
+                        currentSongTitle = title
+                        currentSongArtist = artist
+                        isPlaying = true
                     },
                     onClose = { isNowPlayingOpen = false },
                     sleepTimerMinutes = sleepTimerMinutes,

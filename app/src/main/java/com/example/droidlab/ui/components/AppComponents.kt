@@ -1,9 +1,6 @@
 package com.example.droidlab.ui.components
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -11,8 +8,12 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -178,7 +180,7 @@ fun DroidLabTabs(
 
 /**
  * Bottom Navigation Bar matching Droid Lab visual specification (.nav-bar.nav-material).
- * Clean, compact height with system gesture bar padding and zero extra bloat.
+ * Tabs: Home, Music, Playlist, Keeps.
  */
 @Composable
 fun DroidLabBottomNav(
@@ -189,7 +191,7 @@ fun DroidLabBottomNav(
     val items = listOf(
         Pair("Home", "home"),
         Pair("Music", "music"),
-        Pair("Search", "search"),
+        Pair("Playlist", "playlist"),
         Pair("Keeps", "keep")
     )
 
@@ -275,7 +277,7 @@ fun DroidLabMiniPlayer(
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = isSystemInDarkTheme()
     val containerBg = if (isDark) {
         Color(0xF61E222D) // Nearly solid dark slate with subtle frost
     } else {
@@ -462,7 +464,6 @@ fun VinylRecordPlayer(
     isPlaying: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    // Disc continuous spin rotation - freezes smoothly in place when paused
     var discRotation by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(isPlaying) {
         if (isPlaying) {
@@ -477,9 +478,6 @@ fun VinylRecordPlayer(
         }
     }
 
-    // Tonearm movement:
-    // When isPlaying == true: tonearm is at 0f (on the record, playing)
-    // When isPlaying == false: tonearm rotates away to -34f onto its rest cradle
     val tonearmAngle by animateFloatAsState(
         targetValue = if (isPlaying) 0f else -34f,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
@@ -502,7 +500,6 @@ fun VinylRecordPlayer(
                 .background(Color(0xFF14161A)),
             contentAlignment = Alignment.Center
         ) {
-            // Concentric vinyl grooves
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val grooveColor = Color(0xFF262932)
                 val centerOffset = Offset(size.width / 2, size.height / 2)
@@ -518,7 +515,6 @@ fun VinylRecordPlayer(
                 }
             }
 
-            // Center Label Disc with Headset Icon
             Box(
                 modifier = Modifier
                     .size(96.dp)
@@ -528,7 +524,6 @@ fun VinylRecordPlayer(
             ) {
                 AppIcon(name = "headset", size = 40.dp, tint = Color.White)
 
-                // Center spindle hole
                 Box(
                     modifier = Modifier
                         .size(12.dp)
@@ -538,7 +533,7 @@ fun VinylRecordPlayer(
             }
         }
 
-        // Tonearm / Needle on top right with animated swing onto/away from the CD
+        // Tonearm / Needle
         Canvas(
             modifier = Modifier
                 .size(280.dp)
@@ -547,7 +542,6 @@ fun VinylRecordPlayer(
             val pivotX = size.width * 0.82f
             val pivotY = size.height * 0.14f
 
-            // Tonearm rest cradle (where tonearm parks when paused)
             drawRoundRect(
                 color = Color(0xFF4B5563),
                 topLeft = Offset(size.width * 0.88f, size.height * 0.32f),
@@ -555,13 +549,10 @@ fun VinylRecordPlayer(
                 cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
             )
 
-            // Stationary Pivot Base on the turntable deck
             drawCircle(color = Color(0xFFBDC2CC), radius = 9.dp.toPx(), center = Offset(pivotX, pivotY))
             drawCircle(color = Color(0xFF4A5568), radius = 5.dp.toPx(), center = Offset(pivotX, pivotY))
 
-            // Rotatable Tonearm assembly
             rotate(degrees = tonearmAngle, pivot = Offset(pivotX, pivotY)) {
-                // Counterweight behind pivot
                 drawRoundRect(
                     color = Color(0xFF4A5568),
                     topLeft = Offset(pivotX - 5.dp.toPx(), pivotY - 14.dp.toPx()),
@@ -569,7 +560,6 @@ fun VinylRecordPlayer(
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
                 )
 
-                // Arm line bending towards the record
                 val armPath = Path().apply {
                     moveTo(pivotX, pivotY)
                     lineTo(size.width * 0.76f, size.height * 0.36f)
@@ -581,7 +571,6 @@ fun VinylRecordPlayer(
                     style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
                 )
 
-                // Headshell / cartridge needle at the end
                 drawRoundRect(
                     color = Color(0xFF374151),
                     topLeft = Offset(size.width * 0.68f, size.height * 0.50f),
@@ -589,7 +578,6 @@ fun VinylRecordPlayer(
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx())
                 )
 
-                // Needle stylus point
                 drawCircle(
                     color = Color(0xFFE5E7EB),
                     radius = 2.dp.toPx(),
@@ -631,7 +619,6 @@ fun SleepTimerDialog(
                     .fillMaxWidth()
                     .padding(22.dp)
             ) {
-                // Header
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -656,7 +643,6 @@ fun SleepTimerDialog(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Active status banner if already running
                 if (activeMinutes != null && activeMinutes > 0) {
                     Card(
                         shape = RoundedCornerShape(12.dp),
@@ -711,7 +697,6 @@ fun SleepTimerDialog(
 
                 Spacer(Modifier.height(10.dp))
 
-                // Presets list
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -756,7 +741,6 @@ fun SleepTimerDialog(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Bottom actions
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
@@ -874,6 +858,7 @@ fun KyotoGardenArt(
  * - Audio format & device status
  * - Bottom action buttons: Equalizer, Queue (12 songs), Sleep timer (crescent moon)
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DroidLabNowPlayingScreen(
     title: String = "Kyoto Garden",
@@ -892,6 +877,7 @@ fun DroidLabNowPlayingScreen(
     onPrevious: () -> Unit = {},
     onNext: () -> Unit = {},
     onClose: () -> Unit = {},
+    onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
     sleepTimerMinutes: Int? = null,
     onSetSleepTimer: (Int?) -> Unit = {},
     modifier: Modifier = Modifier
@@ -902,345 +888,468 @@ fun DroidLabNowPlayingScreen(
     var currentProgress by remember { mutableFloatStateOf(progress) }
     var isShuffleOn by remember { mutableStateOf(false) }
     var isRepeatOn by remember { mutableStateOf(false) }
-    var isSlidersMenuOpen by remember { mutableStateOf(false) }
+    var isOptionsSheetOpen by remember { mutableStateOf(false) }
+    var isQueueOpen by remember { mutableStateOf(false) }
     var isSleepTimerDialogOpen by remember { mutableStateOf(false) }
 
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.surface,
-        shape = RectangleShape
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(horizontal = 20.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+    if (isQueueOpen) {
+        DroidLabQueueScreen(
+            currentTitle = title,
+            currentArtist = artist,
+            isPlaying = isPlaying,
+            isLiked = isLiked,
+            currentTime = currentTime,
+            totalTime = totalTime,
+            progress = currentProgress,
+            onPlayPause = onPlayPause,
+            onToggleLike = onToggleLike,
+            onSongSelected = { newTitle, newArtist ->
+                onSongSelected(newTitle, newArtist)
+            },
+            onClose = { isQueueOpen = false }
+        )
+    } else {
+        Surface(
+            modifier = modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.surface,
+            shape = RectangleShape
         ) {
-            // 1. Top Bar
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
+                // 1. Top Bar
+                Row(
                     modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                        .clickable(onClick = onClose),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    AppIcon(name = "chevron_down", size = 24.dp, tint = MaterialTheme.colorScheme.onSurface)
-                }
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Now playing",
-                        fontSize = 14.5.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = "From your device",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Box {
                     Box(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                            .clickable { isSlidersMenuOpen = true },
+                            .clickable(onClick = onClose),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AppIcon(name = "chevron_down", size = 24.dp, tint = MaterialTheme.colorScheme.onSurface)
+                    }
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Now playing",
+                            fontSize = 14.5.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = "From your device",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .clickable { isOptionsSheetOpen = true },
                         contentAlignment = Alignment.Center
                     ) {
                         AppIcon(name = "more_horiz", size = 24.dp, tint = MaterialTheme.colorScheme.onSurface)
                     }
-
-                    DropdownMenu(
-                        expanded = isSlidersMenuOpen,
-                        onDismissRequest = { isSlidersMenuOpen = false },
-                        modifier = Modifier
-                            .width(190.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Equalizer", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
-                            leadingIcon = { AppIcon(name = "equalizer", size = 20.dp) },
-                            onClick = {
-                                isSlidersMenuOpen = false
-                                onOpenEqualizer()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = {
-                                val label = if (sleepTimerMinutes != null && sleepTimerMinutes > 0) {
-                                    "Sleep Timer (${sleepTimerMinutes}m)"
-                                } else {
-                                    "Sleep Timer"
-                                }
-                                Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                            },
-                            leadingIcon = { AppIcon(name = "timer", size = 20.dp) },
-                            onClick = {
-                                isSlidersMenuOpen = false
-                                isSleepTimerDialogOpen = true
-                            }
-                        )
-                    }
-                }
-            }
-
-            // 2. Large Album Artwork with rounded corners matching screenshot
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(26.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
-                contentAlignment = Alignment.Center
-            ) {
-                KyotoGardenArt(modifier = Modifier.fillMaxSize())
-            }
-
-            // 3. Song Title, Artist & Like Button
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(Modifier.height(3.dp))
-                    Text(
-                        text = artist,
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
                 }
 
-                IconButton(
-                    onClick = onToggleLike,
-                    modifier = Modifier.size(42.dp)
-                ) {
-                    AppIcon(
-                        name = if (isLiked) "heart" else "heart_border",
-                        size = 26.dp,
-                        tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // 4. Progress Bar & Timestamps
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp)
-            ) {
+                // 2. Large Album Artwork with rounded corners matching screenshot
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(20.dp)
-                        .pointerInput(Unit) {
-                            detectTapGestures { offset ->
-                                currentProgress = (offset.x / size.width).coerceIn(0f, 1f)
-                            }
-                        },
-                    contentAlignment = Alignment.CenterStart
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(26.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Track Background
+                    if (title == "Kyoto Garden") {
+                        KyotoGardenArt(modifier = Modifier.fillMaxSize())
+                    } else {
+                        AppIcon(name = "music", size = 64.dp, tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+
+                // 3. Song Title, Artist & Like Button
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = title,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(Modifier.height(3.dp))
+                        Text(
+                            text = artist,
+                            fontSize = 15.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onToggleLike,
+                        modifier = Modifier.size(42.dp)
+                    ) {
+                        AppIcon(
+                            name = if (isLiked) "heart" else "heart_border",
+                            size = 26.dp,
+                            tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // 4. Progress Bar & Timestamps
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp)
+                ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(4.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    )
-                    // Active Track
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(currentProgress)
-                            .height(4.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(if (isDark) Color(0xFF8FA3B8) else Color(0xFF4A5568))
-                    )
+                            .height(20.dp)
+                            .pointerInput(Unit) {
+                                detectTapGestures { offset ->
+                                    currentProgress = (offset.x / size.width).coerceIn(0f, 1f)
+                                }
+                            },
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(currentProgress)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(if (isDark) Color(0xFF8FA3B8) else Color(0xFF4A5568))
+                        )
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = currentTime,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = totalTime,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
-                Spacer(Modifier.height(4.dp))
-
+                // 5. Playback Controls Row: Shuffle, Previous, Large Play/Pause circle, Next, Repeat
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = currentTime,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = totalTime,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // 5. Playback Controls Row: Shuffle, Previous, Large Play/Pause circle, Next, Repeat
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = { isShuffleOn = !isShuffleOn },
-                    modifier = Modifier.size(44.dp)
-                ) {
-                    AppIcon(
-                        name = "shuffle",
-                        size = 23.dp,
-                        tint = if (isShuffleOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                IconButton(
-                    onClick = onPrevious,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    AppIcon(
-                        name = "skip_previous",
-                        size = 30.dp,
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                // Center Large Circular Play/Pause Button matching screenshot
-                Box(
-                    modifier = Modifier
-                        .size(68.dp)
-                        .clip(CircleShape)
-                        .background(if (isDark) Color(0xFF434E5F) else Color(0xFF4A5568))
-                        .clickable(onClick = onPlayPause),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AppIcon(
-                        name = if (isPlaying) "pause" else "play",
-                        size = 32.dp,
-                        tint = Color.White
-                    )
-                }
-
-                IconButton(
-                    onClick = onNext,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    AppIcon(
-                        name = "skip_next",
-                        size = 30.dp,
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                IconButton(
-                    onClick = { isRepeatOn = !isRepeatOn },
-                    modifier = Modifier.size(44.dp)
-                ) {
-                    AppIcon(
-                        name = "repeat",
-                        size = 23.dp,
-                        tint = if (isRepeatOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // 6. Source & Audio Format Line
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                AppIcon(
-                    name = "storage",
-                    size = 14.dp,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = "FLAC • 44.1 kHz • On device",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // 7. Bottom Actions: Equalizer, Queue, Sleep Timer (Moon)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onOpenEqualizer,
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    AppIcon(
-                        name = "tune",
-                        size = 22.dp,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(99.dp))
-                        .clickable { }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(
+                        onClick = { isShuffleOn = !isShuffleOn },
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        AppIcon(
+                            name = "shuffle",
+                            size = 23.dp,
+                            tint = if (isShuffleOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onPrevious,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        AppIcon(
+                            name = "skip_previous",
+                            size = 30.dp,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    // Center Large Circular Play/Pause Button matching screenshot
+                    Box(
+                        modifier = Modifier
+                            .size(68.dp)
+                            .clip(CircleShape)
+                            .background(if (isDark) Color(0xFF434E5F) else Color(0xFF4A5568))
+                            .clickable(onClick = onPlayPause),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AppIcon(
+                            name = if (isPlaying) "pause" else "play",
+                            size = 32.dp,
+                            tint = Color.White
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onNext,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        AppIcon(
+                            name = "skip_next",
+                            size = 30.dp,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { isRepeatOn = !isRepeatOn },
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        AppIcon(
+                            name = "repeat",
+                            size = 23.dp,
+                            tint = if (isRepeatOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // 6. Source & Audio Format Line
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     AppIcon(
-                        name = "queue",
-                        size = 18.dp,
+                        name = "storage",
+                        size = 14.dp,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = "Queue • 12 songs",
-                        fontSize = 12.5.sp,
-                        fontWeight = FontWeight.Medium,
+                        text = "FLAC • 44.1 kHz • On device",
+                        fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                IconButton(
-                    onClick = { isSleepTimerDialogOpen = true },
-                    modifier = Modifier.size(40.dp)
+                // 7. Bottom Actions: Equalizer, Queue, Sleep Timer (Moon)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    AppIcon(
-                        name = "bedtime",
-                        size = 22.dp,
-                        tint = if (sleepTimerMinutes != null && sleepTimerMinutes > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    IconButton(
+                        onClick = onOpenEqualizer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        AppIcon(
+                            name = "tune",
+                            size = 22.dp,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(99.dp))
+                            .clickable { isQueueOpen = true }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AppIcon(
+                            name = "queue",
+                            size = 18.dp,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "Queue • 12 songs",
+                            fontSize = 12.5.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { isSleepTimerDialogOpen = true },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        AppIcon(
+                            name = "bedtime",
+                            size = 22.dp,
+                            tint = if (sleepTimerMinutes != null && sleepTimerMinutes > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
+            }
+        }
+    }
+
+    // Modal Bottom Sheet for 3-dots more menu matching Screenshot 2
+    if (isOptionsSheetOpen) {
+        ModalBottomSheet(
+            onDismissRequest = { isOptionsSheetOpen = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 10.dp, bottom = 10.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f))
+                )
+            },
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .padding(bottom = 20.dp)
+            ) {
+                // Header inside sheet
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (title == "Kyoto Garden") {
+                            KyotoGardenArt(modifier = Modifier.fillMaxSize())
+                        } else {
+                            AppIcon(name = "music", size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+
+                    Spacer(Modifier.width(14.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = title,
+                            fontSize = 15.5.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = "$artist • On device",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { isOptionsSheetOpen = false },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        AppIcon(name = "close", size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+
+                Spacer(Modifier.height(4.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                Spacer(Modifier.height(4.dp))
+
+                // 1. Remove from liked songs / Add to liked songs
+                PlayerSheetOptionItem(
+                    icon = if (isLiked) "heart" else "heart_border",
+                    text = if (isLiked) "Remove from liked songs" else "Add to liked songs",
+                    onClick = {
+                        onToggleLike()
+                        isOptionsSheetOpen = false
+                    }
+                )
+
+                // 2. Add to playlist
+                PlayerSheetOptionItem(
+                    icon = "playlist_add",
+                    text = "Add to playlist",
+                    onClick = { isOptionsSheetOpen = false }
+                )
+
+                // 3. Play next
+                PlayerSheetOptionItem(
+                    icon = "queue",
+                    text = "Play next",
+                    onClick = { isOptionsSheetOpen = false }
+                )
+
+                // 4. Go to artist
+                PlayerSheetOptionItem(
+                    icon = "person",
+                    text = "Go to artist",
+                    hasChevron = true,
+                    onClick = { isOptionsSheetOpen = false }
+                )
+
+                // 5. Go to album
+                PlayerSheetOptionItem(
+                    icon = "album",
+                    text = "Go to album",
+                    hasChevron = true,
+                    onClick = { isOptionsSheetOpen = false }
+                )
+
+                // 6. File details
+                PlayerSheetOptionItem(
+                    icon = "info",
+                    text = "File details",
+                    hasChevron = true,
+                    onClick = { isOptionsSheetOpen = false }
+                )
+
+                // 7. Settings
+                PlayerSheetOptionItem(
+                    icon = "settings",
+                    text = "Settings",
+                    hasChevron = true,
+                    onClick = { isOptionsSheetOpen = false }
+                )
             }
         }
     }
@@ -1255,6 +1364,334 @@ fun DroidLabNowPlayingScreen(
     }
 }
 
+/**
+ * Clean Row Item for Player 3-dot Bottom Sheet
+ */
+@Composable
+fun PlayerSheetOptionItem(
+    icon: String,
+    text: String,
+    hasChevron: Boolean = false,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AppIcon(
+            name = icon,
+            size = 22.dp,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.width(16.dp))
+        Text(
+            text = text,
+            fontSize = 14.5.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        if (hasChevron) {
+            AppIcon(
+                name = "chevron_right",
+                size = 18.dp,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+        }
+    }
+}
+
+/**
+ * Dedicated Queue Screen matching user reference screenshot:
+ * - Top Bar: "Queue" title, subtitle "12 songs • From your device", down chevron button
+ * - NOW PLAYING section: Album thumbnail, title, artist, like button, pause/play, progress bar
+ * - Up next • 11 section header with "Clear queue"
+ * - Reorderable list of queued songs with 6-dot drag handles, artwork, duration, and remove (x) button
+ */
+@Composable
+fun DroidLabQueueScreen(
+    currentTitle: String,
+    currentArtist: String,
+    isPlaying: Boolean,
+    isLiked: Boolean,
+    currentTime: String = "1:28",
+    totalTime: String = "4:12",
+    progress: Float = 0.35f,
+    onPlayPause: () -> Unit,
+    onToggleLike: () -> Unit,
+    onSongSelected: (title: String, artist: String) -> Unit,
+    onClose: () -> Unit
+) {
+    BackHandler(onBack = onClose)
+
+    var queueList by remember {
+        mutableStateOf(
+            listOf(
+                Triple("Blue Bottle Coffee", "Chillhop Beats", "3:45"),
+                Triple("The Reading Room", "Ambient Works", "5:08"),
+                Triple("After the Rain", "Zen Echoes", "3:56"),
+                Triple("Sunday, Slowly", "Chillhop Beats", "2:48"),
+                Triple("Paper Lanterns", "Ambient Works", "4:36"),
+                Triple("Evening Light", "Zen Echoes", "4:02")
+            )
+        )
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+        ) {
+            // 1. Top Header: Title "Queue", subtitle "12 songs • From your device", down chevron button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Queue",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "${queueList.size + 1} songs • From your device",
+                        fontSize = 13.5.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .clickable(onClick = onClose),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AppIcon(name = "chevron_down", size = 22.dp, tint = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+
+            Spacer(Modifier.height(18.dp))
+
+            // 2. NOW PLAYING Section Header
+            Text(
+                text = "NOW PLAYING",
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.8.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // 3. Now Playing Card matching screenshot
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (currentTitle == "Kyoto Garden") {
+                                KyotoGardenArt(modifier = Modifier.fillMaxSize())
+                            } else {
+                                AppIcon(name = "music", size = 24.dp)
+                            }
+                        }
+
+                        Spacer(Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = currentTitle,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = currentArtist,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        IconButton(onClick = onToggleLike, modifier = Modifier.size(36.dp)) {
+                            AppIcon(
+                                name = if (isLiked) "heart" else "heart_border",
+                                size = 22.dp,
+                                tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        IconButton(onClick = onPlayPause, modifier = Modifier.size(36.dp)) {
+                            AppIcon(
+                                name = if (isPlaying) "pause" else "play",
+                                size = 22.dp,
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.5.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                        color = Color(0xFF4A5568),
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = currentTime, fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = totalTime, fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(18.dp))
+
+            // 4. Up next • X + Clear queue
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Up next • ${queueList.size}",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Text(
+                    text = "Clear queue",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.clickable { queueList = emptyList() }
+                )
+            }
+
+            Spacer(Modifier.height(6.dp))
+
+            // 5. Queued Items List
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 32.dp)
+            ) {
+                items(queueList, key = { it.first }) { (title, artist, duration) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSongSelected(title, artist) }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Drag Handle (6-dot icon)
+                        AppIcon(
+                            name = "drag_handle",
+                            size = 20.dp,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+
+                        Spacer(Modifier.width(12.dp))
+
+                        // Square track art thumbnail with subtle music note
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AppIcon(name = "music", size = 20.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                        }
+
+                        Spacer(Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = title,
+                                fontSize = 14.5.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = artist,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        Text(
+                            text = duration,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Spacer(Modifier.width(6.dp))
+
+                        IconButton(
+                            onClick = { queueList = queueList.filter { it.first != title } },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            AppIcon(name = "close", size = 16.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 /**
  * Outlined Play Triangle (▷) matching exact reference in Image 3.
@@ -1326,7 +1763,6 @@ fun StrokePreviousIcon(
         val w = this.size.width
         val h = this.size.height
         val strokeWidth = 2.2.dp.toPx()
-        // Left vertical stroke line
         drawLine(
             color = tint,
             start = Offset(w * 0.22f, h * 0.24f),
@@ -1334,7 +1770,6 @@ fun StrokePreviousIcon(
             strokeWidth = strokeWidth,
             cap = StrokeCap.Round
         )
-        // Left-pointing triangle
         val path = Path().apply {
             moveTo(w * 0.78f, h * 0.24f)
             lineTo(w * 0.32f, h * 0.50f)
@@ -1361,7 +1796,6 @@ fun StrokeNextIcon(
         val w = this.size.width
         val h = this.size.height
         val strokeWidth = 2.2.dp.toPx()
-        // Right-pointing triangle
         val path = Path().apply {
             moveTo(w * 0.22f, h * 0.24f)
             lineTo(w * 0.68f, h * 0.50f)
@@ -1373,7 +1807,6 @@ fun StrokeNextIcon(
             color = tint,
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round)
         )
-        // Right vertical stroke line
         drawLine(
             color = tint,
             start = Offset(w * 0.78f, h * 0.24f),
@@ -1397,13 +1830,11 @@ fun StrokeShuffleIcon(
         val h = this.size.height
         val strokeWidth = 2.dp.toPx()
 
-        // Upper to lower line
         val path1 = Path().apply {
             moveTo(w * 0.18f, h * 0.32f)
             cubicTo(w * 0.45f, h * 0.32f, w * 0.55f, h * 0.68f, w * 0.76f, h * 0.68f)
         }
         drawPath(path1, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round))
-        // Arrowhead 1
         val arrow1 = Path().apply {
             moveTo(w * 0.64f, h * 0.56f)
             lineTo(w * 0.80f, h * 0.68f)
@@ -1411,13 +1842,11 @@ fun StrokeShuffleIcon(
         }
         drawPath(arrow1, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
 
-        // Lower to upper line
         val path2 = Path().apply {
             moveTo(w * 0.18f, h * 0.68f)
             cubicTo(w * 0.45f, h * 0.68f, w * 0.55f, h * 0.32f, w * 0.76f, h * 0.32f)
         }
         drawPath(path2, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round))
-        // Arrowhead 2
         val arrow2 = Path().apply {
             moveTo(w * 0.64f, h * 0.20f)
             lineTo(w * 0.80f, h * 0.32f)
@@ -1440,7 +1869,6 @@ fun StrokeRepeatIcon(
         val h = this.size.height
         val strokeWidth = 2.dp.toPx()
 
-        // Top line pointing right
         val topPath = Path().apply {
             moveTo(w * 0.22f, h * 0.55f)
             lineTo(w * 0.22f, h * 0.34f)
@@ -1455,7 +1883,6 @@ fun StrokeRepeatIcon(
         }
         drawPath(arrowTop, color = tint, style = Stroke(strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
 
-        // Bottom line pointing left
         val botPath = Path().apply {
             moveTo(w * 0.78f, h * 0.45f)
             lineTo(w * 0.78f, h * 0.66f)
@@ -1526,7 +1953,6 @@ fun DroidLabDrawerSheet(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 20.dp)
         ) {
-            // Close Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -1543,11 +1969,11 @@ fun DroidLabDrawerSheet(
 
             Spacer(Modifier.height(16.dp))
 
-            // Navigation Items
             val navItems = listOf(
                 Triple("Home", "home", "home"),
                 Triple("Music", "music", "music"),
-                Triple("Search", "search", "explore"),
+                Triple("Playlists", "playlist", "playlist"),
+                Triple("Keeps", "keep", "keep"),
                 Triple("Settings", "settings", "settings")
             )
 
@@ -1650,7 +2076,7 @@ fun DroidLabTrackRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-}
+    }
 }
 
 /**

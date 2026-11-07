@@ -5,6 +5,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.Notes
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
@@ -42,6 +44,7 @@ fun AppIcon(
             ?: context.resources.getIdentifier("ic_msr_search", "drawable", context.packageName).takeIf { it != 0 }
         "music" -> context.resources.getIdentifier("ic_lucide_music", "drawable", context.packageName).takeIf { it != 0 }
         "keep", "download", "downloads" -> context.resources.getIdentifier("ic_msr_download", "drawable", context.packageName).takeIf { it != 0 }
+        "playlist", "playlists" -> context.resources.getIdentifier("ic_lucide_library", "drawable", context.packageName).takeIf { it != 0 }
         "settings" -> context.resources.getIdentifier("ic_lucide_settings", "drawable", context.packageName).takeIf { it != 0 }
         "more_vert", "three_dots" -> context.resources.getIdentifier("ic_msr_more_vert", "drawable", context.packageName).takeIf { it != 0 }
         "drawer", "menu", "hamburger" -> context.resources.getIdentifier("ic_menu_hamburger", "drawable", context.packageName).takeIf { it != 0 }
@@ -65,13 +68,15 @@ fun AppIcon(
             "home" -> Icons.Rounded.Home
             "search", "explore" -> Icons.Rounded.Search
             "music", "song" -> Icons.Rounded.MusicNote
+            "playlist", "playlists", "playlist_play" -> Icons.AutoMirrored.Rounded.PlaylistPlay
+            "playlist_add" -> Icons.AutoMirrored.Rounded.PlaylistAdd
             "keep", "download", "downloads" -> Icons.Rounded.Download
             "settings" -> Icons.Rounded.Settings
             "more_vert", "three_dots" -> Icons.Rounded.MoreVert
             "more_horiz", "more_horizontal", "dots" -> Icons.Rounded.MoreHoriz
             "drawer", "menu", "hamburger" -> Icons.Rounded.Menu
             "close", "clear" -> Icons.Rounded.Close
-            "arrow_back", "back" -> Icons.AutoMirrored.Rounded.ArrowBack
+            "arrow_back", "back", "chevron_left" -> Icons.AutoMirrored.Rounded.ArrowBack
             "arrow_forward", "forward", "arrow_right" -> Icons.AutoMirrored.Rounded.ArrowForward
             "chevron_right", "forward_chevron" -> Icons.Rounded.ChevronRight
             "tune", "filter" -> Icons.Rounded.Tune
@@ -97,6 +102,7 @@ fun AppIcon(
             "tv", "home_theater", "theater" -> Icons.Rounded.Tv
             "lyrics" -> Icons.AutoMirrored.Rounded.Notes
             "queue", "up_next" -> Icons.AutoMirrored.Rounded.QueueMusic
+            "drag_handle", "reorder", "handle" -> Icons.Rounded.DragHandle
             "timer", "sleep_timer", "schedule" -> Icons.Rounded.Timer
             "bedtime", "night", "moon", "sleep" -> Icons.Rounded.Bedtime
             "storage", "device", "hard_drive" -> Icons.Rounded.Storage
@@ -110,7 +116,7 @@ fun AppIcon(
             "font", "text_fields" -> Icons.Rounded.TextFields
             "sort" -> Icons.AutoMirrored.Rounded.Sort
             "share" -> Icons.Rounded.Share
-            "info" -> Icons.Rounded.Info
+            "info", "file_details", "description" -> Icons.Rounded.Info
             "star" -> Icons.Rounded.Star
             "history" -> Icons.Rounded.History
             "trending_up" -> Icons.AutoMirrored.Rounded.TrendingUp
