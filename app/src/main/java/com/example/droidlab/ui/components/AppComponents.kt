@@ -518,9 +518,120 @@ fun DroidLabBottomNav(
 }
 
 /**
- * Clean, compact Floating Mini Music Player matching exact reference Image 2.
- * Subtle container, dark circular avatar (#4A5060) with white headset, crisp typography,
- * and circular progress ring with dark inner play circle.
+ * Music artwork cover for cards, lists, and player:
+ * - Shows authentic Japanese Zen Rock Garden artwork (KyotoGardenArt) for Zen/Kyoto songs
+ * - Genre-styled music covers for diverse tracks
+ * - Clean music note logo / icon if specific artwork is not available
+ */
+@Composable
+fun MusicTrackArtCover(
+    title: String,
+    artist: String,
+    modifier: Modifier = Modifier
+) {
+    val cleanTitle = title.lowercase()
+    val cleanArtist = artist.lowercase()
+
+    when {
+        cleanTitle.contains("kyoto") || cleanTitle.contains("zen") || cleanArtist.contains("zen") -> {
+            KyotoGardenArt(modifier = modifier)
+        }
+        cleanTitle.contains("midnight") || cleanArtist.contains("nova") -> {
+            Box(
+                modifier = modifier.background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF1B2838), Color(0xFF2C3E50), Color(0xFF1E1E24))
+                    )
+                ),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    AppIcon(name = "music", size = 26.dp, tint = Color(0xFF64B5F6))
+                    Spacer(Modifier.height(3.dp))
+                    AppIcon(name = "graphic_eq", size = 20.dp, tint = Color.White.copy(alpha = 0.75f))
+                }
+            }
+        }
+        cleanTitle.contains("blue bottle") || cleanTitle.contains("chillhop") || cleanArtist.contains("chillhop") -> {
+            Box(
+                modifier = modifier.background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFFD4A373), Color(0xFFCCD5AE), Color(0xFFE9EDC9))
+                    )
+                ),
+                contentAlignment = Alignment.Center
+            ) {
+                AppIcon(name = "album", size = 28.dp, tint = Color(0xFF4A3525))
+            }
+        }
+        cleanTitle.contains("neon") || cleanArtist.contains("retro") -> {
+            Box(
+                modifier = modifier.background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF833AB4), Color(0xFFFD1D1D), Color(0xFFFCB045))
+                    )
+                ),
+                contentAlignment = Alignment.Center
+            ) {
+                AppIcon(name = "album", size = 28.dp, tint = Color.White.copy(alpha = 0.9f))
+            }
+        }
+        cleanTitle.contains("solar") || cleanArtist.contains("cosmic") -> {
+            Box(
+                modifier = modifier.background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
+                    )
+                ),
+                contentAlignment = Alignment.Center
+            ) {
+                AppIcon(name = "library_music", size = 26.dp, tint = Color(0xFF00E5FF))
+            }
+        }
+        cleanTitle.contains("golden") || cleanArtist.contains("acoustic") -> {
+            Box(
+                modifier = modifier.background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFFFFB347), Color(0xFFFFCC33))
+                    )
+                ),
+                contentAlignment = Alignment.Center
+            ) {
+                AppIcon(name = "music", size = 26.dp, tint = Color(0xFF5D4037))
+            }
+        }
+        cleanTitle.contains("reading") || cleanArtist.contains("ambient") -> {
+            Box(
+                modifier = modifier.background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF3E5151), Color(0xFFDECBA4))
+                    )
+                ),
+                contentAlignment = Alignment.Center
+            ) {
+                AppIcon(name = "lyrics", size = 26.dp, tint = Color.White.copy(alpha = 0.85f))
+            }
+        }
+        else -> {
+            Box(
+                modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center
+            ) {
+                AppIcon(
+                    name = "music",
+                    size = 24.dp,
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Clean, compact Floating Mini Music Player matching overall player design:
+ * - Squarish rounded corner music artwork box (44.dp, 8.dp radius)
+ * - Transparent inner play/pause button (black background removed) with clean progress ring
+ * - Crisp typography and matched surface container
  */
 @Composable
 fun DroidLabMiniPlayer(
@@ -535,53 +646,50 @@ fun DroidLabMiniPlayer(
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val isDark = isSystemInDarkTheme()
-    val containerBg = if (isDark) {
-        Color(0xF61E222D) // Nearly solid dark slate with subtle frost
-    } else {
-        Color(0xF8F0F3F9) // Nearly solid crisp light slate
-    }
-
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 14.dp)
             .shadow(
-                elevation = 8.dp,
-                shape = RoundedCornerShape(20.dp),
-                spotColor = Color.Black.copy(alpha = 0.35f)
+                elevation = 6.dp,
+                shape = RoundedCornerShape(18.dp),
+                spotColor = Color.Black.copy(alpha = 0.12f)
             )
             .border(
-                BorderStroke(0.85.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
-                shape = RoundedCornerShape(20.dp)
+                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                shape = RoundedCornerShape(18.dp)
             )
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(18.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = containerBg
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 12.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Dark Slate Headphone Avatar matching Image 2
+            // Squarish rounded corner music artwork box
             Box(
                 modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF454B58)),
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                AppIcon(name = "headset", size = 20.dp, tint = Color.White)
+                MusicTrackArtCover(
+                    title = title,
+                    artist = artist,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
 
             Spacer(Modifier.width(12.dp))
 
-            // Center details: Title and Artist (crisp, neat, single lines)
+            // Center details: Title and Artist
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -602,10 +710,10 @@ fun DroidLabMiniPlayer(
                 )
             }
 
-            // Heart / Like button beside pause and play on the left side
+            // Heart / Like button beside pause and play
             IconButton(
                 onClick = onToggleLike,
-                modifier = Modifier.size(34.dp)
+                modifier = Modifier.size(36.dp)
             ) {
                 AppIcon(
                     name = if (isLiked) "heart" else "heart_border",
@@ -616,19 +724,20 @@ fun DroidLabMiniPlayer(
 
             Spacer(Modifier.width(2.dp))
 
-            // Circular progress ring enclosing dark circular play/pause button
+            // Circular progress ring enclosing play/pause button (black background removed)
             val ringProgress = (progressPercent / 100f).coerceIn(0f, 1f)
-            val ringPrimaryColor = Color(0xFF454B58)
-            val ringTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            val ringPrimaryColor = MaterialTheme.colorScheme.primary
+            val ringTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
 
             Box(
                 modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape),
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onPlayPause),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val strokeWidthPx = 2.4.dp.toPx()
+                    val strokeWidthPx = 2.2.dp.toPx()
                     val radius = (size.minDimension - strokeWidthPx) / 2
                     val centerOffset = Offset(size.width / 2, size.height / 2)
 
@@ -652,62 +761,25 @@ fun DroidLabMiniPlayer(
                     )
                 }
 
-                // Inner dark circular play/pause button
-                Box(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clip(CircleShape)
-                        .background(ringPrimaryColor)
-                        .clickable(onClick = onPlayPause),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isPlaying) {
-                        Canvas(modifier = Modifier.size(12.dp)) {
-                            val w = size.width
-                            val h = size.height
-                            val barW = 2.4.dp.toPx()
-                            drawRoundRect(
-                                color = Color.White,
-                                topLeft = Offset(w * 0.28f - barW / 2, 0f),
-                                size = androidx.compose.ui.geometry.Size(barW, h),
-                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.dp.toPx())
-                            )
-                            drawRoundRect(
-                                color = Color.White,
-                                topLeft = Offset(w * 0.72f - barW / 2, 0f),
-                                size = androidx.compose.ui.geometry.Size(barW, h),
-                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.dp.toPx())
-                            )
-                        }
-                    } else {
-                        Canvas(modifier = Modifier.size(12.dp)) {
-                            val w = size.width
-                            val h = size.height
-                            val path = Path().apply {
-                                moveTo(w * 0.25f, 0f)
-                                lineTo(w * 0.88f, h * 0.5f)
-                                lineTo(w * 0.25f, h)
-                                close()
-                            }
-                            drawPath(path = path, color = Color.White)
-                        }
-                    }
-                }
+                // Inner play/pause icon with transparent background (black background removed)
+                AppIcon(
+                    name = if (isPlaying) "pause" else "play",
+                    size = 20.dp,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             }
 
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(2.dp))
 
             // Skip next button
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onNext),
-                contentAlignment = Alignment.Center
+            IconButton(
+                onClick = onNext,
+                modifier = Modifier.size(36.dp)
             ) {
-                StrokeNextIcon(
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    size = 20.dp
+                AppIcon(
+                    name = "skip_next",
+                    size = 22.dp,
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -1238,11 +1310,11 @@ fun DroidLabNowPlayingScreen(
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (title == "Kyoto Garden") {
-                        KyotoGardenArt(modifier = Modifier.fillMaxSize())
-                    } else {
-                        AppIcon(name = "music", size = 64.dp, tint = MaterialTheme.colorScheme.primary)
-                    }
+                    MusicTrackArtCover(
+                        title = title,
+                        artist = artist,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
 
                 // 3. Song Title, Artist & Like Button

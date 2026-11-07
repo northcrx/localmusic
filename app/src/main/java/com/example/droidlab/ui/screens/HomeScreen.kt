@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.droidlab.ui.components.AppIcon
+import com.example.droidlab.ui.components.MusicTrackArtCover
 import com.example.droidlab.ui.components.DroidLabTabs
 import com.example.droidlab.ui.components.DroidLabTopAppBar
 import com.example.droidlab.ui.components.DroidLabTrackRow
@@ -455,7 +456,7 @@ fun HomeRoute(
                                             .width(280.dp)
                                             .clickable { onSongSelected(title, artist) }
                                     ) {
-                                        // Large rounded card with abstract artwork pattern
+                                        // Large rounded card with music artwork cover
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -464,9 +465,10 @@ fun HomeRoute(
                                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            HomeAbstractArtPattern(
-                                                modifier = Modifier.fillMaxSize(0.85f),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                                            MusicTrackArtCover(
+                                                title = title,
+                                                artist = artist,
+                                                modifier = Modifier.fillMaxSize()
                                             )
                                         }
 
@@ -551,7 +553,7 @@ fun HomeRoute(
                                             .width(96.dp)
                                             .clickable { onSongSelected(album.title, album.artist) }
                                     ) {
-                                        // Square card with abstract pattern
+                                        // Square card with music artwork cover
                                         Box(
                                             modifier = Modifier
                                                 .size(96.dp)
@@ -559,9 +561,10 @@ fun HomeRoute(
                                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            HomeAbstractArtPattern(
-                                                modifier = Modifier.fillMaxSize(0.85f),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                                            MusicTrackArtCover(
+                                                title = album.title,
+                                                artist = album.artist,
+                                                modifier = Modifier.fillMaxSize()
                                             )
                                         }
 
@@ -631,12 +634,14 @@ fun HomeRoute(
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .height(100.dp),
+                                                    .height(100.dp)
+                                                    .clip(RoundedCornerShape(12.dp)),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                HomeAbstractArtPattern(
-                                                    modifier = Modifier.fillMaxSize(0.9f),
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                                                MusicTrackArtCover(
+                                                    title = title,
+                                                    artist = artist,
+                                                    modifier = Modifier.fillMaxSize()
                                                 )
                                             }
 
