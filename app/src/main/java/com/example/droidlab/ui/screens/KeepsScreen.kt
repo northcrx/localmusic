@@ -23,23 +23,24 @@ import androidx.compose.ui.unit.sp
 import com.example.droidlab.ui.components.AppIcon
 import com.example.droidlab.ui.components.DroidLabTabs
 import com.example.droidlab.ui.components.DroidLabTopAppBar
+import com.example.droidlab.ui.components.KyotoGardenArt
 
 data class DownloadingEntry(
     val id: Int,
-    val filename: String,
+    val title: String,
+    val artist: String,
     val progress: Float,
     val downloadedSize: String,
     val totalSize: String,
-    val leftSize: String,
-    val etaFormatted: String, // ONLY minute & hour, NO seconds (e.g. "1 min", "2 min", "1 hr 10 min")
-    val speed: String,
+    val etaFormatted: String, // ONLY minute & hour, NO seconds (e.g. "1 min", "2 min")
     val isPaused: Boolean,
     val isFailed: Boolean = false
 )
 
 data class DownloadedEntry(
     val id: Int,
-    val filename: String,
+    val title: String,
+    val artist: String,
     val format: String,
     val size: String,
     val duration: String
@@ -47,19 +48,35 @@ data class DownloadedEntry(
 
 data class FinishedEntry(
     val id: Int,
-    val filename: String,
+    val title: String,
     val trackCount: String,
     val totalSize: String,
     val date: String
 )
 
 /**
+ * Formats song titles: maximum of 1 or 2 words; if longer than 2 words, appends "..."
+ */
+fun formatMusicTitle(name: String): String {
+    val clean = name.replace(Regex("\\.(mkv|flac|mp3|zip|rar|7z)$", RegexOption.IGNORE_CASE), "")
+        .replace(".", " ")
+        .replace("_", " ")
+        .trim()
+    val words = clean.split(Regex("\\s+")).filter { it.isNotBlank() }
+    return if (words.size > 2) {
+        "${words[0]} ${words[1]}..."
+    } else {
+        clean
+    }
+}
+
+/**
  * Keeps Screen (Downloads Manager):
- * - Simple, flat list entries matching Home Screen liked music styling
- * - Clean 44dp icon boxes, no squashed index numbers
- * - Single-line progress metadata (downloaded of total • time left • speed) preventing vertical wrapping
- * - Failed downloads display simple, clean "Failed to download" text
- * - Displays downloaded size and remaining file size (minutes & hours only)
+ * - Entries styled to match Music "For you" section:
+ *   - 46dp square box with subtle rounded corners (6.dp) displaying music artwork
+ *   - Music titles limited to 1 or 2 words (larger titles show ellipsis "...")
+ *   - Metadata displays music size and time it takes (no download speed or percentages)
+ *   - Minimal progress bar with pause/resume and close actions
  * - Tabs: "Downloading", "Downloaded", "Finished"
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -87,10 +104,10 @@ fun KeepsRoute(
     var downloadingList by remember {
         mutableStateOf(
             listOf(
-                DownloadingEntry(1, "Neon.Horizon.Lossless.FLAC.mkv", 0.33f, "530 MB", "1.6 GB", "1.07 GB left", "1 min", "12.8 Mb/s", false),
-                DownloadingEntry(2, "Kyoto.Garden.Zen.Echoes.flac", 0.68f, "18.4 MB", "27.0 MB", "8.6 MB left", "1 min", "8.4 Mb/s", false),
-                DownloadingEntry(3, "Solar.Drift.Cosmic.Sound.Subtitle.zip", 0.45f, "4.2 MB", "9.1 MB", "4.9 MB left", "2 min", "Paused", true),
-                DownloadingEntry(4, "Chillhop.Essentials.2024.zip", 0.0f, "0 MB", "180 MB", "180 MB left", "--", "Failed", false, isFailed = true)
+                DownloadingEntry(1, "Kyoto Garden Zen Echoes", "Zen Echoes", 0.68f, "18.4 MB", "27.0 MB", "1 min", false),
+                DownloadingEntry(2, "Neon Horizon", "Retro Wave", 0.33f, "530 MB", "1.6 GB", "1 min", false),
+                DownloadingEntry(3, "Solar Drift Cosmic Sound", "Cosmic Sound", 0.45f, "4.2 MB", "9.1 MB", "2 min", true),
+                DownloadingEntry(4, "Chillhop Essentials Collection", "Chillhop Beats", 0.0f, "0 MB", "180 MB", "--", false, isFailed = true)
             )
         )
     }
@@ -98,11 +115,11 @@ fun KeepsRoute(
     var downloadedList by remember {
         mutableStateOf(
             listOf(
-                DownloadedEntry(101, "Silo.S01E07.720p.Subtitle.zip", "ZIP Archive", "1.4 MB", "Added Today"),
-                DownloadedEntry(102, "Midnight_Drive_Master_24bit.flac", "FLAC 24-bit", "28.4 MB", "4:12"),
-                DownloadedEntry(103, "Blue_Bottle_Coffee_LoFi.mp3", "MP3 320kbps", "8.6 MB", "3:45"),
-                DownloadedEntry(104, "The_Reading_Room_Ambient.flac", "FLAC 24-bit", "22.1 MB", "3:30"),
-                DownloadedEntry(105, "Golden_Hour_Acoustic.mp3", "MP3 320kbps", "7.5 MB", "3:15")
+                DownloadedEntry(101, "Kyoto Garden", "Zen Echoes", "FLAC 24-bit", "27.0 MB", "2:58"),
+                DownloadedEntry(102, "Midnight Drive", "Nova Lane", "FLAC 24-bit", "28.4 MB", "4:12"),
+                DownloadedEntry(103, "Blue Bottle Coffee", "Chillhop Beats", "MP3 320kbps", "8.6 MB", "3:45"),
+                DownloadedEntry(104, "The Reading Room", "Ambient Works", "FLAC 24-bit", "22.1 MB", "3:30"),
+                DownloadedEntry(105, "Golden Hour", "Acoustic Sunset", "MP3 320kbps", "7.5 MB", "3:15")
             )
         )
     }
@@ -110,9 +127,9 @@ fun KeepsRoute(
     var finishedList by remember {
         mutableStateOf(
             listOf(
-                FinishedEntry(201, "Neon_Hours_Complete_Album.zip", "10 tracks", "142 MB", "Today at 14:22"),
-                FinishedEntry(202, "Chillhop_Essentials_Discography.zip", "14 tracks", "186 MB", "Yesterday"),
-                FinishedEntry(203, "Zen_Echoes_Special_Edition.flac", "6 tracks", "94 MB", "Oct 28")
+                FinishedEntry(201, "Zen Echoes Special Edition", "6 tracks", "94 MB", "Oct 28"),
+                FinishedEntry(202, "Neon Hours Complete Album", "10 tracks", "142 MB", "Today at 14:22"),
+                FinishedEntry(203, "Chillhop Essentials Discography", "14 tracks", "186 MB", "Yesterday")
             )
         )
     }
@@ -197,7 +214,7 @@ fun KeepsRoute(
 
             when (selectedTabIndex) {
                 0 -> {
-                    // "Downloading" Tab: Clean flat list entries matching Home Screen styling
+                    // "Downloading" Tab matching Music "For you" styling
                     if (downloadingList.isEmpty()) {
                         Box(
                             modifier = Modifier
@@ -231,7 +248,7 @@ fun KeepsRoute(
                                 )
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    text = "Queued downloads and active transfers will appear here.",
+                                    text = "Queued downloads will appear here.",
                                     fontSize = 13.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
@@ -241,41 +258,48 @@ fun KeepsRoute(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(top = 4.dp, bottom = 96.dp)
+                            contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp)
                         ) {
                             items(downloadingList, key = { it.id }) { item ->
+                                val displayName = formatMusicTitle(item.title)
+                                val isZenArtwork = item.title.contains("Kyoto", ignoreCase = true) || item.title.contains("Zen", ignoreCase = true)
+
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                                        .padding(horizontal = 16.dp, vertical = 9.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // 1. Icon box matching DroidLab styling (44dp, rounded)
+                                    // 1. Square artwork box with rounded corners (46dp, 6.dp corner radius) matching Music "For you"
                                     Box(
                                         modifier = Modifier
-                                            .size(44.dp)
-                                            .clip(RoundedCornerShape(10.dp))
+                                            .size(46.dp)
+                                            .clip(RoundedCornerShape(6.dp))
                                             .background(
-                                                if (item.isFailed) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
-                                                else MaterialTheme.colorScheme.primaryContainer
+                                                if (item.isFailed) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)
+                                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AppIcon(
-                                            name = if (item.isFailed) "close" else "download",
-                                            size = 22.dp,
-                                            tint = if (item.isFailed) MaterialTheme.colorScheme.error
-                                            else MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
+                                        if (isZenArtwork && !item.isFailed) {
+                                            KyotoGardenArt(modifier = Modifier.fillMaxSize())
+                                        } else {
+                                            AppIcon(
+                                                name = if (item.isFailed) "close" else "music",
+                                                size = 22.dp,
+                                                tint = if (item.isFailed) MaterialTheme.colorScheme.error
+                                                else MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
 
                                     Spacer(Modifier.width(14.dp))
 
-                                    // 2. Middle content
+                                    // 2. Middle Content: Music name (1-2 words + ...), progress bar, size & time
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = item.filename,
-                                            fontSize = 14.sp,
+                                            text = displayName,
+                                            fontSize = 14.5.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = if (item.isFailed) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f) else MaterialTheme.colorScheme.onSurface,
                                             maxLines = 1,
@@ -291,7 +315,7 @@ fun KeepsRoute(
                                                 maxLines = 1
                                             )
                                         } else {
-                                            Spacer(Modifier.height(6.dp))
+                                            Spacer(Modifier.height(5.dp))
                                             LinearProgressIndicator(
                                                 progress = { item.progress },
                                                 modifier = Modifier
@@ -302,9 +326,9 @@ fun KeepsRoute(
                                                 trackColor = MaterialTheme.colorScheme.surfaceVariant
                                             )
                                             Spacer(Modifier.height(4.dp))
-                                            // Single unified metadata text line - eliminates any wrapping or column squashing
+                                            // Displays music size and time it takes (NO speed, NO percentages)
                                             Text(
-                                                text = "${item.downloadedSize} of ${item.totalSize} • ${if (item.isPaused) "Paused" else "${item.etaFormatted} • ${item.speed}"}",
+                                                text = "${item.downloadedSize} of ${item.totalSize} • ${if (item.isPaused) "Paused" else "${item.etaFormatted} left"}",
                                                 fontSize = 11.5.sp,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 maxLines = 1,
@@ -320,7 +344,7 @@ fun KeepsRoute(
                                         IconButton(
                                             onClick = {
                                                 downloadingList = downloadingList.map {
-                                                    if (it.id == item.id) it.copy(isFailed = false, isPaused = false, progress = 0.05f, speed = "6.4 Mb/s", etaFormatted = "2 min") else it
+                                                    if (it.id == item.id) it.copy(isFailed = false, isPaused = false, progress = 0.05f, etaFormatted = "2 min") else it
                                                 }
                                             },
                                             modifier = Modifier.size(34.dp)
@@ -360,7 +384,7 @@ fun KeepsRoute(
                     }
                 }
                 1 -> {
-                    // "Downloaded" Tab: Flat list entries matching Home Screen styling
+                    // "Downloaded" Tab: Flat list entries with Music artwork
                     if (downloadedList.isEmpty()) {
                         Box(
                             modifier = Modifier
@@ -394,7 +418,7 @@ fun KeepsRoute(
                                 )
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    text = "Completed downloads will appear here ready to play offline.",
+                                    text = "Completed music files will appear here.",
                                     fontSize = 13.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
@@ -404,10 +428,12 @@ fun KeepsRoute(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(top = 4.dp, bottom = 96.dp)
+                            contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp)
                         ) {
                             items(downloadedList, key = { it.id }) { item ->
                                 val isSelected = item.id in selectedItemIds
+                                val displayName = formatMusicTitle(item.title)
+                                val isZenArtwork = item.title.contains("Kyoto", ignoreCase = true) || item.title.contains("Zen", ignoreCase = true)
 
                                 Row(
                                     modifier = Modifier
@@ -426,7 +452,7 @@ fun KeepsRoute(
                                                     }
                                                     if (selectedItemIds.isEmpty()) isSelectionMode = false
                                                 } else {
-                                                    onSongSelected(item.filename, "Downloaded Track")
+                                                    onSongSelected(item.title, item.artist)
                                                 }
                                             },
                                             onLongClick = {
@@ -434,7 +460,7 @@ fun KeepsRoute(
                                                 selectedItemIds = selectedItemIds + item.id
                                             }
                                         )
-                                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                                        .padding(horizontal = 16.dp, vertical = 9.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (isSelectionMode) {
@@ -452,27 +478,31 @@ fun KeepsRoute(
                                         )
                                     }
 
-                                    // Icon box matching DroidLab styling (44dp, rounded)
+                                    // Square artwork box (46dp, 6.dp corner radius)
                                     Box(
                                         modifier = Modifier
-                                            .size(44.dp)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                            .size(46.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AppIcon(
-                                            name = "music",
-                                            size = 22.dp,
-                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
+                                        if (isZenArtwork) {
+                                            KyotoGardenArt(modifier = Modifier.fillMaxSize())
+                                        } else {
+                                            AppIcon(
+                                                name = "music",
+                                                size = 22.dp,
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
 
                                     Spacer(Modifier.width(14.dp))
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = item.filename,
-                                            fontSize = 14.sp,
+                                            text = displayName,
+                                            fontSize = 14.5.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             maxLines = 1,
@@ -491,7 +521,7 @@ fun KeepsRoute(
                                     // Play / Open
                                     IconButton(
                                         onClick = {
-                                            onSongSelected(item.filename, "Downloaded Track")
+                                            onSongSelected(item.title, item.artist)
                                         },
                                         modifier = Modifier.size(34.dp)
                                     ) {
@@ -515,7 +545,7 @@ fun KeepsRoute(
                     }
                 }
                 2 -> {
-                    // "Finished" Tab: Flat list entries matching Home Screen styling
+                    // "Finished" Tab: Flat list entries with Music artwork
                     if (finishedList.isEmpty()) {
                         Box(
                             modifier = Modifier
@@ -549,7 +579,7 @@ fun KeepsRoute(
                                 )
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    text = "Completed albums and batch downloads will appear here.",
+                                    text = "Completed music albums will appear here.",
                                     fontSize = 13.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
@@ -559,31 +589,38 @@ fun KeepsRoute(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(top = 4.dp, bottom = 96.dp)
+                            contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp)
                         ) {
                             items(finishedList, key = { it.id }) { batch ->
+                                val displayName = formatMusicTitle(batch.title)
+                                val isZenArtwork = batch.title.contains("Kyoto", ignoreCase = true) || batch.title.contains("Zen", ignoreCase = true)
+
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                                        .padding(horizontal = 16.dp, vertical = 9.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(44.dp)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                                            .size(46.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AppIcon(name = "check", size = 20.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                                        if (isZenArtwork) {
+                                            KyotoGardenArt(modifier = Modifier.fillMaxSize())
+                                        } else {
+                                            AppIcon(name = "album", size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                                        }
                                     }
 
                                     Spacer(Modifier.width(14.dp))
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = batch.filename,
-                                            fontSize = 14.sp,
+                                            text = displayName,
+                                            fontSize = 14.5.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             maxLines = 1,
