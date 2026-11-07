@@ -63,6 +63,9 @@ fun AppRoot() {
         else -> -1
     }
 
+    // Mini Player ONLY shown at Home and Music pages, nothing else
+    val showMiniPlayer = currentRoute == Screen.Home.route || currentRoute == Screen.Music.route
+
     val navigateToSearch: () -> Unit = {
         if (currentRoute != Screen.Explore.route) {
             navController.navigate(Screen.Explore.route) {
@@ -136,8 +139,8 @@ fun AppRoot() {
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    // Floating Mini Player: Lifted little up, transparent surroundings showing content behind
-                    if (bottomNavIndex != -1) {
+                    // Floating Mini Player: ONLY at Home and Music pages, nothing else!
+                    if (showMiniPlayer) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
