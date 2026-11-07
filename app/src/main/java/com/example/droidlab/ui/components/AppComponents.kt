@@ -627,26 +627,42 @@ fun DroidLabMiniPlayer(
     onPlayPause: () -> Unit = {},
     onNext: () -> Unit = {},
     onClick: () -> Unit = {},
+    style: String = "Classic Pill",
+    showLikeButton: Boolean = true,
+    showNextButton: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    val cornerRadius = when (style) {
+        "Compact Capsule" -> 32.dp
+        "Docked Bottom Bar" -> 16.dp
+        "Waveform Rhythm" -> 20.dp
+        "Glassmorphic Glow" -> 20.dp
+        else -> 22.dp
+    }
+
+    val cardBg = when (style) {
+        "Glassmorphic Glow" -> MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+        else -> MaterialTheme.colorScheme.surface
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp)
+            .padding(horizontal = if (style == "Docked Bottom Bar") 10.dp else 14.dp)
             .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(18.dp),
+                elevation = if (style == "Compact Capsule") 4.dp else 6.dp,
+                shape = RoundedCornerShape(cornerRadius),
                 spotColor = Color.Black.copy(alpha = 0.12f)
             )
             .border(
                 BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
-                shape = RoundedCornerShape(18.dp)
+                shape = RoundedCornerShape(cornerRadius)
             )
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(cornerRadius))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(cornerRadius),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = cardBg
         )
     ) {
         Row(
@@ -680,7 +696,7 @@ fun DroidLabMiniPlayer(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    fontSize = 14.sp,
+                    fontSize = if (style == "Compact Capsule") 13.sp else 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
@@ -689,7 +705,7 @@ fun DroidLabMiniPlayer(
                 Spacer(Modifier.height(1.dp))
                 Text(
                     text = artist,
-                    fontSize = 12.sp,
+                    fontSize = if (style == "Compact Capsule") 11.sp else 12.sp,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -697,78 +713,124 @@ fun DroidLabMiniPlayer(
                 )
             }
 
-            // Heart / Like button beside pause and play
-            IconButton(
-                onClick = onToggleLike,
-                modifier = Modifier.size(36.dp)
-            ) {
-                AppIcon(
-                    name = if (isLiked) "heart" else "heart_border",
-                    size = 20.dp,
-                    tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            // Waveform Rhythm Visualizer (for Waveform Rhythm style)
+            if (style == "Waveform Rhythm") {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier.padding(horizontal = 6.dp)
+                ) {
+                    val barHeights = if (isPlaying) listOf(14.dp, 22.dp, 10.dp, 18.dp) else listOf(8.dp, 8.dp, 8.dp, 8.dp)
+                    barHeights.forEach { h ->
+                        Box(
+                            modifier = Modifier
+                                .width(2.5.dp)
+                                .height(h)
+                                .clip(RoundedCornerShape(1.dp))
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                    }
+                }
             }
 
-            Spacer(Modifier.width(2.dp))
-
-            // Circular progress ring enclosing play/pause button (black background removed)
-            val ringProgress = (progressPercent / 100f).coerceIn(0f, 1f)
-            val ringPrimaryColor = MaterialTheme.colorScheme.primary
-            val ringTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onPlayPause),
-                contentAlignment = Alignment.Center
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val strokeWidthPx = 2.2.dp.toPx()
-                    val radius = (size.minDimension - strokeWidthPx) / 2
-                    val centerOffset = Offset(size.width / 2, size.height / 2)
-
-                    // Subtle Track ring
-                    drawCircle(
-                        color = ringTrackColor,
-                        radius = radius,
-                        center = centerOffset,
-                        style = Stroke(width = strokeWidthPx)
-                    )
-
-                    // Progress arc
-                    drawArc(
-                        color = ringPrimaryColor,
-                        startAngle = -90f,
-                        sweepAngle = 360f * ringProgress,
-                        useCenter = false,
-                        topLeft = Offset(centerOffset.x - radius, centerOffset.y - radius),
-                        size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2),
-                        style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+            // Heart / Like button beside pause and play
+            if (showLikeButton) {
+                IconButton(
+                    onClick = onToggleLike,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    AppIcon(
+                        name = if (isLiked) "heart" else "heart_border",
+                        size = 20.dp,
+                        tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
-                // Inner play/pause icon with transparent background (black background removed)
-                AppIcon(
-                    name = if (isPlaying) "pause" else "play",
-                    size = 20.dp,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
             }
 
             Spacer(Modifier.width(2.dp))
 
-            // Skip next button
-            IconButton(
-                onClick = onNext,
-                modifier = Modifier.size(36.dp)
-            ) {
-                AppIcon(
-                    name = "skip_next",
-                    size = 22.dp,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
+            // Play/Pause button
+            if (style == "Docked Bottom Bar") {
+                IconButton(
+                    onClick = onPlayPause,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    AppIcon(
+                        name = if (isPlaying) "pause" else "play",
+                        size = 22.dp,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            } else {
+                // Circular progress ring enclosing play/pause button
+                val ringProgress = (progressPercent / 100f).coerceIn(0f, 1f)
+                val ringPrimaryColor = MaterialTheme.colorScheme.primary
+                val ringTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+
+                Box(
+                    modifier = Modifier
+                        .size(if (style == "Compact Capsule") 36.dp else 40.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onPlayPause),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val strokeWidthPx = 2.2.dp.toPx()
+                        val radius = (size.minDimension - strokeWidthPx) / 2
+                        val centerOffset = Offset(size.width / 2, size.height / 2)
+
+                        drawCircle(
+                            color = ringTrackColor,
+                            radius = radius,
+                            center = centerOffset,
+                            style = Stroke(width = strokeWidthPx)
+                        )
+
+                        drawArc(
+                            color = ringPrimaryColor,
+                            startAngle = -90f,
+                            sweepAngle = 360f * ringProgress,
+                            useCenter = false,
+                            topLeft = Offset(centerOffset.x - radius, centerOffset.y - radius),
+                            size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2),
+                            style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+                        )
+                    }
+
+                    AppIcon(
+                        name = if (isPlaying) "pause" else "play",
+                        size = if (style == "Compact Capsule") 18.dp else 20.dp,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
+
+            // Skip next button
+            if (showNextButton) {
+                Spacer(Modifier.width(2.dp))
+                IconButton(
+                    onClick = onNext,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    AppIcon(
+                        name = "skip_next",
+                        size = 22.dp,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+
+        // Bottom Progress Line (for Docked Bottom Bar)
+        if (style == "Docked Bottom Bar") {
+            LinearProgressIndicator(
+                progress = { (progressPercent / 100f).coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
+            )
         }
     }
 }

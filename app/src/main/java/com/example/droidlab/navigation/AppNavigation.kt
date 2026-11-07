@@ -45,6 +45,8 @@ fun AppNavHost(
     onDeviceSelected: (DeviceHardwarePreset) -> Unit = {},
     selectedFontPreference: String = "Manrope",
     onFontPreferenceChanged: (String) -> Unit = {},
+    selectedMiniPlayerStyle: String = "Classic Pill",
+    onMiniPlayerStyleChanged: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -75,7 +77,9 @@ fun AppNavHost(
                 currentSongTitle = currentSongTitle,
                 isPlaying = isPlaying,
                 likedSongs = likedSongs,
-                onToggleLike = onToggleLike
+                onToggleLike = onToggleLike,
+                selectedMiniPlayerStyle = selectedMiniPlayerStyle,
+                onMiniPlayerStyleChanged = onMiniPlayerStyleChanged
             )
         }
         composable(Screen.Playlist.route) {
@@ -137,7 +141,9 @@ fun AppNavHost(
             SettingsRoute(
                 onNavigateBack = { navController.popBackStack() },
                 selectedFontPreference = selectedFontPreference,
-                onFontPreferenceChanged = onFontPreferenceChanged
+                onFontPreferenceChanged = onFontPreferenceChanged,
+                selectedMiniPlayerStyle = selectedMiniPlayerStyle,
+                onMiniPlayerStyleChanged = onMiniPlayerStyleChanged
             )
         }
         composable(Screen.Equalizer.route) {

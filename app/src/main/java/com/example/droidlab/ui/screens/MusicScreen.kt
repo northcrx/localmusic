@@ -84,13 +84,15 @@ fun MusicRoute(
     currentSongTitle: String = "",
     isPlaying: Boolean = false,
     likedSongs: List<Pair<String, String>> = emptyList(),
-    onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> }
+    onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> },
+    selectedMiniPlayerStyle: String = "Classic Pill",
+    onMiniPlayerStyleChanged: (String) -> Unit = {}
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var selectedAlbumForDetail by remember { mutableStateOf<AlbumItem?>(null) }
     var selectedArtistForDetail by remember { mutableStateOf<ArtistItem?>(null) }
     var showAddDialog by remember { mutableStateOf(false) }
-    val tabs = listOf("For you", "Albums", "Artists")
+    val tabs = listOf("For you", "Albums", "Artists", "Mini player")
 
     val musicMenuItems = remember {
         listOf(
@@ -583,6 +585,14 @@ fun MusicRoute(
                             }
                         }
                     }
+                }
+                3 -> {
+                    // "Mini player" Tab in Library section for live customization
+                    MiniPlayerCustomizerContent(
+                        selectedMiniPlayerStyle = selectedMiniPlayerStyle,
+                        onMiniPlayerStyleChanged = onMiniPlayerStyleChanged,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }

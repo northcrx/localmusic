@@ -69,6 +69,7 @@ fun AppRoot(
     var isNowPlayingOpen by remember { mutableStateOf(false) }
     var isEqualizerOpen by remember { mutableStateOf(false) }
     var sleepTimerMinutes by remember { mutableStateOf<Int?>(null) }
+    var selectedMiniPlayerStyle by remember { mutableStateOf("Classic Pill") }
 
     // Connected Audio Device / Hardware Profile (reflected in player and throughout app)
     var activeDevicePreset by remember { mutableStateOf<DeviceHardwarePreset>(AvailableDevicePresets.first()) }
@@ -191,6 +192,8 @@ fun AppRoot(
                         onDeviceSelected = { activeDevicePreset = it },
                         selectedFontPreference = selectedFontPreference,
                         onFontPreferenceChanged = onFontPreferenceChanged,
+                        selectedMiniPlayerStyle = selectedMiniPlayerStyle,
+                        onMiniPlayerStyleChanged = { selectedMiniPlayerStyle = it },
                         modifier = Modifier.fillMaxSize()
                     )
 
@@ -215,6 +218,7 @@ fun AppRoot(
                                     currentSongArtist = "Nova Lane"
                                     isPlaying = true
                                 },
+                                style = selectedMiniPlayerStyle,
                                 onClick = { isNowPlayingOpen = true }
                             )
                         }
