@@ -96,7 +96,7 @@ fun MusicRoute(
     var artistSearchQuery by remember { mutableStateOf("") }
     var isArtistFavorite by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
-    val tabs = listOf("For you", "Albums", "Artists", "Mini player")
+    val tabs = listOf("For you", "Albums", "Artists")
 
     val musicMenuItems = remember {
         listOf(
@@ -590,14 +590,7 @@ fun MusicRoute(
                         }
                     }
                 }
-                3 -> {
-                    // "Mini player" Tab in Library section for live customization
-                    MiniPlayerCustomizerContent(
-                        selectedMiniPlayerStyle = selectedMiniPlayerStyle,
-                        onMiniPlayerStyleChanged = onMiniPlayerStyleChanged,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+
             }
         }
     }
