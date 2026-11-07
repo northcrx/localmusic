@@ -263,6 +263,8 @@ fun DroidLabMiniPlayer(
     artist: String = "Nova Lane",
     progressPercent: Int = 64,
     isPlaying: Boolean = true,
+    isLiked: Boolean = false,
+    onToggleLike: () -> Unit = {},
     onPlayPause: () -> Unit = {},
     onNext: () -> Unit = {},
     onClick: () -> Unit = {},
@@ -334,6 +336,20 @@ fun DroidLabMiniPlayer(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+
+            // Heart / Like button beside pause and play on the left side
+            IconButton(
+                onClick = onToggleLike,
+                modifier = Modifier.size(34.dp)
+            ) {
+                AppIcon(
+                    name = if (isLiked) "heart" else "heart_border",
+                    size = 20.dp,
+                    tint = if (isLiked) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(Modifier.width(2.dp))
 
             // Circular progress ring enclosing dark circular play/pause button
             val ringProgress = (progressPercent / 100f).coerceIn(0f, 1f)
@@ -722,6 +738,8 @@ fun DroidLabNowPlayingScreen(
     currentTime: String = "1:48",
     totalTime: String = "4:12",
     isPlaying: Boolean = true,
+    isLiked: Boolean = false,
+    onToggleLike: () -> Unit = {},
     onPlayPause: () -> Unit = { },
     onPrevious: () -> Unit = { },
     onNext: () -> Unit = { },
@@ -957,6 +975,21 @@ fun DroidLabNowPlayingScreen(
                     StrokePreviousIcon(
                         tint = MaterialTheme.colorScheme.onSurface,
                         size = 26.dp
+                    )
+                }
+
+                // Heart / Like Button (beside pause and play on the left side)
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onToggleLike),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AppIcon(
+                        name = if (isLiked) "heart" else "heart_border",
+                        size = 24.dp,
+                        tint = if (isLiked) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 

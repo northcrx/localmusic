@@ -55,6 +55,25 @@ fun AppRoot() {
     var currentSongArtist by remember { mutableStateOf("Nova Lane") }
     var isPlaying by remember { mutableStateOf(true) }
 
+    // Shared list of liked songs
+    val likedSongs = remember {
+        mutableStateListOf(
+            Pair("Midnight Drive", "Nova Lane"),
+            Pair("Blue Bottle Coffee", "Chillhop Beats")
+        )
+    }
+
+    val isCurrentSongLiked = likedSongs.any { it.first == currentSongTitle && it.second == currentSongArtist }
+
+    val toggleLike: (String, String) -> Unit = { title, artist ->
+        val exists = likedSongs.any { it.first == title && it.second == artist }
+        if (exists) {
+            likedSongs.removeAll { it.first == title && it.second == artist }
+        } else {
+            likedSongs.add(Pair(title, artist))
+        }
+    }
+
     val bottomNavIndex = when (currentRoute) {
         Screen.Home.route -> 0
         Screen.Music.route -> 1
@@ -136,10 +155,12 @@ fun AppRoot() {
                             currentSongArtist = artist
                             isPlaying = true
                         },
+                        likedSongs = likedSongs,
+                        onToggleLike = toggleLike,
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    // Floating Mini Player: ONLY at Home and Music pages, nothing else!
+                    // Floating Mini Player: ONLY at Home and Music pages, nothingwith else!heart like button on left side of play/pause
                     if (showMiniPlayer) {
                         Box(
                             modifier = Modifier
@@ -152,6 +173,8 @@ fun AppRoot() {
                                 artist = currentSongArtist,
                                 progressPercent = 64,
                                 isPlaying = isPlaying,
+                                isLiked = isCurrentSongLiked,
+                                onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
                                 onPlayPause = { isPlaying = !isPlaying },
                                 onNext = {
                                     currentSongTitle = "Neon Horizon"
@@ -185,6 +208,8 @@ fun AppRoot() {
                     currentTime = "1:48",
                     totalTime = "4:12",
                     isPlaying = isPlaying,
+                    isLiked = isCurrentSongLiked,
+                    onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
                     onPlayPause = { isPlaying = !isPlaying },
                     onPrevious = {
                         currentSongTitle = "Blue Bottle Coffee"

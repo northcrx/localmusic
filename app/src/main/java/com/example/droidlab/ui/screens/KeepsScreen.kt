@@ -4,7 +4,6 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -18,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,9 +54,11 @@ data class FinishedEntry(
 )
 
 /**
- * Keeps Screen transformed into an offline Downloads Manager matching exact visual reference:
- * - Green progress bar, amber percentage, size/ETA/speed pill badges.
- * - Completed entries with folder action, failed entries with retry action.
+ * Keeps Screen (Downloads Manager):
+ * - Unified download process bound together at top
+ * - Clean monochrome/slate theme matching the rest of the application
+ * - No saturated/rainbow colors, no percentages
+ * - File size, time, and speed formatted as clean inline text (no pill or circle containers)
  * - Tabs: "Downloading", "Downloaded", "Finished"
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -120,7 +120,6 @@ fun KeepsRoute(
     Scaffold(
         topBar = {
             if (isSelectionMode) {
-                // Contextual selection top bar
                 Surface(
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     modifier = Modifier.fillMaxWidth()
@@ -147,14 +146,12 @@ fun KeepsRoute(
                                 .padding(horizontal = 8.dp)
                         )
 
-                        // Select All
                         TextButton(onClick = {
                             selectedItemIds = downloadedList.map { it.id }.toSet()
                         }) {
                             Text("Select All", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         }
 
-                        // Delete Selected
                         IconButton(onClick = {
                             downloadedList = downloadedList.filter { it.id !in selectedItemIds }
                             isSelectionMode = false
@@ -198,18 +195,130 @@ fun KeepsRoute(
                 onTabSelected = { selectedTabIndex = it }
             )
 
-            val cardBg = if (isDark) Color(0xFF1B1E26) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            val pillBg = if (isDark) Color(0xFF232732) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-            val pillBorder = BorderStroke(1.dp, if (isDark) Color(0xFF2E3442) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            val cardBg = if (isDark) Color(0xFF1B1E26) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
 
             when (selectedTabIndex) {
                 0 -> {
-                    // "Downloading" Tab matching exact reference design
+                    // "Downloading" Tab: Unified downloading process at top + items
+                    val activeDownloads = downloadingList.filter { !it.isFailed }
+                    val allPaused = activeDownloads.isNotEmpty() && activeDownloads.all { it.isPaused }
+
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+                        // Unified Downloading Process Card (Binds all downloads together)
+                        item {
+                            Card(
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                ),
+                                border = BorderStroke(0.85.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(14.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(34.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                AppIcon(
+                                                    name = "download",
+                                                    size = 18.dp,
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+
+                                            Spacer(Modifier.width(10.dp))
+
+                                            Column {
+                                                Text(
+                                                    text = "Downloading Process",
+                                                    fontSize = 14.5.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Text(
+                                                    text = "${activeDownloads.size} active items",
+                                                    fontSize = 11.5.sp,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+
+                                        // Pause/Resume All Button
+                                        IconButton(
+                                            onClick = {
+                                                val shouldPause = !allPaused
+                                                downloadingList = downloadingList.map {
+                                                    if (!it.isFailed) it.copy(isPaused = shouldPause) else it
+                                                }
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            AppIcon(
+                                                name = if (allPaused) "play" else "pause",
+                                                size = 20.dp,
+                                                tint = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(Modifier.height(12.dp))
+
+                                    // Unified Progress Bar
+                                    val avgProgress = if (activeDownloads.isNotEmpty()) {
+                                        activeDownloads.map { it.progress }.average().toFloat()
+                                    } else 0f
+
+                                    LinearProgressIndicator(
+                                        progress = { avgProgress },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(5.dp)
+                                            .clip(RoundedCornerShape(2.dp)),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
+
+                                    Spacer(Modifier.height(8.dp))
+
+                                    // Unified metadata without pills or rounded boxes
+                                    Text(
+                                        text = "552.6 MB of 1.8 GB • 00:00:32 remaining • 21.2 Mb/s",
+                                        fontSize = 11.5.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+
+                        // Section header
+                        item {
+                            Text(
+                                text = "Queue (${downloadingList.size})",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 2.dp, top = 2.dp)
+                            )
+                        }
+
+                        // Individual Downloading Items
                         items(downloadingList, key = { it.id }) { item ->
                             Card(
                                 shape = RoundedCornerShape(16.dp),
@@ -222,24 +331,24 @@ fun KeepsRoute(
                                         .fillMaxWidth()
                                         .padding(horizontal = 14.dp, vertical = 12.dp)
                                 ) {
-                                    // Top Row: File icon + Filename + (Percent & Actions)
+                                    // Top Row: File icon + Filename + Actions
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        // Left File Glyph (Purple/Indigo for video/audio, Gray for failed)
+                                        // Left File Glyph (Neutral theme color)
                                         Box(
                                             modifier = Modifier
                                                 .size(34.dp)
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .background(if (item.isFailed) Color(0xFF4B5563) else Color(0xFF5B68DF)),
+                                                .background(MaterialTheme.colorScheme.secondaryContainer),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            if (item.isFailed) {
-                                                Text("?", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                                            } else {
-                                                AppIcon(name = "play", size = 15.dp, tint = Color.White)
-                                            }
+                                            AppIcon(
+                                                name = if (item.isFailed) "close" else "music",
+                                                size = 16.dp,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
                                         }
 
                                         Spacer(Modifier.width(10.dp))
@@ -258,16 +367,6 @@ fun KeepsRoute(
                                         Spacer(Modifier.width(8.dp))
 
                                         if (!item.isFailed) {
-                                            // Amber / Yellow percentage
-                                            Text(
-                                                text = "${(item.progress * 100).toInt()}%",
-                                                fontSize = 14.5.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color(0xFFFBBF24)
-                                            )
-
-                                            Spacer(Modifier.width(12.dp))
-
                                             // Pause / Resume icon (|| or ▷)
                                             IconButton(
                                                 onClick = {
@@ -315,84 +414,44 @@ fun KeepsRoute(
                                     if (!item.isFailed) {
                                         Spacer(Modifier.height(10.dp))
 
-                                        // Middle Row: Vibrant Green Progress Bar matching screenshot
+                                        // Progress Bar matching theme (no bright rainbow colors)
                                         LinearProgressIndicator(
                                             progress = { item.progress },
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(4.5.dp)
-                                                .clip(RoundedCornerShape(99.dp)),
-                                            color = if (item.isPaused) Color(0xFF6B7280) else Color(0xFF22C55E),
-                                            trackColor = if (isDark) Color(0xFF2E333F) else MaterialTheme.colorScheme.surfaceVariant
+                                                .height(4.dp)
+                                                .clip(RoundedCornerShape(2.dp)),
+                                            color = if (item.isPaused) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) else MaterialTheme.colorScheme.primary,
+                                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                                         )
 
-                                        Spacer(Modifier.height(10.dp))
+                                        Spacer(Modifier.height(8.dp))
 
-                                        // Bottom Row: Size pill, ETA pill, Speed pill
+                                        // Bottom Row: Clean text metadata WITHOUT circles or rounded corner pills
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            // Pill 1: Downloaded size
-                                            Row(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(99.dp))
-                                                    .border(pillBorder.width, pillBorder.brush, RoundedCornerShape(99.dp))
-                                                    .background(pillBg)
-                                                    .padding(horizontal = 10.dp, vertical = 5.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                AppIcon(name = "download", size = 12.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                                                Spacer(Modifier.width(5.dp))
-                                                Text(
-                                                    text = item.downloadedSize,
-                                                    fontSize = 11.5.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
-                                            }
+                                            Text(
+                                                text = "${item.downloadedSize} of ${item.totalSize}",
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
 
-                                            // Pill 2: ETA time
-                                            Row(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(99.dp))
-                                                    .border(pillBorder.width, pillBorder.brush, RoundedCornerShape(99.dp))
-                                                    .background(pillBg)
-                                                    .padding(horizontal = 14.dp, vertical = 5.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = item.eta,
-                                                    fontSize = 11.5.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    fontFamily = FontFamily.Monospace,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
-
-                                            // Pill 3: Vibrant blue speed pill with wifi/speed icon
-                                            Row(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(99.dp))
-                                                    .background(if (item.isPaused) pillBg else Color(0xFF2563EB))
-                                                    .padding(horizontal = 12.dp, vertical = 5.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                AppIcon(
-                                                    name = "speed",
-                                                    size = 13.dp,
-                                                    tint = if (item.isPaused) MaterialTheme.colorScheme.onSurfaceVariant else Color.White
-                                                )
-                                                Spacer(Modifier.width(5.dp))
-                                                Text(
-                                                    text = item.speed,
-                                                    fontSize = 11.5.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = if (item.isPaused) MaterialTheme.colorScheme.onSurfaceVariant else Color.White
-                                                )
-                                            }
+                                            Text(
+                                                text = if (item.isPaused) "Paused" else "${item.eta} • ${item.speed}",
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
                                         }
+                                    } else {
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(
+                                            text = "Download failed • Tap refresh to retry",
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
+                                        )
                                     }
                                 }
                             }
@@ -400,7 +459,7 @@ fun KeepsRoute(
                     }
                 }
                 1 -> {
-                    // "Downloaded" Tab matching completed entry style (Card 2 in screenshot)
+                    // "Downloaded" Tab: Completed entries matching theme
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
@@ -462,15 +521,15 @@ fun KeepsRoute(
                                         )
                                     }
 
-                                    // Zip / Audio file badge (Blue)
+                                    // File glyph (theme neutral)
                                     Box(
                                         modifier = Modifier
                                             .size(34.dp)
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(Color(0xFF3B82F6)),
+                                            .background(MaterialTheme.colorScheme.secondaryContainer),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AppIcon(name = "music", size = 16.dp, tint = Color.White)
+                                        AppIcon(name = "music", size = 16.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer)
                                     }
 
                                     Spacer(Modifier.width(10.dp))
@@ -493,7 +552,7 @@ fun KeepsRoute(
                                         )
                                     }
 
-                                    // Folder Icon (📁)
+                                    // Play / Open
                                     IconButton(
                                         onClick = {
                                             onSongSelected(item.filename, "Downloaded Track")
@@ -520,7 +579,7 @@ fun KeepsRoute(
                     }
                 }
                 2 -> {
-                    // "Finished" Tab: Completed batch downloads
+                    // "Finished" Tab: Completed batch downloads matching theme
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
@@ -543,10 +602,10 @@ fun KeepsRoute(
                                         modifier = Modifier
                                             .size(34.dp)
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(Color(0xFF10B981)),
+                                            .background(MaterialTheme.colorScheme.secondaryContainer),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AppIcon(name = "check", size = 18.dp, tint = Color.White)
+                                        AppIcon(name = "check", size = 18.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer)
                                     }
 
                                     Spacer(Modifier.width(10.dp))

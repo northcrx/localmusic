@@ -32,6 +32,8 @@ fun AppNavHost(
     onOpenDrawer: () -> Unit,
     onOpenSearch: () -> Unit,
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
+    likedSongs: List<Pair<String, String>> = emptyList(),
+    onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -43,14 +45,18 @@ fun AppNavHost(
             HomeRoute(
                 onOpenDrawer = onOpenDrawer,
                 onOpenSearch = onOpenSearch,
-                onSongSelected = onSongSelected
+                onSongSelected = onSongSelected,
+                likedSongs = likedSongs,
+                onToggleLike = onToggleLike
             )
         }
         composable(Screen.Music.route) {
             MusicRoute(
                 onOpenDrawer = onOpenDrawer,
                 onOpenSearch = onOpenSearch,
-                onSongSelected = onSongSelected
+                onSongSelected = onSongSelected,
+                likedSongs = likedSongs,
+                onToggleLike = onToggleLike
             )
         }
         composable(Screen.Explore.route) {

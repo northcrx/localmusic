@@ -73,6 +73,8 @@ fun AppIcon(
             "skip_previous", "prev" -> Icons.Rounded.SkipPrevious
             "shuffle" -> Icons.Rounded.Shuffle
             "repeat" -> Icons.Rounded.Repeat
+            "heart", "favorite", "like" -> Icons.Rounded.Favorite
+            "heart_border", "favorite_border", "unlike" -> Icons.Rounded.FavoriteBorder
             "chevron_down", "expand_more", "down" -> Icons.Rounded.KeyboardArrowDown
             "speaker", "phone_speaker" -> Icons.Rounded.Smartphone
             "lyrics" -> Icons.AutoMirrored.Rounded.Notes

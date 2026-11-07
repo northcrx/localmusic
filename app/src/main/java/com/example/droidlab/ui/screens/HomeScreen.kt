@@ -13,9 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,15 +23,6 @@ import com.example.droidlab.ui.components.AppIcon
 import com.example.droidlab.ui.components.DroidLabTabs
 import com.example.droidlab.ui.components.DroidLabTopAppBar
 import com.example.droidlab.ui.components.DroidLabTrackRow
-
-data class FollowArtist(
-    val id: Int,
-    val name: String,
-    val genre: String,
-    val followers: String,
-    val initialColor: Color,
-    val isFollowing: Boolean
-)
 
 data class TopTrack(
     val rank: Int,
@@ -44,17 +35,19 @@ data class TopTrack(
 /**
  * Home Screen matching exact Droid Lab specification with:
  * - "For you": 2x2 rounded shuffle cards + tracks
- * - "Following": sample artists with profile icons and Follow / Following button
+ * - "Liked": where liked songs go with heart unlike action
  * - "Top Tracks": ranked tracks with play counts
  */
 @Composable
 fun HomeRoute(
     onOpenDrawer: () -> Unit,
     onOpenSearch: () -> Unit,
-    onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> }
+    onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
+    likedSongs: List<Pair<String, String>> = emptyList(),
+    onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> }
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("For you", "Following", "Top Tracks")
+    val tabs = listOf("For you", "Liked", "Top Tracks")
 
     val homeMenuItems = remember {
         listOf(
@@ -78,20 +71,6 @@ fun HomeRoute(
     }
 
     var trackList by remember { mutableStateOf(initialTracks) }
-
-    // Sample Following Artists
-    var artistsList by remember {
-        mutableStateOf(
-            listOf(
-                FollowArtist(1, "Nova Lane", "Synthwave / Cyberpunk", "1.4M followers", Color(0xFF3B82F6), true),
-                FollowArtist(2, "Chillhop Beats", "Lo-Fi Instrumental", "890K followers", Color(0xFF10B981), true),
-                FollowArtist(3, "Zen Echoes", "Ambient Soundscapes", "520K followers", Color(0xFF8B5CF6), false),
-                FollowArtist(4, "Retro Wave", "Electronic & Synth", "2.1M followers", Color(0xFFF59E0B), true),
-                FollowArtist(5, "Cosmic Sound", "Deep Space Ambient", "340K followers", Color(0xFFEC4899), false),
-                FollowArtist(6, "Acoustic Sunset", "Folk & Acoustic Chill", "480K followers", Color(0xFF06B6D4), false)
-            )
-        )
-    }
 
     // Top Tracks
     val topTracks = remember {
@@ -380,87 +359,132 @@ fun HomeRoute(
                     }
                 }
                 1 -> {
-                    // "Following" Tab: List of artists with profile avatar & Follow/Following toggle
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp)
-                    ) {
-                        item {
-                            Text(
-                                text = "Artists you follow",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-                        }
-
-                        items(artistsList, key = { it.id }) { artist ->
-                            Card(
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 5.dp)
+                    // "Liked" Tab: Where the music that you like goes
+                    if (likedSongs.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    AppIcon(
+                                        name = "heart_border",
+                                        size = 32.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    text = "No Liked Songs Yet",
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    text = "Songs you like will appear here. Tap the heart icon on the music player to save songs.",
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            item {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(14.dp),
+                                        .padding(bottom = 6.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Box(
+                                    Text(
+                                        text = "Liked Songs (${likedSongs.size})",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = "Tap to play",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            itemsIndexed(likedSongs) { index, (title, artist) ->
+                                Card(
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onSongSelected(title, artist) }
+                                ) {
+                                    Row(
                                         modifier = Modifier
-                                            .size(46.dp)
-                                            .clip(CircleShape)
-                                            .background(artist.initialColor),
-                                        contentAlignment = Alignment.Center
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = artist.name.take(1).uppercase(),
-                                            fontSize = 20.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
-                                        )
-                                    }
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(MaterialTheme.colorScheme.secondaryContainer),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            AppIcon(name = "music", size = 18.dp)
+                                        }
 
-                                    Spacer(Modifier.width(14.dp))
+                                        Spacer(Modifier.width(12.dp))
 
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = artist.name,
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            text = "${artist.genre} • ${artist.followers}",
-                                            fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = title,
+                                                fontSize = 14.5.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            Spacer(Modifier.height(2.dp))
+                                            Text(
+                                                text = artist,
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
 
-                                    Button(
-                                        onClick = {
-                                            artistsList = artistsList.map {
-                                                if (it.id == artist.id) it.copy(isFollowing = !it.isFollowing) else it
-                                            }
-                                        },
-                                        colors = if (artist.isFollowing) {
-                                            ButtonDefaults.filledTonalButtonColors()
-                                        } else {
-                                            ButtonDefaults.buttonColors()
-                                        },
-                                        shape = RoundedCornerShape(99.dp),
-                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                                    ) {
-                                        Text(
-                                            text = if (artist.isFollowing) "Following" else "Follow",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
+                                        IconButton(
+                                            onClick = { onToggleLike(title, artist) },
+                                            modifier = Modifier.size(36.dp)
+                                        ) {
+                                            AppIcon(
+                                                name = "heart",
+                                                size = 20.dp,
+                                                tint = Color(0xFFEF4444)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -507,9 +531,9 @@ fun HomeRoute(
                                     modifier = Modifier
                                         .size(32.dp)
                                         .clip(CircleShape)
-                                        .background(
-                                            if (track.rank <= 3) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                                        ),
+                                    .background(
+                                        if (track.rank <= 3) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                                    ),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
