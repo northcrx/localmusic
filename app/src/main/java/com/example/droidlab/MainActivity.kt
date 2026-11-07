@@ -28,6 +28,9 @@ import com.example.droidlab.ui.screens.AvailableDevicePresets
 import com.example.droidlab.ui.screens.DeviceHardwarePreset
 import com.example.droidlab.ui.screens.EqualizerRoute
 import com.example.droidlab.ui.theme.DroidLabTheme
+import com.example.droidlab.ui.theme.ManropeFontFamily
+import com.example.droidlab.ui.theme.SpaceGroteskFontFamily
+import com.example.droidlab.ui.theme.SystemFontFamily
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -35,15 +38,27 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            DroidLabTheme {
-                AppRoot()
+            var selectedFontPreference by remember { mutableStateOf("Manrope") }
+            val activeFontFamily = when (selectedFontPreference) {
+                "Space Grotesk" -> SpaceGroteskFontFamily
+                "System Font" -> SystemFontFamily
+                else -> ManropeFontFamily
+            }
+            DroidLabTheme(fontFamily = activeFontFamily) {
+                AppRoot(
+                    selectedFontPreference = selectedFontPreference,
+                    onFontPreferenceChanged = { selectedFontPreference = it }
+                )
             }
         }
     }
 }
 
 @Composable
-fun AppRoot() {
+fun AppRoot(
+    selectedFontPreference: String = "Manrope",
+    onFontPreferenceChanged: (String) -> Unit = {}
+) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
@@ -118,81 +133,81 @@ fun AppRoot() {
                         launchSingleTop = true
                         restoreState = true
                     }
+                    coroutineScope.launch { drawerState.close() }
                 },
                 onClose = { coroutineScope.launch { drawerState.close() } }
             )
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                contentWindowInsets = WindowInsets(0.dp),
-                bottomBar = {
-                    if (bottomNavIndex != -1) {
-                        DroidLabBottomNav(
-                            selectedIndex = bottomNavIndex,
-                            onTabSelected = { index ->
-                                val targetScreen = BottomNavScreens[index]
-                                if (currentRoute != targetScreen.route) {
-                                    navController.navigate(targetScreen.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
+        Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            bottomBar = {
+                if (bottomNavIndex >= 0) {
+                    DroidLabBottomNav(
+                        selectedIndex = bottomNavIndex,
+                        onTabSelected = { index ->
+                            val targetScreen = BottomNavScreens[index]
+                            if (currentRoute != targetScreen.route) {
+                                navController.navigate(targetScreen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
                                     }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
                             }
-                        )
-                    }
-                }
-            ) { innerPadding ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = innerPadding.calculateBottomPadding())
-                ) {
-                    // Content scrolls freely all the way down to bottom nav
-                    AppNavHost(
-                        navController = navController,
-                        onOpenDrawer = { coroutineScope.launch { drawerState.open() } },
-                        onOpenSearch = navigateToSearch,
-                        onSongSelected = { title, artist ->
-                            currentSongTitle = title
-                            currentSongArtist = artist
-                            isPlaying = true
-                        },
-                        likedSongs = likedSongs,
-                        onToggleLike = toggleLike,
-                        activeDeviceId = activeDevicePreset.id,
-                        onDeviceSelected = { activeDevicePreset = it },
-                        modifier = Modifier.fillMaxSize()
-                    )
-
-                    // Floating Mini Player: ONLY at Home and Music pages, with heart like button
-                    if (showMiniPlayer) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 14.dp)
-                        ) {
-                            DroidLabMiniPlayer(
-                                title = currentSongTitle,
-                                artist = currentSongArtist,
-                                progressPercent = 64,
-                                isPlaying = isPlaying,
-                                isLiked = isCurrentSongLiked,
-                                onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
-                                onPlayPause = { isPlaying = !isPlaying },
-                                onNext = {
-                                    currentSongTitle = "Neon Horizon"
-                                    currentSongArtist = "Retro Wave"
-                                    isPlaying = true
-                                },
-                                onClick = { isNowPlayingOpen = true }
-                            )
                         }
+                    )
+                }
+            }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = innerPadding.calculateBottomPadding())
+            ) {
+                // Content scrolls freely all the way down to bottom nav
+                AppNavHost(
+                    navController = navController,
+                    onOpenDrawer = { coroutineScope.launch { drawerState.open() } },
+                    onOpenSearch = navigateToSearch,
+                    onSongSelected = { title, artist ->
+                        currentSongTitle = title
+                        currentSongArtist = artist
+                        isPlaying = true
+                    },
+                    likedSongs = likedSongs,
+                    onToggleLike = toggleLike,
+                    activeDeviceId = activeDevicePreset.id,
+                    onDeviceSelected = { activeDevicePreset = it },
+                    selectedFontPreference = selectedFontPreference,
+                    onFontPreferenceChanged = onFontPreferenceChanged,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // Floating Mini Player: ONLY at Home and Music pages, with heart like button
+                if (showMiniPlayer) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                    ) {
+                        DroidLabMiniPlayer(
+                            title = currentSongTitle,
+                            artist = currentSongArtist,
+                            progressPercent = 42,
+                            isPlaying = isPlaying,
+                            isLiked = isCurrentSongLiked,
+                            onToggleLike = { toggleLike(currentSongTitle, currentSongArtist) },
+                            onPlayPause = { isPlaying = !isPlaying },
+                            onNext = {
+                                currentSongTitle = "Neon Horizon"
+                                currentSongArtist = "Retro Wave"
+                                isPlaying = true
+                            },
+                            onClick = { isNowPlayingOpen = true }
+                        )
                     }
                 }
             }
@@ -251,7 +266,9 @@ fun AppRoot() {
             ) {
                 EqualizerRoute(
                     activeDeviceId = activeDevicePreset.id,
-                    onDeviceSelected = { activeDevicePreset = it },
+                    onDeviceSelected = { preset ->
+                        activeDevicePreset = preset
+                    },
                     onNavigateBack = { isEqualizerOpen = false }
                 )
             }

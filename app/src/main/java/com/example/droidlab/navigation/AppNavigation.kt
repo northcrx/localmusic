@@ -37,6 +37,8 @@ fun AppNavHost(
     onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> },
     activeDeviceId: String = "phone_speaker",
     onDeviceSelected: (DeviceHardwarePreset) -> Unit = {},
+    selectedFontPreference: String = "Manrope",
+    onFontPreferenceChanged: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -87,7 +89,9 @@ fun AppNavHost(
         }
         composable(Screen.Settings.route) {
             SettingsRoute(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                selectedFontPreference = selectedFontPreference,
+                onFontPreferenceChanged = onFontPreferenceChanged
             )
         }
         composable(Screen.Equalizer.route) {
