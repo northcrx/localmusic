@@ -166,6 +166,12 @@ fun AppRoot(
         }
     }
 
+    LaunchedEffect(Unit) {
+        playerController.playbackErrorEvent.collect { errorMessage ->
+            android.widget.Toast.makeText(context, errorMessage, android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
     var isNowPlayingOpen by remember { mutableStateOf(false) }
     var isEqualizerOpen by remember { mutableStateOf(false) }
     var sleepTimerMinutes by remember { mutableStateOf<Int?>(null) }

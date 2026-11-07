@@ -1,13 +1,13 @@
 package com.example.droidlab.playback
 
 import android.content.ComponentName
-import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -21,8 +21,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -64,6 +67,10 @@ class PlayerController(
     private val _currentFormatDescription = MutableStateFlow("On device")
     val currentFormatDescription: StateFlow<String> = _currentFormatDescription.asStateFlow()
 
+    // One-time playback error events for UI toasts/snackbars
+    private val _playbackErrorEvent = MutableSharedFlow<String>(replay = 0, extraBufferCapacity = 1)
+    val playbackErrorEvent: SharedFlow<String> = _playbackErrorEvent.asSharedFlow()
+
     private var positionTickerJob: Job? = null
     private var isRestoringSavedState = false
 
@@ -95,6 +102,7 @@ class PlayerController(
     private fun attachControllerListener(player: MediaController) {
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
+                Log.d("PlayerController", "onIsPlayingChanged: isPlaying=$isPlaying")
                 _isPlaying.value = isPlaying
                 if (isPlaying) {
                     startPositionTicker()
@@ -135,6 +143,20 @@ class PlayerController(
 
             override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
                 syncQueueWithController()
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                Log.e("PlayerController", "Playback error: ${error.message}", error)
+                if (player.hasNextMediaItem()) {
+                    player.seekToNextMediaItem()
+                    player.prepare()
+                    player.play()
+                    _playbackErrorEvent.tryEmit("Can't play file, skipped to next track")
+                } else {
+                    player.pause()
+                    _isPlaying.value = false
+                    _playbackErrorEvent.tryEmit("Can't play this file")
+                }
             }
         })
     }
@@ -216,13 +238,23 @@ class PlayerController(
 
     private fun syncQueueWithController() {
         val player = controller ?: return
-        val count = player.mediaItemCount
         _currentIndex.value = player.currentMediaItemIndex.coerceAtLeast(0)
 
-        // Only rebuild queue if count differs or items changed
-        val currentQueue = _queue.value
-        if (currentQueue.size == count && count > 0) {
+        val count = player.mediaItemCount
+        val mediaIds = (0 until count).mapNotNull { player.getMediaItemAt(it).mediaId.toLongOrNull() }
+        val currentIds = _queue.value.map { it.mediaStoreId }
+
+        // Keep it efficient for 400+ songs: rebuild only when the list of mediaIds actually changed
+        if (mediaIds == currentIds) {
             return
+        }
+
+        scope.launch(Dispatchers.IO) {
+            val songsMap = songDao.getSongsByIds(mediaIds).associateBy { it.mediaStoreId }
+            val newQueue = mediaIds.mapNotNull { songsMap[it] }
+            withContext(Dispatchers.Main) {
+                _queue.value = newQueue
+            }
         }
     }
 
@@ -247,6 +279,7 @@ class PlayerController(
     // Actions
     fun playSong(song: SongEntity, songList: List<SongEntity>) {
         val player = controller ?: return
+        Log.d("PlayerController", "playSong called: title='${song.title}', queue size=${songList.size}")
         _queue.value = songList
 
         val mediaItems = songList.map { it.toMediaItem() }
@@ -409,6 +442,8 @@ class PlayerController(
         val foundSongsMap = songDao.getSongsByIds(ids).associateBy { it.mediaStoreId }
         val restoredQueue = ids.mapNotNull { foundSongsMap[it] }
 
+        Log.d("PlayerController", "restore result: restored ${restoredQueue.size} songs, skipped ${ids.size - restoredQueue.size} missing songs")
+
         if (restoredQueue.isEmpty()) return@withContext
 
         withContext(Dispatchers.Main) {
@@ -448,11 +483,8 @@ class PlayerController(
 
 // Convert SongEntity to Media3 MediaItem
 fun SongEntity.toMediaItem(): MediaItem {
-    val artworkUri = if (albumId > 0) {
-        ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId)
-    } else {
-        Uri.parse(contentUriString)
-    }
+    // Set artworkUri to the song's own content URI so BitmapLoader can use ContentResolver.loadThumbnail(songUri, Size(512, 512))
+    val artworkUri = Uri.parse(contentUriString)
 
     return MediaItem.Builder()
         .setMediaId(mediaStoreId.toString())
