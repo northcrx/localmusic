@@ -180,6 +180,16 @@ fun AppRoot(
                             isPlaying = true
                             isNowPlayingOpen = true
                         },
+                        onPlaySong = { title, artist, openFullPlayer ->
+                            currentSongTitle = title
+                            currentSongArtist = artist
+                            isPlaying = true
+                            if (openFullPlayer) {
+                                isNowPlayingOpen = true
+                            }
+                        },
+                        currentSongTitle = currentSongTitle,
+                        isPlaying = isPlaying,
                         likedSongs = likedSongs,
                         onToggleLike = toggleLike,
                         activeDeviceId = activeDevicePreset.id,

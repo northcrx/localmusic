@@ -1,11 +1,9 @@
 package com.example.droidlab.ui.screens
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -17,11 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,95 +23,62 @@ import androidx.compose.ui.unit.sp
 import com.example.droidlab.ui.components.AppIcon
 import com.example.droidlab.ui.components.DroidLabTabs
 import com.example.droidlab.ui.components.DroidLabTopAppBar
-import kotlin.math.cos
-import kotlin.math.sin
+import com.example.droidlab.ui.components.KyotoGardenArt
+
+data class TrackItem(
+    val id: Int,
+    val title: String,
+    val artist: String,
+    val duration: String
+)
 
 data class AlbumItem(
     val id: Int,
     val title: String,
     val artist: String,
     val trackCount: Int,
-    val year: String,
-    val initialColor: Color
+    val year: String
 )
 
 data class ArtistItem(
     val id: Int,
     val name: String,
-    val genre: String,
-    val listeners: String,
-    val initialColor: Color,
-    val isFollowing: Boolean
+    val albumsCount: Int,
+    val songsCount: Int
 )
 
 /**
- * Expressive Abstract Art Pattern reproducing the design from user's screenshot:
- * 1. Top organic rounded pebble/triangle
- * 2. Bottom-left multi-pointed star / flower
- * 3. Bottom-right squircle / rounded square
- */
-@Composable
-fun AbstractArtPattern(
-    modifier: Modifier = Modifier,
-    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.28f)
-) {
-    Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
-
-        // 1. Top rounded pebble / teardrop shape
-        val pebblePath = Path().apply {
-            moveTo(w * 0.50f, h * 0.10f)
-            cubicTo(w * 0.65f, h * 0.10f, w * 0.72f, h * 0.38f, w * 0.62f, h * 0.44f)
-            cubicTo(w * 0.55f, h * 0.48f, w * 0.45f, h * 0.48f, w * 0.38f, h * 0.44f)
-            cubicTo(w * 0.28f, h * 0.38f, w * 0.35f, h * 0.10f, w * 0.50f, h * 0.10f)
-            close()
-        }
-        drawPath(pebblePath, color = tint)
-
-        // 2. Bottom-Left multi-pointed star / flower shape
-        val starCenter = Offset(w * 0.32f, h * 0.68f)
-        val outerR = minOf(w, h) * 0.18f
-        val innerR = outerR * 0.72f
-        val points = 8
-        val starPath = Path().apply {
-            for (i in 0 until points * 2) {
-                val r = if (i % 2 == 0) outerR else innerR
-                val angle = (i * Math.PI / points) - Math.PI / 2
-                val x = starCenter.x + (r * cos(angle)).toFloat()
-                val y = starCenter.y + (r * sin(angle)).toFloat()
-                if (i == 0) moveTo(x, y) else lineTo(x, y)
-            }
-            close()
-        }
-        drawPath(starPath, color = tint)
-
-        // 3. Bottom-Right squircle / rounded rectangle
-        val sqSize = minOf(w, h) * 0.32f
-        drawRoundRect(
-            color = tint,
-            topLeft = Offset(w * 0.54f, h * 0.52f),
-            size = Size(sqSize, sqSize),
-            cornerRadius = CornerRadius(sqSize * 0.28f, sqSize * 0.28f)
-        )
-    }
-}
-
-/**
- * Music Screen matching user specifications:
+ * Music Screen matching user's exact specification & screenshots:
  * - Tabs: "For you", "Albums", "Artists"
- * - "For you":
- *     1. Section title → (Large horizontal carousel card with Art, Artist, Title, and play button)
- *     2. Section title → (Horizontal row of square cards with Label underneath)
- *     3. Section title → (Horizontal row of portrait cards with Art, Artist, and Song)
- * - "Albums": Albums grid with artwork and track counts
- * - "Artists": Artists list with profile avatars and follow status
+ *
+ * 1. "For you":
+ *    - Header: "Recently added ⌄" on left, "Shuffle all" on right
+ *    - Flat track list with NO 1, 2, 3 rank numbers
+ *    - 46dp album artwork thumbnail (KyotoGardenArt for Kyoto Garden, elegant neutral art for others)
+ *    - Title & Artist
+ *    - Duration & 3 vertical dots (more_vert)
+ *    - When playing, 3 dots dynamically change to music sync rhythm bars (graphic_eq)
+ *    - Tapping plays in the minibar without force-opening the full player
+ *
+ * 2. "Albums":
+ *    - Clean neutral aesthetic (no multi-color backgrounds or exaggerated corners)
+ *    - 4dp minimal rounded square album covers
+ *    - Album title, Artist name, and track count (e.g. "12 tracks")
+ *
+ * 3. "Artists":
+ *    - Header: "6 artists" on left, "Artist name A–Z ↓" on right
+ *    - Section headers (A, C, N, R, Z)
+ *    - Flat rows (no card wrappers): 48dp circular avatar, Name, "${albums} albums • ${songs} songs", chevron_right
+ *    - NO Follow button
+ *    - Right edge alphabetical A-Z index rail
  */
 @Composable
 fun MusicRoute(
     onOpenDrawer: () -> Unit,
     onOpenSearch: () -> Unit,
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
+    currentSongTitle: String = "",
+    isPlaying: Boolean = false,
     likedSongs: List<Pair<String, String>> = emptyList(),
     onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> }
 ) {
@@ -133,42 +94,44 @@ fun MusicRoute(
         )
     }
 
-    val allTracks = remember {
+    val tracks = remember {
         listOf(
-            Pair("Blue Bottle Coffee", "Chillhop Beats"),
-            Pair("Midnight Drive", "Nova Lane"),
-            Pair("Kyoto Garden", "Zen Echoes"),
-            Pair("The Reading Room", "Ambient Works"),
-            Pair("Neon Horizon", "Retro Wave"),
-            Pair("Solar Drift", "Cosmic Sound"),
-            Pair("Golden Hour", "Acoustic Sunset"),
-            Pair("Rainy Cafe", "Lo-Fi Study"),
-            Pair("Velvet Moon", "Jazz Quartet")
+            TrackItem(1, "Kyoto Garden", "Zen Echoes", "2:58"),
+            TrackItem(2, "Blue Bottle Coffee", "Chillhop Beats", "3:45"),
+            TrackItem(3, "Midnight Drive", "Nova Lane", "4:12"),
+            TrackItem(4, "The Reading Room", "Ambient Works", "3:30"),
+            TrackItem(5, "Neon Horizon", "Retro Wave", "4:05"),
+            TrackItem(6, "Solar Drift", "Cosmic Sound", "3:50"),
+            TrackItem(7, "Golden Hour", "Acoustic Sunset", "3:15"),
+            TrackItem(8, "Rainy Cafe", "Lo-Fi Study", "2:45"),
+            TrackItem(9, "Velvet Moon", "Jazz Quartet", "4:32")
         )
     }
 
-    val sampleAlbums = remember {
+    val albums = remember {
         listOf(
-            AlbumItem(1, "Neon Hours", "Retro Wave", 12, "2024", Color(0xFF6366F1)),
-            AlbumItem(2, "Zen Echoes", "Zen Echoes", 8, "2023", Color(0xFF10B981)),
-            AlbumItem(3, "Chillhop Essentials", "Chillhop Beats", 15, "2024", Color(0xFFF59E0B)),
-            AlbumItem(4, "Midnight Sessions", "Nova Lane", 10, "2024", Color(0xFF3B82F6)),
-            AlbumItem(5, "Cosmic Horizon", "Cosmic Sound", 9, "2023", Color(0xFFEC4899)),
-            AlbumItem(6, "Acoustic Mornings", "Acoustic Sunset", 11, "2024", Color(0xFF8B5CF6))
+            AlbumItem(1, "Zen Echoes", "Zen Echoes", 8, "2023"),
+            AlbumItem(2, "Neon Hours", "Retro Wave", 12, "2024"),
+            AlbumItem(3, "Chillhop Essentials", "Chillhop Beats", 15, "2024"),
+            AlbumItem(4, "Midnight Sessions", "Nova Lane", 10, "2024"),
+            AlbumItem(5, "Cosmic Horizon", "Cosmic Sound", 9, "2023"),
+            AlbumItem(6, "Acoustic Mornings", "Acoustic Sunset", 11, "2024")
         )
     }
 
-    var sampleArtists by remember {
-        mutableStateOf(
-            listOf(
-                ArtistItem(1, "Nova Lane", "Synthwave / Cyberpunk", "1.4M monthly", Color(0xFF3B82F6), true),
-                ArtistItem(2, "Chillhop Beats", "Lo-Fi Instrumental", "890K monthly", Color(0xFF10B981), true),
-                ArtistItem(3, "Zen Echoes", "Ambient Soundscapes", "520K monthly", Color(0xFF8B5CF6), false),
-                ArtistItem(4, "Retro Wave", "Electronic & Synth", "2.1M monthly", Color(0xFFF59E0B), true),
-                ArtistItem(5, "Cosmic Sound", "Deep Space Ambient", "340K monthly", Color(0xFFEC4899), false),
-                ArtistItem(6, "Acoustic Sunset", "Folk & Acoustic Chill", "480K monthly", Color(0xFF06B6D4), false)
-            )
+    val artists = remember {
+        listOf(
+            ArtistItem(1, "Acoustic Sunset", 2, 11),
+            ArtistItem(2, "Ambient Works", 1, 8),
+            ArtistItem(3, "Chillhop Beats", 3, 24),
+            ArtistItem(4, "Nova Lane", 2, 16),
+            ArtistItem(5, "Retro Wave", 4, 32),
+            ArtistItem(6, "Zen Echoes", 2, 14)
         )
+    }
+
+    val alphabetRail = remember {
+        listOf("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
     }
 
     Scaffold(
@@ -194,253 +157,197 @@ fun MusicRoute(
 
             when (selectedTabIndex) {
                 0 -> {
-                    // "For you" Tab: Layout matching user specification & screenshot
+                    // "For you" Tab matching Screenshot 2: Clean flat track list with rhythm bars icon when playing
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 96.dp)
+                        contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp)
                     ) {
-                        // Section 1: Hero Carousel with Art + Artist/Title + Play Button
+                        // Sub-header Row: "Recently added ⌄" on left, "Shuffle all" on right
                         item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable { }
+                                        .padding(vertical = 4.dp, horizontal = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "Recently added",
+                                        fontSize = 13.5.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    AppIcon(
+                                        name = "chevron_down",
+                                        size = 18.dp,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable {
+                                            val picked = tracks.random()
+                                            onSongSelected(picked.title, picked.artist)
+                                        }
+                                        .padding(vertical = 4.dp, horizontal = 6.dp)
+                                ) {
+                                    AppIcon(
+                                        name = "shuffle",
+                                        size = 17.dp,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        text = "Shuffle all",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+
+                        // Track List
+                        items(tracks, key = { it.id }) { track ->
+                            val isCurrentSong = currentSongTitle.equals(track.title, ignoreCase = true)
+                            val isThisPlaying = isCurrentSong && isPlaying
+
+                            var showDropdown by remember { mutableStateOf(false) }
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        val (title, artist) = allTracks.first()
-                                        onSongSelected(title, artist)
+                                        onSongSelected(track.title, track.artist)
                                     }
-                                    .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = "Recommended for you",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                AppIcon(
-                                    name = "arrow_forward",
-                                    size = 20.dp,
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
+                                // 46dp Square Album Thumbnail (RoundedCornerShape(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(46.dp)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (track.title == "Kyoto Garden") {
+                                        KyotoGardenArt(modifier = Modifier.fillMaxSize())
+                                    } else {
+                                        AppIcon(
+                                            name = "music",
+                                            size = 22.dp,
+                                            tint = if (isThisPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                                        )
+                                    }
+                                }
 
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                items(allTracks.take(4)) { (title, artist) ->
-                                    Column(
-                                        modifier = Modifier
-                                            .width(280.dp)
-                                            .clickable { onSongSelected(title, artist) }
+                                Spacer(Modifier.width(14.dp))
+
+                                // Track Title & Artist
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = track.title,
+                                        fontSize = 14.5.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (isThisPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(Modifier.height(2.dp))
+                                    Text(
+                                        text = track.artist,
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+
+                                // Duration
+                                Text(
+                                    text = track.duration,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+
+                                Spacer(Modifier.width(6.dp))
+
+                                // 3-Dots icon or Rhythm waveform bars icon if playing
+                                Box {
+                                    IconButton(
+                                        onClick = {
+                                            if (isThisPlaying) {
+                                                // If already playing, tapping rhythm icon toggles play/pause or menu
+                                                showDropdown = true
+                                            } else {
+                                                showDropdown = true
+                                            }
+                                        },
+                                        modifier = Modifier.size(34.dp)
                                     ) {
-                                        // Large rounded card with abstract artwork pattern
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(160.dp)
-                                                .clip(RoundedCornerShape(22.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            AbstractArtPattern(
-                                                modifier = Modifier.fillMaxSize(0.85f),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                                        if (isThisPlaying) {
+                                            // Music sync rhythm waveform bars icon
+                                            AppIcon(
+                                                name = "graphic_eq",
+                                                size = 20.dp,
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        } else {
+                                            // 3 vertical dots
+                                            AppIcon(
+                                                name = "more_vert",
+                                                size = 20.dp,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
+                                    }
 
-                                        Spacer(Modifier.height(10.dp))
-
-                                        // Bottom Row: Artist & Title on left, circular Play Button on right
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                Text(
-                                                    text = artist,
-                                                    fontSize = 13.5.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                                Spacer(Modifier.height(2.dp))
-                                                Text(
-                                                    text = title,
-                                                    fontSize = 12.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
+                                    DropdownMenu(
+                                        expanded = showDropdown,
+                                        onDismissRequest = { showDropdown = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Play next") },
+                                            leadingIcon = { AppIcon(name = "queue", size = 18.dp) },
+                                            onClick = {
+                                                onSongSelected(track.title, track.artist)
+                                                showDropdown = false
                                             }
-
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(38.dp)
-                                                    .clip(CircleShape)
-                                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                                                    .clickable { onSongSelected(title, artist) },
-                                                contentAlignment = Alignment.Center
-                                            ) {
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(if (likedSongs.any { it.first == track.title }) "Unlike" else "Add to Liked") },
+                                            leadingIcon = {
                                                 AppIcon(
-                                                    name = "play",
-                                                    size = 20.dp,
-                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                    name = if (likedSongs.any { it.first == track.title }) "heart" else "heart_border",
+                                                    size = 18.dp,
+                                                    tint = MaterialTheme.colorScheme.primary
                                                 )
+                                            },
+                                            onClick = {
+                                                onToggleLike(track.title, track.artist)
+                                                showDropdown = false
                                             }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Section 2: Square album cards with Label underneath
-                        item {
-                            Spacer(Modifier.height(18.dp))
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { selectedTabIndex = 1 }
-                                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Featured Albums",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                AppIcon(
-                                    name = "arrow_forward",
-                                    size = 20.dp,
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(14.dp)
-                            ) {
-                                items(sampleAlbums) { album ->
-                                    Column(
-                                        modifier = Modifier
-                                            .width(96.dp)
-                                            .clickable { onSongSelected(album.title, album.artist) }
-                                    ) {
-                                        // Square card with abstract pattern
-                                        Box(
-                                            modifier = Modifier
-                                                .size(96.dp)
-                                                .clip(RoundedCornerShape(16.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            AbstractArtPattern(
-                                                modifier = Modifier.fillMaxSize(0.85f),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
-                                            )
-                                        }
-
-                                        Spacer(Modifier.height(8.dp))
-
-                                        // Label below the square
-                                        Text(
-                                            text = album.title,
-                                            fontSize = 12.5.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
                                         )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Section 3: Portrait cards with Art on top and Artist + Song at bottom
-                        item {
-                            Spacer(Modifier.height(18.dp))
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "All Songs",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                AppIcon(
-                                    name = "arrow_forward",
-                                    size = 20.dp,
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(14.dp)
-                            ) {
-                                items(allTracks) { (title, artist) ->
-                                    Card(
-                                        modifier = Modifier
-                                            .width(132.dp)
-                                            .height(184.dp)
-                                            .clip(RoundedCornerShape(18.dp))
-                                            .clickable { onSongSelected(title, artist) },
-                                        shape = RoundedCornerShape(18.dp),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                        DropdownMenuItem(
+                                            text = { Text("Go to album") },
+                                            leadingIcon = { AppIcon(name = "album", size = 18.dp) },
+                                            onClick = {
+                                                selectedTabIndex = 1
+                                                showDropdown = false
+                                            }
                                         )
-                                    ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(12.dp),
-                                            verticalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            // Top artwork
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(100.dp),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                AbstractArtPattern(
-                                                    modifier = Modifier.fillMaxSize(0.9f),
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
-                                                )
-                                            }
-
-                                            // Bottom text: Artist & Song
-                                            Column {
-                                                Text(
-                                                    text = artist,
-                                                    fontSize = 12.5.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                                Spacer(Modifier.height(2.dp))
-                                                Text(
-                                                    text = title,
-                                                    fontSize = 11.5.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                            }
-                                        }
                                     }
                                 }
                             }
@@ -448,156 +355,202 @@ fun MusicRoute(
                     }
                 }
                 1 -> {
-                    // "Albums" Tab: Grid of albums
+                    // "Albums" Tab: Clean neutral design, 4dp rounded corners, no multi-color backgrounds
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 96.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 96.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(18.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(sampleAlbums, key = { it.id }) { album ->
-                            Card(
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                                ),
+                        items(albums, key = { it.id }) { album ->
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { onSongSelected(album.title, album.artist) }
                             ) {
-                                Column(
+                                // Square album cover (minimal 4dp rounded corners, neutral colors)
+                                Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(12.dp)
-                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .aspectRatio(1f)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(album.initialColor.copy(alpha = 0.25f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (album.title == "Zen Echoes") {
+                                        KyotoGardenArt(modifier = Modifier.fillMaxSize())
+                                    } else {
                                         Box(
                                             modifier = Modifier
-                                                .size(46.dp)
+                                                .size(48.dp)
                                                 .clip(CircleShape)
-                                                .background(album.initialColor),
+                                                .background(MaterialTheme.colorScheme.surfaceVariant),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            AppIcon(name = "library_music", size = 22.dp, tint = Color.White)
+                                            AppIcon(
+                                                name = "album",
+                                                size = 26.dp,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
                                         }
                                     }
-
-                                    Spacer(Modifier.height(10.dp))
-
-                                    Text(
-                                        text = album.title,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-
-                                    Spacer(Modifier.height(2.dp))
-
-                                    Text(
-                                        text = "${album.artist} • ${album.trackCount} tracks",
-                                        fontSize = 11.5.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
                                 }
+
+                                Spacer(Modifier.height(8.dp))
+
+                                // Album Name
+                                Text(
+                                    text = album.title,
+                                    fontSize = 13.5.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
+                                Spacer(Modifier.height(2.dp))
+
+                                // Artist Name & Track count (e.g. "Zen Echoes • 8 tracks")
+                                Text(
+                                    text = "${album.artist} • ${album.trackCount} tracks",
+                                    fontSize = 11.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
                         }
                     }
                 }
                 2 -> {
-                    // "Artists" Tab: List of artists with profile avatar & Follow/Following
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        item {
-                            Text(
-                                text = "Artists in your library",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(bottom = 4.dp)
-                            )
-                        }
-
-                        items(sampleArtists, key = { it.id }) { artist ->
-                            Card(
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
+                    // "Artists" Tab matching Screenshot 3:
+                    // Header: "6 artists" on left, "Artist name A–Z ↓" on right
+                    // Letter headers, 48dp circular avatars, `${albums} albums • ${songs} songs`, chevron_right, A-Z rail
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            contentPadding = PaddingValues(top = 10.dp, bottom = 96.dp)
+                        ) {
+                            // Sub-header Row
+                            item {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(14.dp),
+                                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(46.dp)
-                                            .clip(CircleShape)
-                                            .background(artist.initialColor),
-                                        contentAlignment = Alignment.Center
-                                    ) {
+                                    Text(
+                                        text = "${artists.size} artists",
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
-                                            text = artist.name.take(1).uppercase(),
-                                            fontSize = 20.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
-                                        )
-                                    }
-
-                                    Spacer(Modifier.width(14.dp))
-
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = artist.name,
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            text = "${artist.genre} • ${artist.listeners}",
-                                            fontSize = 12.sp,
+                                            text = "Artist name A–Z",
+                                            fontSize = 12.5.sp,
+                                            fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                    }
-
-                                    Button(
-                                        onClick = {
-                                            sampleArtists = sampleArtists.map {
-                                                if (it.id == artist.id) it.copy(isFollowing = !it.isFollowing) else it
-                                            }
-                                        },
-                                        colors = if (artist.isFollowing) {
-                                            ButtonDefaults.filledTonalButtonColors()
-                                        } else {
-                                            ButtonDefaults.buttonColors()
-                                        },
-                                        shape = RoundedCornerShape(99.dp),
-                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                                    ) {
-                                        Text(
-                                            text = if (artist.isFollowing) "Following" else "Follow",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.SemiBold
+                                        Spacer(Modifier.width(4.dp))
+                                        AppIcon(
+                                            name = "sort",
+                                            size = 16.dp,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
+                            }
+
+                            // Grouped by initial letter
+                            val grouped = artists.groupBy { it.name.first().uppercaseChar() }
+
+                            grouped.forEach { (initial, artistList) ->
+                                item(key = "header_$initial") {
+                                    Text(
+                                        text = initial.toString(),
+                                        fontSize = 12.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(start = 16.dp, top = 14.dp, bottom = 4.dp)
+                                    )
+                                }
+
+                                items(artistList, key = { it.id }) { artist ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                onSongSelected(artist.name, "Artist")
+                                            }
+                                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        // 48dp Circular Avatar (neutral styling, subtle icon/initial)
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = artist.name.take(1).uppercase(),
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+
+                                        Spacer(Modifier.width(14.dp))
+
+                                        // Name and album/song count
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = artist.name,
+                                                fontSize = 14.5.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(Modifier.height(2.dp))
+                                            Text(
+                                                text = "${artist.albumsCount} albums • ${artist.songsCount} songs",
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+
+                                        // Chevron Right
+                                        AppIcon(
+                                            name = "chevron_right",
+                                            size = 20.dp,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Alphabetical A-Z index rail along right edge
+                        Column(
+                            modifier = Modifier
+                                .width(22.dp)
+                                .fillMaxHeight()
+                                .padding(end = 4.dp, top = 24.dp, bottom = 96.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            alphabetRail.forEach { letter ->
+                                Text(
+                                    text = letter,
+                                    fontSize = 8.5.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
                             }
                         }
                     }

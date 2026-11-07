@@ -73,6 +73,7 @@ fun AppIcon(
             "close", "clear" -> Icons.Rounded.Close
             "arrow_back", "back" -> Icons.AutoMirrored.Rounded.ArrowBack
             "arrow_forward", "forward", "arrow_right" -> Icons.AutoMirrored.Rounded.ArrowForward
+            "chevron_right", "forward_chevron" -> Icons.Rounded.ChevronRight
             "tune", "filter" -> Icons.Rounded.Tune
             "lightbulb" -> Icons.Rounded.Lightbulb
             "tips_and_updates" -> Icons.Rounded.TipsAndUpdates

@@ -33,6 +33,9 @@ fun AppNavHost(
     onOpenDrawer: () -> Unit,
     onOpenSearch: () -> Unit,
     onSongSelected: (title: String, artist: String) -> Unit = { _, _ -> },
+    onPlaySong: (title: String, artist: String, openFullPlayer: Boolean) -> Unit = { t, a, _ -> onSongSelected(t, a) },
+    currentSongTitle: String = "",
+    isPlaying: Boolean = false,
     likedSongs: List<Pair<String, String>> = emptyList(),
     onToggleLike: (title: String, artist: String) -> Unit = { _, _ -> },
     activeDeviceId: String = "phone_speaker",
@@ -50,16 +53,20 @@ fun AppNavHost(
             HomeRoute(
                 onOpenDrawer = onOpenDrawer,
                 onOpenSearch = onOpenSearch,
-                onSongSelected = onSongSelected,
+                onSongSelected = { title, artist -> onPlaySong(title, artist, false) },
                 likedSongs = likedSongs,
-                onToggleLike = onToggleLike
+                onToggleLike = onToggleLike,
+                currentSongTitle = currentSongTitle,
+                isPlaying = isPlaying
             )
         }
         composable(Screen.Music.route) {
             MusicRoute(
                 onOpenDrawer = onOpenDrawer,
                 onOpenSearch = onOpenSearch,
-                onSongSelected = onSongSelected,
+                onSongSelected = { title, artist -> onPlaySong(title, artist, false) },
+                currentSongTitle = currentSongTitle,
+                isPlaying = isPlaying,
                 likedSongs = likedSongs,
                 onToggleLike = onToggleLike
             )
@@ -77,14 +84,14 @@ fun AppNavHost(
                         }
                     }
                 },
-                onSongSelected = onSongSelected
+                onSongSelected = { title, artist -> onPlaySong(title, artist, false) }
             )
         }
         composable(Screen.Keep.route) {
             KeepsRoute(
                 onOpenDrawer = onOpenDrawer,
                 onOpenSearch = onOpenSearch,
-                onSongSelected = onSongSelected
+                onSongSelected = { title, artist -> onPlaySong(title, artist, false) }
             )
         }
         composable(Screen.Settings.route) {

@@ -6,7 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -56,7 +56,8 @@ data class FinishedEntry(
 /**
  * Keeps Screen (Downloads Manager):
  * - Simple, flat list entries matching Home Screen liked music styling
- * - Minimal progress bar and sleek pause/resume/cancel controls
+ * - Clean 44dp icon boxes, no squashed index numbers
+ * - Single-line progress metadata (downloaded of total • time left • speed) preventing vertical wrapping
  * - Failed downloads display simple, clean "Failed to download" text
  * - Displays downloaded size and remaining file size (minutes & hours only)
  * - Tabs: "Downloading", "Downloaded", "Finished"
@@ -242,27 +243,18 @@ fun KeepsRoute(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(top = 4.dp, bottom = 96.dp)
                         ) {
-                            itemsIndexed(downloadingList, key = { _, item -> item.id }) { index, item ->
+                            items(downloadingList, key = { it.id }) { item ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp, vertical = 10.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // 1. Index
-                                    Text(
-                                        text = "${index + 1}",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.width(28.dp)
-                                    )
-
-                                    // 2. Icon box matching DroidLabTrackRow
+                                    // 1. Icon box matching DroidLab styling (44dp, rounded)
                                     Box(
                                         modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .size(44.dp)
+                                            .clip(RoundedCornerShape(10.dp))
                                             .background(
                                                 if (item.isFailed) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
                                                 else MaterialTheme.colorScheme.primaryContainer
@@ -271,7 +263,7 @@ fun KeepsRoute(
                                     ) {
                                         AppIcon(
                                             name = if (item.isFailed) "close" else "download",
-                                            size = 20.dp,
+                                            size = 22.dp,
                                             tint = if (item.isFailed) MaterialTheme.colorScheme.error
                                             else MaterialTheme.colorScheme.onPrimaryContainer
                                         )
@@ -279,7 +271,7 @@ fun KeepsRoute(
 
                                     Spacer(Modifier.width(14.dp))
 
-                                    // 3. Middle content
+                                    // 2. Middle content
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = item.filename,
@@ -299,7 +291,7 @@ fun KeepsRoute(
                                                 maxLines = 1
                                             )
                                         } else {
-                                            Spacer(Modifier.height(5.dp))
+                                            Spacer(Modifier.height(6.dp))
                                             LinearProgressIndicator(
                                                 progress = { item.progress },
                                                 modifier = Modifier
@@ -310,28 +302,20 @@ fun KeepsRoute(
                                                 trackColor = MaterialTheme.colorScheme.surfaceVariant
                                             )
                                             Spacer(Modifier.height(4.dp))
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = "${item.downloadedSize} of ${item.totalSize} (${item.leftSize})",
-                                                    fontSize = 11.5.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                                Text(
-                                                    text = if (item.isPaused) "Paused" else "${item.etaFormatted} • ${item.speed}",
-                                                    fontSize = 11.5.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
+                                            // Single unified metadata text line - eliminates any wrapping or column squashing
+                                            Text(
+                                                text = "${item.downloadedSize} of ${item.totalSize} • ${if (item.isPaused) "Paused" else "${item.etaFormatted} • ${item.speed}"}",
+                                                fontSize = 11.5.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
                                         }
                                     }
 
                                     Spacer(Modifier.width(8.dp))
 
-                                    // 4. Trailing Action buttons
+                                    // 3. Trailing Action buttons
                                     if (item.isFailed) {
                                         IconButton(
                                             onClick = {
@@ -339,7 +323,7 @@ fun KeepsRoute(
                                                     if (it.id == item.id) it.copy(isFailed = false, isPaused = false, progress = 0.05f, speed = "6.4 Mb/s", etaFormatted = "2 min") else it
                                                 }
                                             },
-                                            modifier = Modifier.size(32.dp)
+                                            modifier = Modifier.size(34.dp)
                                         ) {
                                             AppIcon(name = "refresh", size = 18.dp, tint = MaterialTheme.colorScheme.primary)
                                         }
@@ -350,7 +334,7 @@ fun KeepsRoute(
                                                     if (it.id == item.id) it.copy(isPaused = !it.isPaused) else it
                                                 }
                                             },
-                                            modifier = Modifier.size(32.dp)
+                                            modifier = Modifier.size(34.dp)
                                         ) {
                                             AppIcon(
                                                 name = if (item.isPaused) "play" else "pause",
@@ -366,7 +350,7 @@ fun KeepsRoute(
                                         onClick = {
                                             downloadingList = downloadingList.filter { it.id != item.id }
                                         },
-                                        modifier = Modifier.size(32.dp)
+                                        modifier = Modifier.size(34.dp)
                                     ) {
                                         AppIcon(name = "close", size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
@@ -422,7 +406,7 @@ fun KeepsRoute(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(top = 4.dp, bottom = 96.dp)
                         ) {
-                            itemsIndexed(downloadedList, key = { _, item -> item.id }) { index, item ->
+                            items(downloadedList, key = { it.id }) { item ->
                                 val isSelected = item.id in selectedItemIds
 
                                 Row(
@@ -450,7 +434,7 @@ fun KeepsRoute(
                                                 selectedItemIds = selectedItemIds + item.id
                                             }
                                         )
-                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                        .padding(horizontal = 16.dp, vertical = 10.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (isSelectionMode) {
@@ -464,29 +448,21 @@ fun KeepsRoute(
                                                 }
                                                 if (selectedItemIds.isEmpty()) isSelectionMode = false
                                             },
-                                            modifier = Modifier.padding(end = 8.dp)
-                                        )
-                                    } else {
-                                        Text(
-                                            text = "${index + 1}",
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.width(28.dp)
+                                            modifier = Modifier.padding(end = 10.dp)
                                         )
                                     }
 
-                                    // Icon box matching DroidLabTrackRow
+                                    // Icon box matching DroidLab styling (44dp, rounded)
                                     Box(
                                         modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .size(44.dp)
+                                            .clip(RoundedCornerShape(10.dp))
                                             .background(MaterialTheme.colorScheme.primaryContainer),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         AppIcon(
                                             name = "music",
-                                            size = 20.dp,
+                                            size = 22.dp,
                                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                                         )
                                     }
@@ -517,7 +493,7 @@ fun KeepsRoute(
                                         onClick = {
                                             onSongSelected(item.filename, "Downloaded Track")
                                         },
-                                        modifier = Modifier.size(36.dp)
+                                        modifier = Modifier.size(34.dp)
                                     ) {
                                         AppIcon(name = "library_music", size = 19.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
@@ -529,7 +505,7 @@ fun KeepsRoute(
                                         onClick = {
                                             downloadedList = downloadedList.filter { it.id != item.id }
                                         },
-                                        modifier = Modifier.size(36.dp)
+                                        modifier = Modifier.size(34.dp)
                                     ) {
                                         AppIcon(name = "close", size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
@@ -585,29 +561,21 @@ fun KeepsRoute(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(top = 4.dp, bottom = 96.dp)
                         ) {
-                            itemsIndexed(finishedList, key = { _, item -> item.id }) { index, batch ->
+                            items(finishedList, key = { it.id }) { batch ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                        .padding(horizontal = 16.dp, vertical = 10.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = "${index + 1}",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.width(28.dp)
-                                    )
-
                                     Box(
                                         modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .size(44.dp)
+                                            .clip(RoundedCornerShape(10.dp))
                                             .background(MaterialTheme.colorScheme.secondaryContainer),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AppIcon(name = "check", size = 19.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                                        AppIcon(name = "check", size = 20.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer)
                                     }
 
                                     Spacer(Modifier.width(14.dp))
@@ -635,7 +603,7 @@ fun KeepsRoute(
                                         onClick = {
                                             finishedList = finishedList.filter { it.id != batch.id }
                                         },
-                                        modifier = Modifier.size(36.dp)
+                                        modifier = Modifier.size(34.dp)
                                     ) {
                                         AppIcon(name = "close", size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
