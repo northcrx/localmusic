@@ -8,6 +8,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -429,8 +430,10 @@ fun DroidLabTabs(
 }
 
 /**
- * Bottom Navigation Bar matching Droid Lab visual specification (.nav-bar.nav-material).
- * Tabs: Home, Music, Playlist, Keeps.
+ * Bottom Navigation Bar matching clean content styling.
+ * Color matched to content surface (tonalElevation = 0.dp), clean gray/white.
+ * Pressing item activates only the compact pill selecting button around the icon,
+ * eliminating the oversized rectangular shadow box over the entire item.
  */
 @Composable
 fun DroidLabBottomNav(
@@ -448,7 +451,7 @@ fun DroidLabBottomNav(
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp
+        tonalElevation = 0.dp
     ) {
         Column(
             modifier = Modifier
@@ -456,8 +459,8 @@ fun DroidLabBottomNav(
                 .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
-                thickness = 0.75.dp
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.30f),
+                thickness = 0.65.dp
             )
             Row(
                 modifier = Modifier
@@ -467,23 +470,28 @@ fun DroidLabBottomNav(
             ) {
                 items.forEachIndexed { index, (label, icon) ->
                     val isSelected = selectedIndex == index
+                    val interactionSource = remember { MutableInteractionSource() }
+
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable { onTabSelected(index) }
-                            .padding(vertical = 3.dp),
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) { onTabSelected(index) }
+                            .padding(vertical = 4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        // Pill icon indicator
+                        // Compact selecting pill indicator (only the icon button highlights)
                         Box(
                             modifier = Modifier
-                                .width(52.dp)
+                                .width(48.dp)
                                 .height(28.dp)
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(
-                                    if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
+                                    if (isSelected) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
+                                    else Color.Transparent
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -491,14 +499,14 @@ fun DroidLabBottomNav(
                                 name = icon,
                                 contentDescription = label,
                                 size = 20.dp,
-                                tint = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
                         Text(
                             text = label,
                             fontSize = 11.sp,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                             color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1
                         )
